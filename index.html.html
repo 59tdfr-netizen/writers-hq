@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Штаб писателя</title>
+<style>
+:root{--bg:#f5f3ee;--paper:#fffefa;--ink:#252923;--muted:#777c72;--line:#e7e4db;--green:#496b52;--green2:#dce9d9;--orange:#c47748;--red:#b85d54;--shadow:0 8px 30px rgba(40,44,35,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+.wrap{max-width:1160px;margin:0 auto;padding:34px 24px 50px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:750;color:var(--green)}h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(34px,5vw,52px);letter-spacing:-.04em;margin:7px 0 8px}.sub{color:var(--muted);max-width:600px;font-size:15px}.date-chip{background:var(--paper);border:1px solid var(--line);padding:10px 14px;border-radius:14px;color:var(--muted);font-size:13px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr);gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);min-width:0}.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.card h2{font-size:17px;margin:0;font-weight:700;letter-spacing:-.02em}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8f7f1;border-radius:14px;padding:14px}.stat .label{font-size:12px;color:var(--muted);margin-bottom:8px}.stat .value{font-size:clamp(20px,2.6vw,29px);font-weight:700;letter-spacing:-.04em}.stat .unit{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
+label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6px}input,select{width:100%;border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);outline:none}input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px #496b5219}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.btn{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s}.btn:active{transform:scale(.98)}.primary{background:var(--green);color:white}.secondary{background:#efeee7;color:var(--ink)}.danger{background:#f7e7e4;color:#8e3e37}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.entry-note{font-size:12px;color:var(--muted);margin-top:10px}
+.goal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.goal-title{font-family:Georgia,serif;font-size:23px;line-height:1.15;margin:4px 0 5px}.progress-num{font-size:25px;font-weight:750;letter-spacing:-.04em}.bar{height:9px;background:#eae8df;border-radius:20px;overflow:hidden;margin:16px 0 9px}.bar-fill{height:100%;background:var(--green);width:0%;border-radius:20px;transition:width .25s}.goal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.meta-box{border-top:1px solid var(--line);padding-top:11px}.meta-box .big{font-size:19px;font-weight:700;margin-top:3px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:100px;background:#f1efe7;padding:6px 9px;font-size:11px;font-weight:750}.dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}.status.good{background:#e6efe3;color:#3d6244}.status.good .dot{background:var(--green)}.status.bad{background:#f7e7e4;color:#98483e}.status.bad .dot{background:var(--red)}
+.calendar-card{grid-column:1/-1}.calendar-nav{display:flex;align-items:center;gap:8px}.month-label{min-width:135px;text-align:center;font-size:14px;font-weight:750}.icon-btn{border:1px solid var(--line);background:#fff;border-radius:9px;width:32px;height:32px;cursor:pointer;color:var(--ink);font-size:18px}.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.weekday{text-align:center;color:var(--muted);font-size:11px;padding:4px 0 7px}.day{min-height:76px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:8px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;cursor:pointer;color:var(--ink);min-width:0}.day:hover{border-color:#9bb09a}.day.empty{background:transparent;border-color:transparent;cursor:default}.day.today{outline:2px solid var(--green);outline-offset:-2px}.day.selected{border-color:var(--green);background:#f1f6ef}.day.future{opacity:.48}.day .num{font-size:12px;color:var(--muted)}.day .chars{font-size:12px;font-weight:750;overflow-wrap:anywhere}.day .activity{height:4px;border-radius:5px;background:#e5e3da;margin-top:5px}.day .activity.active{background:#719777}.day .activity.high{background:#365e40}.legend{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:13px;font-size:11px;color:var(--muted)}.legend-scale{display:flex;align-items:center;gap:4px}.sq{width:12px;height:12px;border-radius:3px;background:#e5e3da}.sq.s1{background:#cbdcc7}.sq.s2{background:#8fb18f}.sq.s3{background:#365e40}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.achievement-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.achievement{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfaf6}.achievement.locked{opacity:.52;filter:grayscale(.7)}.achievement-icon{font-size:23px;line-height:1.2}.achievement strong{display:block;font-size:13px}.achievement p{font-size:11px;color:var(--muted);margin:3px 0 0}.backup-notice{display:none;margin:0 0 18px;padding:16px 18px;border:1px solid #e6c9a8;border-radius:15px;background:#fff6e9}.backup-notice.show{display:flex;justify-content:space-between;align-items:center;gap:14px}.backup-notice strong{display:block;font-size:14px}.backup-notice p{font-size:12px;color:var(--muted);margin:4px 0 0}.toast{position:fixed;right:20px;bottom:20px;max-width:340px;background:#2e4935;color:#fff;padding:15px 18px;border-radius:14px;box-shadow:var(--shadow);z-index:10;display:none}.toast.show{display:block}.toast strong{display:block;margin-bottom:3px}.backup-actions{display:flex;gap:8px;flex-wrap:wrap}.tip{font-family:Georgia,serif;font-size:20px;line-height:1.35;margin:5px 0 0}.history-list{display:flex;flex-direction:column;gap:10px}.history-item{display:flex;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:13px}.history-item:last-child{border-bottom:0;padding-bottom:0}.history-item strong{white-space:nowrap}.footer{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:11px}.link-btn{border:0;background:none;padding:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.calendar-card{grid-column:auto}.bottom-grid{grid-template-columns:1fr}.top{flex-direction:column}.date-chip{display:none}.day{min-height:62px;padding:6px}.day .chars{font-size:10px}.card{padding:17px}.stats{gap:7px}.stat{padding:10px}.stat .value{font-size:21px}}
+@media(max-width:420px){.wrap{padding:22px 12px 32px}.calendar{gap:4px}.day{min-height:56px}.day .num{font-size:10px}.day .chars{font-size:9px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div><div class="eyebrow">Writers HQ · Личный кабинет</div><h1>Штаб писателя</h1><div class="sub">Не жди вдохновения. Замечай работу, которую уже сделал, и двигайся к своей книге по одному дню за раз.</div></div>
+    <div class="date-chip" id="todayChip"></div>
+  </header>
+  <div class="backup-notice" id="backupNotice">
+    <div><strong>🛟 Пора сохранить резервную копию</strong><p>Прошло 7 дней с последней копии (или с начала работы). Скачай файл, чтобы не потерять записи.</p></div>
+    <div class="backup-actions"><button class="btn primary" id="backupNow">Скачать копию</button><button class="btn secondary" id="backupLater">Напомнить позже</button></div>
+  </div>
+  <main class="grid">
+    <section class="card">
+      <div class="card-head"><h2>Моя работа сегодня</h2><span class="small" id="selectedDateLabel"></span></div>
+      <div class="stats">
+        <div class="stat"><div class="label">Сегодня</div><div class="value" id="todayTotal">0 <span class="unit">симв.</span></div></div>
+        <div class="stat"><div class="label">Всего написано</div><div class="value" id="allTotal">0 <span class="unit">симв.</span></div></div>
+        <div class="stat"><div class="label">Активных дней</div><div class="value" id="activeDays">0 <span class="unit">дней</span></div></div>
+      </div>
+      <div class="field"><label for="entryDate">Дата записи</label><input id="entryDate" type="date"></div>
+      <div class="field"><label for="entryChars">Сколько символов написал(а) за этот день?</label><input id="entryChars" type="number" min="0" step="1" placeholder="Например, 2500"></div>
+      <div class="btn-row"><button class="btn primary" id="saveEntry">Сохранить результат</button><button class="btn secondary" id="clearEntry">Обнулить этот день</button></div>
+      <div class="entry-note">Записывай итог за день. Если вернёшься к прошлой дате, можно добавить или исправить результат.</div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Цель на книгу</h2><button class="btn secondary" id="editGoalBtn">Изменить</button></div>
+      <div id="goalView">
+        <div class="goal-top"><div><div class="small">Мой проект</div><div class="goal-title" id="goalNameView">Мой роман</div><div class="small" id="goalDeadlineView">Срок не задан</div></div><span class="status" id="goalStatus"><span class="dot"></span><span id="goalStatusText">Задай цель</span></span></div>
+        <div class="bar"><div class="bar-fill" id="goalBar"></div></div>
+        <div class="goal-top"><div><div class="small">Прогресс</div><div class="progress-num" id="goalProgress">0%</div></div><div style="text-align:right"><div class="small">Написано из цели</div><div style="font-weight:750" id="goalWritten">0 / 320 000</div></div></div>
+        <div class="goal-meta"><div class="meta-box"><div class="small">Нужно в среднем в день</div><div class="big" id="dailyNeed">—</div><div class="small">символов до дедлайна</div></div><div class="meta-box"><div class="small">Текущий темп</div><div class="big" id="currentPace">—</div><div class="small">символов в день</div></div><div class="meta-box"><div class="small">Ожидаемый финиш</div><div class="big" id="finishDate">—</div></div><div class="meta-box"><div class="small">Осталось</div><div class="big" id="remaining">320 000</div><div class="small">символов</div></div></div>
+      </div>
+      <div id="goalForm" hidden>
+        <div class="field"><label for="goalName">Название проекта</label><input id="goalName" value="Мой роман" maxlength="80"></div>
+        <div class="field"><label for="goalSheets">Цель в авторских листах</label><input id="goalSheets" type="number" min="0.1" step="0.1" value="8"></div>
+        <div class="field"><label for="sheetSize">Символов в одном авторском листе</label><input id="sheetSize" type="number" min="1000" step="1000" value="40000"></div>
+        <div class="field"><label for="goalDeadline">Дедлайн</label><input id="goalDeadline" type="date"></div>
+        <div class="btn-row"><button class="btn primary" id="saveGoal">Сохранить цель</button><button class="btn secondary" id="cancelGoal">Отмена</button></div>
+        <p class="small">По умолчанию 1 авторский лист = 40 000 знаков с пробелами. Размер листа можно изменить.</p>
+      </div>
+    </section>
+    <section class="card calendar-card">
+      <div class="card-head"><div><h2>Календарь активности</h2><div class="small" style="margin-top:4px">Нажми на день, чтобы посмотреть или изменить запись.</div></div><div class="calendar-nav"><button class="icon-btn" id="prevMonth" aria-label="Предыдущий месяц">‹</button><div class="month-label" id="monthLabel"></div><button class="icon-btn" id="nextMonth" aria-label="Следующий месяц">›</button></div></div>
+      <div class="calendar" id="calendar"></div>
+      <div class="legend"><span>Меньше → больше</span><div class="legend-scale"><span class="sq"></span><span class="sq s1"></span><span class="sq s2"></span><span class="sq s3"></span><span>символов</span></div></div>
+    </section>
+  </main>
+  <div class="bottom-grid">
+    <section class="card"><div class="card-head"><h2>Последние записи</h2><span class="small">10 последних активных дней</span></div><div class="history-list" id="historyList"></div></section>
+    <section class="card"><div class="eyebrow">Главное правило</div><p class="tip" id="tipText">Не обязательно писать много каждый день. Важно видеть свой настоящий темп — и возвращаться к тексту.</p><p class="small" style="margin-top:13px">Твои записи сохраняются в этом браузере на этом устройстве.</p></section>
+    <section class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Мои достижения</h2><div class="small" style="margin-top:4px">Каждый написанный день и каждый знак приближают тебя к следующей награде.</div></div><span class="small" id="achievementCount">0 получено</span></div><div class="achievement-list" id="achievementList"></div></section>
+  </div>
+  <footer class="footer"><span>Штаб писателя · первая версия</span><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const keyDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
+const fmtDate=s=>s?parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}):'—';
+const monthFmt=d=>d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+const defaultState={entries:{},goal:{name:'Мой роман',sheets:8,sheetSize:40000,deadline:''},achievements:[],lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
+let state;
+try{state=JSON.parse(localStorage.getItem('writersHQ_v1'))||defaultState}catch(e){state=defaultState}
+state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem('writersHQ_v1',JSON.stringify(state))}
+let selectedDate=todayKey(), viewDate=parseDate(todayKey());
+function persist(){localStorage.setItem('writersHQ_v1',JSON.stringify(state))}
+const achievementDefs=[
+{id:'first_day',icon:'🌱',title:'Первый шаг',desc:'Записал первый день работы',check:()=>activeEntries().length>=1},
+{id:'streak7',icon:'🔥',title:'Неделя без пропусков',desc:'Писал 7 дней подряд',check:()=>longestStreak()>=7},
+{id:'streak30',icon:'📅',title:'Целый месяц',desc:'Писал 30 дней подряд',check:()=>longestStreak()>=30},
+{id:'chars40000',icon:'🎯',title:'40 000 знаков',desc:'Написал 40 тысяч знаков суммарно',check:()=>total()>=40000},
+{id:'chars100000',icon:'✍️',title:'Шесть знаков нулей',desc:'Написал 100 000 знаков суммарно',check:()=>total()>=100000},
+{id:'chars250000',icon:'📚',title:'Большая дистанция',desc:'Написал 250 000 знаков суммарно',check:()=>total()>=250000},
+{id:'days10',icon:'🌿',title:'Вошёл в ритм',desc:'Писал в 10 разных дней',check:()=>activeEntries().length>=10},
+{id:'days30',icon:'🏆',title:'Писательская привычка',desc:'Писал в 30 разных дней',check:()=>activeEntries().length>=30}
+];
+function longestStreak(){
+ const dates=activeEntries().map(([d])=>d).sort();
+ let best=0,run=0,prev=null;
+ for(const d of dates){if(prev&&dayDiff(prev,d)===1)run++;else run=1;best=Math.max(best,run);prev=d}
+ return best;
+}
+function checkAchievements(){
+ const earned=[];
+ achievementDefs.forEach(a=>{if(!state.achievements.includes(a.id)&&a.check()){state.achievements.push(a.id);earned.push(a)}});
+ if(earned.length){persist();showToast(earned.length===1?`🎉 Достижение получено: ${earned[0].title}`:`🎉 Новые достижения: ${earned.map(a=>a.title).join(', ')}`)}
+}
+function renderAchievements(){
+ $('achievementCount').textContent=`${state.achievements.length} из ${achievementDefs.length} получено`;
+ $('achievementList').innerHTML=achievementDefs.map(a=>{const got=state.achievements.includes(a.id);return `<div class="achievement ${got?'':'locked'}"><div class="achievement-icon">${got?a.icon:'🔒'}</div><div><strong>${a.title}${got?' ✓':''}</strong><p>${a.desc}</p></div></div>`}).join('');
+}
+function showToast(message){const el=$('toast');el.innerHTML=`<strong>${message}</strong>`;el.classList.add('show');clearTimeout(window.__writersToastTimer);window.__writersToastTimer=setTimeout(()=>el.classList.remove('show'),5000)}
+function backupDue(){
+ const baseline=state.lastBackupAt||state.startedAt;
+ return Date.now()-Number(baseline)>=7*24*60*60*1000 && !(state.backupSnoozedUntil&&Date.now()<state.backupSnoozedUntil);
+}
+function renderBackupNotice(){$('backupNotice').classList.toggle('show',backupDue())}
+function exportBackup(){
+ state.lastBackupAt=Date.now();state.backupSnoozedUntil=null;persist();
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='writers-hq-backup.json';a.click();URL.revokeObjectURL(url);
+ renderBackupNotice();
+}
+function total(){return Object.values(state.entries).reduce((a,b)=>a+Math.max(0,Number(b)||0),0)}
+function activeEntries(){return Object.entries(state.entries).filter(([k,v])=>Number(v)>0).sort((a,b)=>b[0].localeCompare(a[0]))}
+function dayDiff(a,b){return Math.ceil((parseDate(b)-parseDate(a))/86400000)}
+function goalTarget(){return Math.round(Number(state.goal.sheets||0)*Number(state.goal.sheetSize||40000))}
+function renderTop(){
+$('todayChip').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+$('entryDate').value=selectedDate;$('selectedDateLabel').textContent=fmtDate(selectedDate);
+$('entryChars').value=state.entries[selectedDate]??'';
+$('todayTotal').innerHTML=`${fmt(state.entries[todayKey()]||0)} <span class="unit">симв.</span>`;
+$('allTotal').innerHTML=`${fmt(total())} <span class="unit">симв.</span>`;
+$('activeDays').innerHTML=`${fmt(activeEntries().length)} <span class="unit">дней</span>`;
+}
+function renderGoal(){
+const g=state.goal,target=goalTarget(),written=total(),remaining=Math.max(0,target-written),pct=target?Math.min(100,written/target*100):0;
+$('goalNameView').textContent=g.name||'Мой роман';$('goalDeadlineView').textContent=g.deadline?`Дедлайн: ${fmtDate(g.deadline)}`:'Дедлайн не задан';
+$('goalProgress').textContent=`${Math.round(pct)}%`;$('goalWritten').textContent=`${fmt(written)} / ${fmt(target)}`;$('goalBar').style.width=pct+'%';$('remaining').textContent=fmt(remaining);
+const today=todayKey(), first=activeEntries().length?activeEntries()[activeEntries().length-1][0]:today;
+const elapsed=Math.max(1,dayDiff(first,today)+1),pace=written/elapsed;
+$('currentPace').textContent=fmt(pace);
+let need='—',finish='—',status='Задай цель',cls='';
+if(target>0&&g.deadline){
+ const daysLeft=dayDiff(today,g.deadline);
+ need=daysLeft>=0?fmt(remaining/Math.max(1,daysLeft+1)):'срок прошёл';
+ if(remaining===0){status='Цель выполнена';cls='good';finish='Готово!'}
+ else if(daysLeft<0){status='Дедлайн прошёл';cls='bad';finish='Позже срока'}
+ else{
+   const estimatedDays=pace>0?Math.ceil(remaining/pace):null;
+   if(estimatedDays!==null){const end=new Date();end.setDate(end.getDate()+estimatedDays);finish=end.toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'})}
+   else finish='Пока нет данных';
+   if(pace>=remaining/Math.max(1,daysLeft+1)){status='Идёшь по плану';cls='good'}
+   else {status='Нужно ускориться';cls='bad'}
+ }
+}else if(target>0){need='—';status='Укажи дедлайн'}
+$('dailyNeed').textContent=need;$('finishDate').textContent=finish;
+$('goalStatus').className='status '+cls;$('goalStatusText').textContent=status;
+}
+function renderCalendar(){
+const y=viewDate.getFullYear(),m=viewDate.getMonth();$('monthLabel').textContent=monthFmt(viewDate);
+const first=new Date(y,m,1),last=new Date(y,m+1,0),offset=(first.getDay()+6)%7;
+const values=Object.values(state.entries).map(Number).filter(n=>n>0),max=Math.max(1,...values);
+let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(w=>`<div class="weekday">${w}</div>`).join('');
+for(let i=0;i<offset;i++)html+='<div class="day empty"></div>';
+for(let d=1;d<=last.getDate();d++){
+ const date=new Date(y,m,d),key=keyDate(date),n=Number(state.entries[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===selectedDate;
+ const level=n<=0?'':n<max*.25?'active':n<max*.65?'active':'high';
+ html+=`<button class="day ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity ${level}"></span></button>`;
+}
+$('calendar').innerHTML=html;
+$('calendar').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{selectedDate=el.dataset.date;render()}));
+}
+function renderHistory(){
+const items=activeEntries().slice(0,10);
+$('historyList').innerHTML=items.length?items.map(([date,n])=>`<div class="history-item"><span>${fmtDate(date)}</span><strong>${fmt(n)} симв.</strong></div>`).join(''):'<div class="muted" style="font-size:13px">Пока нет записей. Добавь первый результат — он появится здесь.</div>';
+}
+function render(){renderTop();renderGoal();renderCalendar();renderHistory();renderAchievements();renderBackupNotice()}
+$('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
+$('saveEntry').addEventListener('click',()=>{const val=Number($('entryChars').value);if($('entryChars').value.trim()===''||!Number.isFinite(val)||val<0){alert('Введи число символов: 0 или больше.');return}state.entries[selectedDate]=Math.round(val);checkAchievements();persist();render()});
+$('clearEntry').addEventListener('click',()=>{if(confirm('Удалить запись за '+fmtDate(selectedDate)+'?')){delete state.entries[selectedDate];persist();render()}});
+function showGoalForm(){ $('goalForm').hidden=false;$('goalView').hidden=true;$('goalName').value=state.goal.name;$('goalSheets').value=state.goal.sheets;$('sheetSize').value=state.goal.sheetSize;$('goalDeadline').value=state.goal.deadline||''}
+function hideGoalForm(){$('goalForm').hidden=true;$('goalView').hidden=false}
+$('editGoalBtn').addEventListener('click',showGoalForm);$('cancelGoal').addEventListener('click',hideGoalForm);
+$('saveGoal').addEventListener('click',()=>{const sheets=Number($('goalSheets').value),size=Number($('sheetSize').value);if(!sheets||sheets<0||!size||size<1000){alert('Проверь количество авторских листов и размер одного листа.');return}state.goal={name:$('goalName').value.trim()||'Мой роман',sheets,sheetSize:size,deadline:$('goalDeadline').value};persist();hideGoalForm();render()});
+$('prevMonth').addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);renderCalendar()});
+$('nextMonth').addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);renderCalendar()});
+$('exportBtn').addEventListener('click',exportBackup);
+$('backupNow').addEventListener('click',exportBackup);
+$('backupLater').addEventListener('click',()=>{state.backupSnoozedUntil=Date.now()+24*60*60*1000;persist();renderBackupNotice()});
+checkAchievements();
+$('backupNotice').classList.toggle('show',backupDue());
+render();
+})();
+</script>
+</body>
+</html>
