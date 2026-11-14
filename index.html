@@ -13,6 +13,8 @@ label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6
 .goal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.goal-title{font-family:Georgia,serif;font-size:23px;line-height:1.15;margin:4px 0 5px}.progress-num{font-size:25px;font-weight:750;letter-spacing:-.04em}.bar{height:9px;background:#eae8df;border-radius:20px;overflow:hidden;margin:16px 0 9px}.bar-fill{height:100%;background:var(--green);width:0%;border-radius:20px;transition:width .25s}.goal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.meta-box{border-top:1px solid var(--line);padding-top:11px}.meta-box .big{font-size:19px;font-weight:700;margin-top:3px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:100px;background:#f1efe7;padding:6px 9px;font-size:11px;font-weight:750}.dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}.status.good{background:#e6efe3;color:#3d6244}.status.good .dot{background:var(--green)}.status.bad{background:#f7e7e4;color:#98483e}.status.bad .dot{background:var(--red)}
 .calendar-card{grid-column:1/-1}.calendar-nav{display:flex;align-items:center;gap:8px}.month-label{min-width:135px;text-align:center;font-size:14px;font-weight:750}.icon-btn{border:1px solid var(--line);background:#fff;border-radius:9px;width:32px;height:32px;cursor:pointer;color:var(--ink);font-size:18px}.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.weekday{text-align:center;color:var(--muted);font-size:11px;padding:4px 0 7px}.day{min-height:76px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:8px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;cursor:pointer;color:var(--ink);min-width:0}.day:hover{border-color:#9bb09a}.day.empty{background:transparent;border-color:transparent;cursor:default}.day.today{outline:2px solid var(--green);outline-offset:-2px}.day.selected{border-color:var(--green);background:#f1f6ef}.day.future{opacity:.48}.day .num{font-size:12px;color:var(--muted)}.day .chars{font-size:12px;font-weight:750;overflow-wrap:anywhere}.day .activity{height:4px;border-radius:5px;background:#e5e3da;margin-top:5px}.day .activity.active{background:#719777}.day .activity.high{background:#365e40}.legend{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:13px;font-size:11px;color:var(--muted)}.legend-scale{display:flex;align-items:center;gap:4px}.sq{width:12px;height:12px;border-radius:3px;background:#e5e3da}.sq.s1{background:#cbdcc7}.sq.s2{background:#8fb18f}.sq.s3{background:#365e40}
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.achievement-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.achievement{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfaf6}.achievement.locked{opacity:.52;filter:grayscale(.7)}.achievement-icon{font-size:23px;line-height:1.2}.achievement strong{display:block;font-size:13px}.achievement p{font-size:11px;color:var(--muted);margin:3px 0 0}.backup-notice{display:none;margin:0 0 18px;padding:16px 18px;border:1px solid #e6c9a8;border-radius:15px;background:#fff6e9}.backup-notice.show{display:flex;justify-content:space-between;align-items:center;gap:14px}.backup-notice strong{display:block;font-size:14px}.backup-notice p{font-size:12px;color:var(--muted);margin:4px 0 0}.toast{position:fixed;right:20px;bottom:20px;max-width:340px;background:#2e4935;color:#fff;padding:15px 18px;border-radius:14px;box-shadow:var(--shadow);z-index:10;display:none}.toast.show{display:block}.toast strong{display:block;margin-bottom:3px}.backup-actions{display:flex;gap:8px;flex-wrap:wrap}.tip{font-family:Georgia,serif;font-size:20px;line-height:1.35;margin:5px 0 0}.history-list{display:flex;flex-direction:column;gap:10px}.history-item{display:flex;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:13px}.history-item:last-child{border-bottom:0;padding-bottom:0}.history-item strong{white-space:nowrap}.footer{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:11px}.link-btn{border:0;background:none;padding:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit}
+.auth-card{margin:0 0 18px}.auth-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.auth-status{padding:12px 14px;border-radius:12px;background:#f8f7f1;font-size:13px;color:var(--muted);margin-bottom:14px;overflow-wrap:anywhere}.auth-message{font-size:13px;margin-top:12px;white-space:pre-wrap}.auth-message.error{color:#98483e}.auth-message.success{color:#3d6244}.auth-note{font-size:12px;color:var(--muted);margin:10px 0 0}.auth-hidden{display:none!important}
+@media(max-width:650px){.auth-layout{grid-template-columns:1fr}}
 @media(max-width:800px){.grid{grid-template-columns:1fr}.calendar-card{grid-column:auto}.bottom-grid{grid-template-columns:1fr}.top{flex-direction:column}.date-chip{display:none}.day{min-height:62px;padding:6px}.day .chars{font-size:10px}.card{padding:17px}.stats{gap:7px}.stat{padding:10px}.stat .value{font-size:21px}}
 @media(max-width:420px){.wrap{padding:22px 12px 32px}.calendar{gap:4px}.day{min-height:56px}.day .num{font-size:10px}.day .chars{font-size:9px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.form-row{grid-template-columns:1fr}}
 </style>
@@ -23,6 +25,31 @@ label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6
     <div><div class="eyebrow">Writers HQ · Личный кабинет</div><h1>Штаб писателя</h1><div class="sub">Не жди вдохновения. Замечай работу, которую уже сделал, и двигайся к своей книге по одному дню за раз.</div></div>
     <div class="date-chip" id="todayChip"></div>
   </header>
+  <section class="card auth-card" id="authCard">
+    <div class="card-head"><div><h2>Аккаунт «Штаба»</h2><div class="small" style="margin-top:4px">Вход и регистрация</div></div><span class="status" id="authBadge"><span class="dot"></span><span id="authBadgeText">Не выполнен вход</span></span></div>
+    <div class="auth-status" id="authStatus">Здесь можно создать аккаунт или войти в существующий. На этом этапе записи о работе всё ещё хранятся локально в браузере: облачную синхронизацию подключим отдельно после проверки входа.</div>
+    <div class="auth-layout" id="authForms">
+      <form id="signInForm">
+        <h3 style="font-size:14px;margin:0 0 12px">Уже есть аккаунт?</h3>
+        <div class="field"><label for="loginEmail">Электронная почта</label><input id="loginEmail" type="email" autocomplete="email" required maxlength="254"></div>
+        <div class="field"><label for="loginPassword">Пароль</label><input id="loginPassword" type="password" autocomplete="current-password" required minlength="8"></div>
+        <button class="btn primary" id="signInBtn" type="submit">Войти</button>
+      </form>
+      <form id="signUpForm">
+        <h3 style="font-size:14px;margin:0 0 12px">Первый раз в Штабе?</h3>
+        <div class="field"><label for="displayName">Имя или псевдоним</label><input id="displayName" type="text" autocomplete="nickname" maxlength="60" placeholder="Как тебя будут видеть в клубе" required></div>
+        <div class="field"><label for="signupEmail">Электронная почта</label><input id="signupEmail" type="email" autocomplete="email" required maxlength="254"></div>
+        <div class="field"><label for="signupPassword">Пароль (не менее 8 символов)</label><input id="signupPassword" type="password" autocomplete="new-password" required minlength="8"></div>
+        <button class="btn primary" id="signUpBtn" type="submit">Создать аккаунт</button>
+      </form>
+    </div>
+    <div id="signedInPanel" class="auth-hidden">
+      <div class="small" id="signedInEmail"></div>
+      <div class="btn-row" style="margin-top:10px"><button class="btn secondary" id="signOutBtn" type="button">Выйти из аккаунта</button></div>
+    </div>
+    <p class="auth-note">Регистрация создаёт личный аккаунт, но сама по себе не даёт доступа к закрытому клубу. Для этого позже добавим приглашения.</p>
+    <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
+  </section>
   <div class="backup-notice" id="backupNotice">
     <div><strong>🛟 Пора сохранить резервную копию</strong><p>Прошло 7 дней с последней копии (или с начала работы). Скачай файл, чтобы не потерять записи.</p></div>
     <div class="backup-actions"><button class="btn primary" id="backupNow">Скачать копию</button><button class="btn secondary" id="backupLater">Напомнить позже</button></div>
@@ -193,6 +220,113 @@ $('backupLater').addEventListener('click',()=>{state.backupSnoozedUntil=Date.now
 checkAchievements();
 $('backupNotice').classList.toggle('show',backupDue());
 render();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = 'https://ucwooqhasjwosbupfqqw.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_wZLmnpwl2iA8frlTEB6SBg_ybaBJT7j';
+  const $ = id => document.getElementById(id);
+  const message = $('authMessage');
+  const authStatus = $('authStatus');
+  const badge = $('authBadge');
+  const badgeText = $('authBadgeText');
+  const forms = $('authForms');
+  const signedInPanel = $('signedInPanel');
+  let client;
+
+  function showMessage(text, kind='') {
+    message.textContent = text || '';
+    message.className = 'auth-message' + (kind ? ' ' + kind : '');
+  }
+  function setBusy(busy) {
+    ['signInBtn','signUpBtn','signOutBtn'].forEach(id => {
+      const el = $(id);
+      if (el) el.disabled = busy;
+    });
+  }
+  function renderSession(session) {
+    const user = session && session.user;
+    forms.classList.toggle('auth-hidden', !!user);
+    signedInPanel.classList.toggle('auth-hidden', !user);
+    if (user) {
+      badge.className = 'status good';
+      badgeText.textContent = 'Вход выполнен';
+      $('signedInEmail').textContent = user.email || 'Аккаунт активен';
+      authStatus.textContent = 'Ты вошёл в аккаунт. Сейчас вход проверен, но прогресс ещё хранится в этом браузере. Не очищай данные браузера и не рассчитывай на синхронизацию между устройствами до следующего этапа.';
+    } else {
+      badge.className = 'status';
+      badgeText.textContent = 'Не выполнен вход';
+      $('signedInEmail').textContent = '';
+      authStatus.textContent = 'Здесь можно создать аккаунт или войти в существующий. На этом этапе записи о работе всё ещё хранятся локально в браузере: облачную синхронизацию подключим отдельно после проверки входа.';
+    }
+  }
+  if (!window.supabase || !window.supabase.createClient) {
+    showMessage('Не удалось загрузить библиотеку Supabase. Проверь подключение к интернету и обнови страницу.', 'error');
+    return;
+  }
+  client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+
+  $('signUpForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    showMessage('Создаём аккаунт…'); setBusy(true);
+    try {
+      const email = $('signupEmail').value.trim();
+      const password = $('signupPassword').value;
+      const displayName = $('displayName').value.trim();
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { display_name: displayName },
+          emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'
+        }
+      });
+      if (error) throw error;
+      if (data.session) {
+        showMessage('Аккаунт создан, и вход выполнен. Проверь, что электронная почта подтверждена, если Supabase запросил подтверждение.', 'success');
+      } else {
+        showMessage('Запрос на регистрацию принят. Открой письмо от Supabase и подтверди электронную почту, затем вернись на сайт и войди. Если письма нет, проверь папку «Спам».', 'success');
+      }
+    } catch (error) {
+      showMessage(error && error.message ? error.message : 'Не удалось создать аккаунт. Попробуй ещё раз.', 'error');
+    } finally { setBusy(false); }
+  });
+
+  $('signInForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    showMessage('Выполняем вход…'); setBusy(true);
+    try {
+      const { error } = await client.auth.signInWithPassword({
+        email: $('loginEmail').value.trim(),
+        password: $('loginPassword').value
+      });
+      if (error) throw error;
+      showMessage('Вход выполнен.', 'success');
+    } catch (error) {
+      showMessage(error && error.message ? error.message : 'Не удалось войти. Проверь почту и пароль.', 'error');
+    } finally { setBusy(false); }
+  });
+
+  $('signOutBtn').addEventListener('click', async () => {
+    showMessage('Выходим из аккаунта…'); setBusy(true);
+    try {
+      const { error } = await client.auth.signOut();
+      if (error) throw error;
+      showMessage('Ты вышел из аккаунта.', 'success');
+    } catch (error) {
+      showMessage(error && error.message ? error.message : 'Не удалось выйти из аккаунта.', 'error');
+    } finally { setBusy(false); }
+  });
+
+  client.auth.onAuthStateChange((_event, session) => renderSession(session));
+  client.auth.getSession().then(({ data, error }) => {
+    if (error) showMessage(error.message, 'error');
+    renderSession(data ? data.session : null);
+  });
 })();
 </script>
 </body>
