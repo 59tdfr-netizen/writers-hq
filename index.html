@@ -79,7 +79,7 @@ details summary{user-select:none}
             <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email"></div>
           </div>
           <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required autocomplete="new-password"></div>
-          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать мою статистику и достижения авторам, на которых они подписаны</strong><br>Настройка выбирается при регистрации. Другому автору достаточно подписаться на тебя — взаимная подписка не нужна.</span></label>
+          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать мою статистику и достижения авторам, на которых они подписаны</strong><br>Эту настройку можно будет изменить в профиле. Другому автору достаточно подписаться на тебя — взаимная подписка не нужна.</span></label>
           <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
         </form>
       </details>
@@ -87,56 +87,11 @@ details summary{user-select:none}
 
     <div id="signedInPanel" class="auth-hidden">
       <p class="small" style="margin:0 0 12px">Вы вошли как: <strong id="signedInEmail"></strong></p>
-      <p class="small" style="margin:0 0 12px">Разрешение на показ статистики и достижений выбирается один раз при регистрации.</p>
+      <p class="small" style="margin:0 0 12px">Разрешение на показ статистики и достижений можно изменить в настройках профиля ниже.</p>
       <button id="signOutBtn" class="btn secondary" type="button">Выйти</button>
     </div>
 
     <p id="authMessage" class="auth-message"></p>
-  </section>
-
-  <section class="card community-count auth-hidden" id="communityCountCard">
-    <div aria-hidden="true" style="font-size:27px">✍️</div>
-    <div><div class="small">Писателей в Штабе</div><div class="community-count-number" id="communityCount">—</div></div>
-    <div class="small">авторов зарегистрировались и ведут свои писательские дневники</div>
-  </section>
-
-  <section class="card social-card auth-hidden" id="socialCard">
-    <div class="card-head"><div><h2>Авторы</h2><div class="small" style="margin-top:4px">Находи знакомых писателей и подписывайся на них.</div></div><span class="small" id="followingCount">0 подписок</span></div>
-    <div class="social-grid">
-      <div>
-        <h3 style="font-size:14px;margin:0 0 10px">Найти автора</h3>
-        <div class="social-search-row">
-          <div class="field"><label for="authorSearch">Имя или часть имени</label><input id="authorSearch" type="search" maxlength="60" placeholder="Например, Анна"></div>
-          <button id="searchAuthorsBtn" class="btn primary" type="button">Искать</button>
-        </div>
-        <p class="small" id="authorSearchStatus" aria-live="polite" style="margin:10px 0 0">Введи хотя бы 2 символа.</p>
-        <div class="social-list" id="authorSearchResults"></div>
-      </div>
-      <div>
-        <h3 style="font-size:14px;margin:0 0 10px">Мои подписки</h3>
-        <p class="small" id="followingStatus" style="margin:0">Загружаем список…</p>
-        <div class="social-list" id="followingList"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="card social-card auth-hidden" id="profileSettingsCard">
-    <div class="card-head"><div><h2>Настройки профиля</h2><div class="small" style="margin-top:4px">Управляй именем, паролем и видимостью своих данных.</div></div></div>
-    <div class="settings-grid">
-      <div>
-        <div class="field"><label for="profileDisplayName">Имя автора</label><input id="profileDisplayName" type="text" minlength="2" maxlength="60" autocomplete="nickname"></div>
-        <button id="saveProfileNameBtn" class="btn primary" type="button">Сохранить имя</button>
-      </div>
-      <div>
-        <div class="field"><label for="newPassword">Новый пароль</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Не менее 6 символов"></div>
-        <button id="changePasswordBtn" class="btn secondary" type="button">Изменить пароль</button>
-      </div>
-    </div>
-    <div class="setting-section">
-      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Разрешить подписчикам видеть мою статистику и достижения</strong><br>Достаточно односторонней подписки. Если отключить настройку, доступ к данным пропадёт.</span></label>
-      <button id="saveVisibilityBtn" class="btn primary" type="button">Сохранить видимость</button>
-    </div>
-    <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
   </section>
 
   <div class="backup-notice" id="backupNotice">
@@ -183,6 +138,54 @@ details summary{user-select:none}
     <section class="card"><div class="card-head"><h2>Последние записи</h2><span class="small">10 последних активных дней</span></div><div class="history-list" id="historyList"></div></section>
     <section class="card"><div class="eyebrow">Главное правило</div><p class="tip" id="tipText">Не обязательно писать много каждый день. Важно видеть свой настоящий темп — и возвращаться к тексту.</p><p class="small" style="margin-top:13px">Дневник и цель сохраняются в облаке и доступны после входа в аккаунт.</p></section>
     <section class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Мои достижения</h2><div class="small" style="margin-top:4px">Каждый написанный день и каждый знак приближают тебя к следующей награде.</div></div><span class="small" id="achievementCount">0 получено</span></div><div class="achievement-list" id="achievementList"></div></section>
+  </div>
+  <div class="social-area" aria-label="Сообщество и настройки аккаунта">
+    <div class="eyebrow" style="margin:24px 0 10px">Сообщество и профиль</div>
+  <section class="card community-count auth-hidden" id="communityCountCard">
+    <div aria-hidden="true" style="font-size:27px">✍️</div>
+    <div><div class="small">Писателей в Штабе</div><div class="community-count-number" id="communityCount">—</div></div>
+    <div class="small">авторов зарегистрировались и ведут свои писательские дневники</div>
+  </section>
+
+  <section class="card social-card auth-hidden" id="socialCard">
+    <div class="card-head"><div><h2>Авторы</h2><div class="small" style="margin-top:4px">Находи знакомых писателей и подписывайся на них.</div></div><span class="small" id="followingCount">0 подписок</span></div>
+    <div class="social-grid">
+      <div>
+        <h3 style="font-size:14px;margin:0 0 10px">Найти автора</h3>
+        <div class="social-search-row">
+          <div class="field"><label for="authorSearch">Имя или часть имени</label><input id="authorSearch" type="search" maxlength="60" placeholder="Например, Анна"></div>
+          <button id="searchAuthorsBtn" class="btn primary" type="button">Искать</button>
+        </div>
+        <p class="small" id="authorSearchStatus" aria-live="polite" style="margin:10px 0 0">Введи хотя бы 2 символа.</p>
+        <div class="social-list" id="authorSearchResults"></div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;margin:0 0 10px">Мои подписки</h3>
+        <p class="small" id="followingStatus" style="margin:0">Загружаем список…</p>
+        <div class="social-list" id="followingList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card social-card auth-hidden" id="profileSettingsCard">
+    <div class="card-head"><div><h2>Настройки профиля</h2><div class="small" style="margin-top:4px">Управляй именем, паролем и видимостью своих данных.</div></div></div>
+    <div class="settings-grid">
+      <div>
+        <div class="field"><label for="profileDisplayName">Имя автора</label><input id="profileDisplayName" type="text" minlength="2" maxlength="60" autocomplete="nickname"></div>
+        <button id="saveProfileNameBtn" class="btn primary" type="button">Сохранить имя</button>
+      </div>
+      <div>
+        <div class="field"><label for="newPassword">Новый пароль</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Не менее 6 символов"></div>
+        <button id="changePasswordBtn" class="btn secondary" type="button">Изменить пароль</button>
+      </div>
+    </div>
+    <div class="setting-section">
+      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Разрешить подписчикам видеть мою статистику и достижения</strong><br>Достаточно односторонней подписки. Если отключить настройку, доступ к данным пропадёт.</span></label>
+      <button id="saveVisibilityBtn" class="btn primary" type="button">Сохранить видимость</button>
+    </div>
+    <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
+  </section>
+
   </div>
   <footer class="footer"><span>Штаб писателя · первая версия</span><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
 </div>
