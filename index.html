@@ -152,6 +152,17 @@ details summary{user-select:none}
     <section class="card"><div class="eyebrow">Главное правило</div><p class="tip" id="tipText">Не обязательно писать много каждый день. Важно видеть свой настоящий темп — и возвращаться к тексту.</p><p class="small" style="margin-top:13px">Дневник и цель сохраняются в облаке и доступны после входа в аккаунт.</p></section>
     <section class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Мои достижения</h2><div class="small" style="margin-top:4px">Каждый написанный день и каждый знак приближают тебя к следующей награде.</div></div><span class="small" id="achievementCount">0 получено</span></div><div class="achievement-list" id="achievementList"></div></section>
   </div>
+  <section class="card received-support-card auth-hidden" id="receivedSupportCard">
+    <div class="card-head">
+      <div><h2>Поддержка сообщества</h2><div class="small" style="margin-top:4px">Авторы, которые поддержали тебя в дневнике или достижениях.</div></div>
+      <button type="button" class="btn secondary" id="receivedSupportToggle" aria-expanded="false">Тебя поддерживают: <span id="receivedSupportCount">0</span></button>
+    </div>
+    <div id="receivedSupportDetails" hidden>
+      <p class="small" id="receivedSupportStatus" aria-live="polite">Нажми на число, чтобы посмотреть авторов.</p>
+      <div class="social-list" id="receivedSupportList"></div>
+      <button type="button" class="btn secondary" id="refreshReceivedSupport" style="margin-top:10px">Обновить список</button>
+    </div>
+  </section>
   </section>
   <section class="app-section" id="communitySection" aria-label="Сообщество">
   <div class="social-area" aria-label="Сообщество">
@@ -874,6 +885,66 @@ render();
     $('allowStatsVisibility').checked = allowed;
   }
 
+  async function loadReceivedSupport(showNames = false) {
+    if (!activeUserId) return;
+    const countEl = $('receivedSupportCount');
+    const details = $('receivedSupportDetails');
+    const status = $('receivedSupportStatus');
+    const list = $('receivedSupportList');
+    const { data, error } = await client.rpc('get_writer_supporters');
+    if (error) throw error;
+    const supporters = Array.isArray(data) ? data : [];
+    const supporterIds = supporters.map(item => item.liker_id).filter(id => id && id !== activeUserId);
+    countEl.textContent = new Intl.NumberFormat('ru-RU').format(supporterIds.length);
+
+    if (!showNames && details.hidden) return;
+    details.hidden = false;
+    $('receivedSupportToggle').setAttribute('aria-expanded', 'true');
+    list.replaceChildren();
+    if (!supporterIds.length) {
+      status.textContent = 'Пока тебя никто не поддержал. Когда авторы поставят тебе лайк, они появятся здесь.';
+      return;
+    }
+    status.textContent = 'Тебя поддерживают:';
+    const { data: profiles, error: profilesError } = await client.from('profiles')
+      .select('id, display_name').in('id', supporterIds).order('display_name', { ascending: true });
+    if (profilesError) throw profilesError;
+    const byId = new Map((profiles || []).map(profile => [profile.id, profile]));
+    supporterIds.forEach(id => {
+      const profile = byId.get(id) || { id, display_name: 'Автор' };
+      const row = document.createElement('div');
+      row.className = 'social-person';
+      const info = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'social-person-name';
+      name.textContent = profile.display_name || 'Автор без имени';
+      const meta = document.createElement('div');
+      meta.className = 'social-person-meta';
+      meta.textContent = 'Поддерживает твой дневник или достижения';
+      info.append(name, meta);
+      row.append(info);
+      list.append(row);
+    });
+  }
+
+  $('receivedSupportToggle').addEventListener('click', async () => {
+    const details = $('receivedSupportDetails');
+    const willOpen = details.hidden;
+    details.hidden = !willOpen;
+    $('receivedSupportToggle').setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) {
+      $('receivedSupportStatus').textContent = 'Загружаем список авторов…';
+      try { await loadReceivedSupport(true); }
+      catch (error) { $('receivedSupportStatus').textContent = 'Не удалось загрузить поддержку: ' + (error.message || 'неизвестная ошибка'); }
+    }
+  });
+
+  $('refreshReceivedSupport').addEventListener('click', async () => {
+    $('receivedSupportStatus').textContent = 'Обновляем список…';
+    try { await loadReceivedSupport(true); }
+    catch (error) { $('receivedSupportStatus').textContent = 'Не удалось обновить поддержку: ' + (error.message || 'неизвестная ошибка'); }
+  });
+
   async function loadCommunityCount() {
     const { data, error } = await client.rpc('get_registered_writer_count');
     if (error) throw error;
@@ -966,6 +1037,7 @@ render();
     $('socialCard').classList.toggle('auth-hidden', !user);
     $('communityCountCard').classList.toggle('auth-hidden', !user);
     $('profileSettingsCard').classList.toggle('auth-hidden', !user);
+    $('receivedSupportCard').classList.toggle('auth-hidden', !user);
     if (!user) $('ownerNameLine').classList.add('auth-hidden');
 
     if (user) {
@@ -996,6 +1068,10 @@ render();
       $('authorSearchResults').replaceChildren();
       $('followingList').replaceChildren();
       $('followingCount').textContent = '0 подписок';
+      $('receivedSupportCount').textContent = '0';
+      $('receivedSupportList').replaceChildren();
+      $('receivedSupportDetails').hidden = true;
+      $('receivedSupportToggle').setAttribute('aria-expanded', 'false');
       renderSession(null);
       return;
     }
@@ -1025,6 +1101,7 @@ render();
       await loadStatsPreference(user);
       await loadFollowing();
       await loadCommunityCount();
+      await loadReceivedSupport(false);
       if (version !== syncVersion || activeUserId !== user.id) return;
 
       document.body.classList.remove('diary-locked');
