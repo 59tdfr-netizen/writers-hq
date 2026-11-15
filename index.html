@@ -25,9 +25,9 @@ label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6
 .social-empty{font-size:13px;color:var(--muted);padding:10px 0}
 .social-search-row{display:flex;gap:8px;align-items:flex-end}
 .social-search-row .field{flex:1;min-width:0;margin-bottom:0}
-.profile-edit-row{display:flex;gap:8px;align-items:flex-end;margin:0 0 12px}
-.profile-edit-row .field{flex:1;min-width:0;margin:0}
-@media(max-width:650px){.social-grid{grid-template-columns:1fr}.social-search-row,.profile-edit-row{align-items:stretch;flex-direction:column}.social-search-row .btn,.profile-edit-row .btn{width:100%}}
+.privacy-setting{display:flex;align-items:flex-start;gap:9px;margin:0 0 12px;font-size:12px;color:var(--muted)}.privacy-setting input{width:auto;margin-top:3px}
+.author-stats{margin-top:9px;padding:10px;border-radius:10px;background:#f8f7f1;font-size:12px;color:var(--ink)}.author-stats .stat-line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)}.author-stats .stat-line:last-child{border-bottom:0}
+@media(max-width:650px){.social-grid{grid-template-columns:1fr}.social-search-row{align-items:stretch;flex-direction:column}.social-search-row .btn{width:100%}}
 
 .auth-hidden{display:none!important}
 
@@ -86,10 +86,7 @@ details summary{user-select:none}
 
     <div id="signedInPanel" class="auth-hidden">
       <p class="small" style="margin:0 0 12px">Вы вошли как: <strong id="signedInEmail"></strong></p>
-      <div class="profile-edit-row">
-        <div class="field"><label for="profileDisplayName">Имя, которое увидят другие авторы</label><input id="profileDisplayName" type="text" maxlength="60" placeholder="Например, Павел Прокудин"></div>
-        <button id="saveProfileName" class="btn secondary" type="button">Сохранить имя</button>
-      </div>
+      <label class="privacy-setting"><input id="shareStatsWithMutuals" type="checkbox"><span><strong>Показывать мою статистику взаимным подписчикам</strong><br>Другой автор увидит её, только если вы подписаны друг на друга.</span></label>
       <button id="signOutBtn" class="btn secondary" type="button">Выйти</button>
     </div>
 
@@ -596,7 +593,6 @@ render();
     currentProfileName = clean;
     $('ownerName').textContent = clean;
     $('ownerNameLine').classList.remove('auth-hidden');
-    $('profileDisplayName').value = clean;
   }
 
   function makePersonRow(profile, isFollowing, mode) {
@@ -610,6 +606,11 @@ render();
     meta.className = 'social-person-meta';
     meta.textContent = mode === 'following' ? 'Вы подписаны' : (isFollowing ? 'Уже в твоих подписках' : 'Автор «Штаба писателя»');
     info.append(name, meta);
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.flexDirection = 'column';
+    actions.style.alignItems = 'flex-end';
+    actions.style.gap = '6px';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn ' + (isFollowing ? 'secondary' : 'primary');
@@ -637,7 +638,62 @@ render();
         button.disabled = false;
       }
     });
-    row.append(info, button);
+    actions.append(button);
+    const statsButton = document.createElement('button');
+    statsButton.type = 'button';
+    statsButton.className = 'btn secondary';
+    statsButton.textContent = 'Статистика';
+    const statsPanel = document.createElement('div');
+    statsPanel.className = 'author-stats';
+    statsPanel.hidden = true;
+    statsButton.addEventListener('click', async () => {
+      if (!statsPanel.hidden) { statsPanel.hidden = true; statsButton.textContent = 'Статистика'; return; }
+      statsPanel.hidden = false;
+      statsPanel.textContent = 'Загружаем статистику…';
+      statsButton.disabled = true;
+      try {
+        const { data, error } = await client.rpc('get_writer_stats', { p_target_user_id: profile.id });
+        if (error) throw error;
+        const record = Array.isArray(data) ? data[0] : data;
+        if (!record || typeof record !== 'object' || !Object.keys(record).length) {
+          statsPanel.textContent = 'Статистика пока недоступна.';
+        } else {
+          const labels = {
+            total_chars: 'Всего написано', chars_written: 'Всего написано', total_written: 'Всего написано',
+            active_days: 'Активных дней', active_days_count: 'Активных дней',
+            current_streak: 'Текущая серия', longest_streak: 'Лучшая серия',
+            monthly_chars: 'За месяц', monthly_written: 'За месяц',
+            all_time_chars: 'За всё время', today_chars: 'Сегодня',
+            monthly_rating: 'Место в рейтинге за месяц', all_time_rating: 'Место в рейтинге за всё время'
+          };
+          statsPanel.replaceChildren();
+          Object.entries(record).forEach(([key, value]) => {
+            if (value === null || value === undefined || typeof value === 'object') return;
+            const line = document.createElement('div');
+            line.className = 'stat-line';
+            const label = document.createElement('span');
+            label.textContent = labels[key] || key.replace(/_/g, ' ');
+            const val = document.createElement('strong');
+            val.textContent = typeof value === 'number' ? new Intl.NumberFormat('ru-RU').format(value) : String(value);
+            line.append(label, val);
+            statsPanel.append(line);
+          });
+          if (!statsPanel.children.length) statsPanel.textContent = 'Статистика пока недоступна.';
+        }
+        statsButton.textContent = 'Скрыть статистику';
+      } catch (error) {
+        statsPanel.textContent = 'Статистика недоступна. Для просмотра нужна взаимная подписка и разрешение автора.';
+        statsButton.textContent = 'Статистика';
+      } finally {
+        statsButton.disabled = false;
+      }
+    });
+    actions.append(statsButton);
+    row.append(info, actions);
+    // Stats panel sits beneath the person row contents without exposing private diary entries.
+    row.style.flexWrap = 'wrap';
+    statsPanel.style.width = '100%';
+    row.append(statsPanel);
     return row;
   }
 
@@ -648,7 +704,7 @@ render();
     const metadataName = user.user_metadata && user.user_metadata.display_name;
     let name = (data && data.display_name || metadataName || '').trim();
     if (!name || name.toLowerCase() === (user.email || '').split('@')[0].toLowerCase()) {
-      name = (metadataName || 'Павел Прокудин').trim();
+      name = (metadataName || 'Автор').trim();
     }
     if (!data || data.display_name !== name) {
       const { error: saveError } = await client.from('profiles').upsert({ id: user.id, display_name: name }, { onConflict: 'id' });
@@ -657,25 +713,31 @@ render();
     setOwnerName(name);
   }
 
-  async function saveOwnProfile() {
-    const name = $('profileDisplayName').value.trim();
-    if (name.length < 2) {
-      showMessage('Имя должно содержать хотя бы 2 символа.', 'error');
-      return;
-    }
-    const button = $('saveProfileName');
-    button.disabled = true;
-    try {
-      const { error } = await client.from('profiles').upsert({ id: activeUserId, display_name: name }, { onConflict: 'id' });
-      if (error) throw error;
-      setOwnerName(name);
-      showMessage('Имя профиля сохранено.', 'success');
-    } catch (error) {
-      showMessage('Не удалось сохранить имя: ' + (error.message || 'ошибка'), 'error');
-    } finally {
-      button.disabled = false;
-    }
+  async function loadStatsPreference() {
+    const { data, error } = await client.from('writer_settings')
+      .select('show_stats_to_mutuals').eq('user_id', activeUserId).maybeSingle();
+    if (error) throw error;
+    $('shareStatsWithMutuals').checked = !!(data && data.show_stats_to_mutuals);
   }
+
+  $('shareStatsWithMutuals').addEventListener('change', async () => {
+    if (!activeUserId) return;
+    const checkbox = $('shareStatsWithMutuals');
+    checkbox.disabled = true;
+    try {
+      const { error } = await client.from('writer_settings').upsert({
+        user_id: activeUserId,
+        show_stats_to_mutuals: checkbox.checked
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
+      showMessage(checkbox.checked ? 'Статистика будет видна взаимным подписчикам.' : 'Показ статистики отключён.', 'success');
+    } catch (error) {
+      checkbox.checked = !checkbox.checked;
+      showMessage('Не удалось изменить настройку статистики: ' + (error.message || 'ошибка'), 'error');
+    } finally {
+      checkbox.disabled = false;
+    }
+  });
 
   async function loadFollowing() {
     if (!activeUserId) return;
@@ -724,7 +786,6 @@ render();
     data.forEach(profile => list.append(makePersonRow(profile, followedIds.has(profile.id), 'search')));
   }
 
-  $('saveProfileName').addEventListener('click', saveOwnProfile);
   $('searchAuthorsBtn').addEventListener('click', () => searchAuthors().catch(error => showMessage(error.message || 'Ошибка поиска.', 'error')));
   $('authorSearch').addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); searchAuthors().catch(error => showMessage(error.message || 'Ошибка поиска.', 'error')); }
@@ -792,6 +853,7 @@ render();
       }
 
       await loadOwnProfile(user);
+      await loadStatsPreference();
       await loadFollowing();
       if (version !== syncVersion || activeUserId !== user.id) return;
 
