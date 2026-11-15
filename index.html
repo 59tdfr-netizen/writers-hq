@@ -735,15 +735,15 @@ render();
           statsPanel.append(unavailable);
         } else {
           const labels = {
-            total_chars: 'Всего написано', chars_written: 'Всего написано', total_written: 'Всего написано',
+            month_chars: 'Написано в этом месяце', monthly_chars: 'Написано в этом месяце', monthly_written: 'Написано в этом месяце',
+            lifetime_chars: 'Написано за всё время', all_time_chars: 'Написано за всё время', total_chars: 'Написано за всё время',
+            chars_written: 'Написано за всё время', total_written: 'Написано за всё время',
             active_days: 'Активных дней', active_days_count: 'Активных дней',
-            current_streak: 'Текущая серия', longest_streak: 'Лучшая серия',
-            monthly_chars: 'За месяц', monthly_written: 'За месяц',
-            all_time_chars: 'За всё время', today_chars: 'Сегодня',
+            current_streak: 'Текущая серия', longest_streak: 'Лучшая серия', today_chars: 'Сегодня',
             monthly_rating: 'Место в рейтинге за месяц', all_time_rating: 'Место в рейтинге за всё время'
           };
           Object.entries(record).forEach(([key, value]) => {
-            if (value === null || value === undefined || typeof value === 'object') return;
+            if (key === 'writer_id' || key === 'display_name' || value === null || value === undefined || typeof value === 'object') return;
             const line = document.createElement('div');
             line.className = 'stat-line';
             const label = document.createElement('span');
@@ -751,13 +751,7 @@ render();
             const val = document.createElement('strong');
             val.textContent = typeof value === 'number' ? new Intl.NumberFormat('ru-RU').format(value) : String(value);
             line.append(label, val);
-            const achievementLikeRow = document.createElement('div');
-            achievementLikeRow.className = 'like-row';
-            const achievementLikeControl = document.createElement('span');
-            achievementLikeRow.append(achievementLikeControl);
-            line.append(achievementLikeRow);
             statsPanel.append(line);
-            renderLikeButton(achievementLikeControl, profile.id, 'achievement', id).catch(error => showMessage('Не удалось загрузить лайки: ' + (error.message || 'ошибка'), 'error'));
           });
           if (!statsPanel.children.length) statsPanel.textContent = 'Статистика пока недоступна.';
         }
@@ -773,7 +767,7 @@ render();
           none.textContent = 'Пока нет полученных достижений.';
           statsPanel.append(none);
         } else {
-          earned.forEach(id => {
+          for (const id of earned) {
             const definition = defs.find(item => item.id === id);
             const line = document.createElement('div');
             line.className = 'stat-line';
@@ -783,7 +777,13 @@ render();
             val.textContent = 'Получено';
             line.append(label, val);
             statsPanel.append(line);
-          });
+            const achievementLikeRow = document.createElement('div');
+            achievementLikeRow.className = 'like-row';
+            const achievementLikeControl = document.createElement('span');
+            achievementLikeRow.append(achievementLikeControl);
+            statsPanel.append(achievementLikeRow);
+            await renderLikeButton(achievementLikeControl, profile.id, 'achievement', id);
+          }
         }
         const statsLikeRow = document.createElement('div');
         statsLikeRow.className = 'like-row';
@@ -797,8 +797,9 @@ render();
 
         statsButton.textContent = 'Скрыть статистику и достижения';
       } catch (error) {
-        statsPanel.textContent = 'Статистика и достижения доступны, если ты подписан на автора и он разрешил их показ в настройках.';
-        statsButton.textContent = 'Статистика';
+        statsPanel.textContent = 'Не удалось загрузить данные: ' + (error.message || 'неизвестная ошибка') + '. Проверь настройку видимости автора и SQL-функции в Supabase.';
+        showMessage('Ошибка загрузки статистики: ' + (error.message || 'неизвестная ошибка'), 'error');
+        statsButton.textContent = 'Скрыть сообщение';
       } finally {
         statsButton.disabled = false;
       }
