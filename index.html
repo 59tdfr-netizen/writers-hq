@@ -26,8 +26,8 @@ label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6
 .social-search-row{display:flex;gap:8px;align-items:flex-end}
 .social-search-row .field{flex:1;min-width:0;margin-bottom:0}
 .privacy-setting{display:flex;align-items:flex-start;gap:9px;margin:0 0 12px;font-size:12px;color:var(--muted)}.privacy-setting input{width:auto;margin-top:3px}
-.author-stats{margin-top:9px;padding:10px;border-radius:10px;background:#f8f7f1;font-size:12px;color:var(--ink)}.author-stats .stat-line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)}.author-stats .stat-line:last-child{border-bottom:0}
-@media(max-width:650px){.social-grid{grid-template-columns:1fr}.social-search-row{align-items:stretch;flex-direction:column}.social-search-row .btn{width:100%}}
+.author-stats{margin-top:9px;padding:10px;border-radius:10px;background:#f8f7f1;font-size:12px;color:var(--ink)}.author-stats .stat-line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)}.author-stats .stat-line:last-child{border-bottom:0}.community-count{display:flex;align-items:center;gap:12px;margin-bottom:18px}.community-count-number{font-size:27px;font-weight:800;letter-spacing:-.04em;color:var(--green)}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.like-row{display:flex;align-items:center;gap:7px;margin-top:8px}.like-btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 10px;cursor:pointer;font:inherit;font-size:12px}.like-btn.liked{background:#fbe9e7;border-color:#e6b9b3;color:#a43f38}.setting-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+@media(max-width:650px){.social-grid{grid-template-columns:1fr}.social-search-row{align-items:stretch;flex-direction:column}.social-search-row .btn{width:100%}.settings-grid{grid-template-columns:1fr}}
 
 .auth-hidden{display:none!important}
 
@@ -94,6 +94,12 @@ details summary{user-select:none}
     <p id="authMessage" class="auth-message"></p>
   </section>
 
+  <section class="card community-count auth-hidden" id="communityCountCard">
+    <div aria-hidden="true" style="font-size:27px">✍️</div>
+    <div><div class="small">Писателей в Штабе</div><div class="community-count-number" id="communityCount">—</div></div>
+    <div class="small">авторов зарегистрировались и ведут свои писательские дневники</div>
+  </section>
+
   <section class="card social-card auth-hidden" id="socialCard">
     <div class="card-head"><div><h2>Авторы</h2><div class="small" style="margin-top:4px">Находи знакомых писателей и подписывайся на них.</div></div><span class="small" id="followingCount">0 подписок</span></div>
     <div class="social-grid">
@@ -112,6 +118,25 @@ details summary{user-select:none}
         <div class="social-list" id="followingList"></div>
       </div>
     </div>
+  </section>
+
+  <section class="card social-card auth-hidden" id="profileSettingsCard">
+    <div class="card-head"><div><h2>Настройки профиля</h2><div class="small" style="margin-top:4px">Управляй именем, паролем и видимостью своих данных.</div></div></div>
+    <div class="settings-grid">
+      <div>
+        <div class="field"><label for="profileDisplayName">Имя автора</label><input id="profileDisplayName" type="text" minlength="2" maxlength="60" autocomplete="nickname"></div>
+        <button id="saveProfileNameBtn" class="btn primary" type="button">Сохранить имя</button>
+      </div>
+      <div>
+        <div class="field"><label for="newPassword">Новый пароль</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Не менее 6 символов"></div>
+        <button id="changePasswordBtn" class="btn secondary" type="button">Изменить пароль</button>
+      </div>
+    </div>
+    <div class="setting-section">
+      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Разрешить подписчикам видеть мою статистику и достижения</strong><br>Достаточно односторонней подписки. Если отключить настройку, доступ к данным пропадёт.</span></label>
+      <button id="saveVisibilityBtn" class="btn primary" type="button">Сохранить видимость</button>
+    </div>
+    <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
   </section>
 
   <div class="backup-notice" id="backupNotice">
@@ -596,6 +621,47 @@ render();
     $('ownerNameLine').classList.remove('auth-hidden');
   }
 
+  async function renderLikeButton(container, targetUserId, itemType, achievementId = null) {
+    const filteredQuery = achievementId
+      ? client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+      : client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+    const { data, error } = await filteredQuery;
+    if (error) throw error;
+    const likes = data || [];
+    const liked = likes.some(item => item.liker_id === activeUserId);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'like-btn' + (liked ? ' liked' : '');
+    button.textContent = `${liked ? '♥' : '♡'} Поддержать · ${likes.length}`;
+    button.setAttribute('aria-pressed', String(liked));
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const query = achievementId
+          ? client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+          : client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+        if (liked) {
+          const { error: deleteError } = await query;
+          if (deleteError) throw deleteError;
+        } else {
+          const { error: insertError } = await client.from('writer_likes').insert({
+            liker_id: activeUserId,
+            target_user_id: targetUserId,
+            item_type: itemType,
+            achievement_id: achievementId
+          });
+          if (insertError) throw insertError;
+        }
+        await renderLikeButton(container, targetUserId, itemType, achievementId);
+      } catch (error) {
+        showMessage('Не удалось изменить лайк: ' + (error.message || 'ошибка'), 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+    container.replaceChildren(button);
+  }
+
   function makePersonRow(profile, isFollowing, mode) {
     const row = document.createElement('div');
     row.className = 'social-person';
@@ -682,7 +748,13 @@ render();
             const val = document.createElement('strong');
             val.textContent = typeof value === 'number' ? new Intl.NumberFormat('ru-RU').format(value) : String(value);
             line.append(label, val);
+            const achievementLikeRow = document.createElement('div');
+            achievementLikeRow.className = 'like-row';
+            const achievementLikeControl = document.createElement('span');
+            achievementLikeRow.append(achievementLikeControl);
+            line.append(achievementLikeRow);
             statsPanel.append(line);
+            renderLikeButton(achievementLikeControl, profile.id, 'achievement', id).catch(error => showMessage('Не удалось загрузить лайки: ' + (error.message || 'ошибка'), 'error'));
           });
           if (!statsPanel.children.length) statsPanel.textContent = 'Статистика пока недоступна.';
         }
@@ -710,9 +782,19 @@ render();
             statsPanel.append(line);
           });
         }
+        const statsLikeRow = document.createElement('div');
+        statsLikeRow.className = 'like-row';
+        const statsLikeLabel = document.createElement('span');
+        statsLikeLabel.className = 'small';
+        statsLikeLabel.textContent = 'Поддержать статистику автора:';
+        const statsLikeControl = document.createElement('span');
+        statsLikeRow.append(statsLikeLabel, statsLikeControl);
+        statsPanel.append(statsLikeRow);
+        await renderLikeButton(statsLikeControl, profile.id, 'stats');
+
         statsButton.textContent = 'Скрыть статистику и достижения';
       } catch (error) {
-        statsPanel.textContent = 'Статистика и достижения доступны, если ты подписан на автора и он разрешил показ при регистрации.';
+        statsPanel.textContent = 'Статистика и достижения доступны, если ты подписан на автора и он разрешил их показ в настройках.';
         statsButton.textContent = 'Статистика';
       } finally {
         statsButton.disabled = false;
@@ -744,13 +826,27 @@ render();
   }
 
   async function loadStatsPreference(user) {
-    // Метаданные регистрации — единственный источник выбора; интерфейса для изменения после регистрации нет.
-    const optedIn = !!(user.user_metadata && user.user_metadata.share_stats_on_follow);
-    const { error } = await client.from('writer_settings').upsert({
-      user_id: activeUserId,
-      show_stats_to_mutuals: optedIn
-    }, { onConflict: 'user_id' });
+    const { data, error } = await client.from('writer_settings')
+      .select('show_stats_to_mutuals').eq('user_id', activeUserId).maybeSingle();
     if (error) throw error;
+    let allowed;
+    if (data && typeof data.show_stats_to_mutuals === 'boolean') {
+      allowed = data.show_stats_to_mutuals;
+    } else {
+      allowed = !!(user.user_metadata && user.user_metadata.share_stats_on_follow);
+      const { error: saveError } = await client.from('writer_settings').upsert({
+        user_id: activeUserId,
+        show_stats_to_mutuals: allowed
+      }, { onConflict: 'user_id' });
+      if (saveError) throw saveError;
+    }
+    $('allowStatsVisibility').checked = allowed;
+  }
+
+  async function loadCommunityCount() {
+    const { data, error } = await client.rpc('get_registered_writer_count');
+    if (error) throw error;
+    $('communityCount').textContent = new Intl.NumberFormat('ru-RU').format(Number(data) || 0);
   }
 
   async function loadFollowing() {
@@ -811,6 +907,8 @@ render();
     forms.classList.toggle('auth-hidden', !!user);
     signedInPanel.classList.toggle('auth-hidden', !user);
     $('socialCard').classList.toggle('auth-hidden', !user);
+    $('communityCountCard').classList.toggle('auth-hidden', !user);
+    $('profileSettingsCard').classList.toggle('auth-hidden', !user);
     if (!user) $('ownerNameLine').classList.add('auth-hidden');
 
     if (user) {
@@ -869,6 +967,7 @@ render();
       await loadOwnProfile(user);
       await loadStatsPreference(user);
       await loadFollowing();
+      await loadCommunityCount();
       if (version !== syncVersion || activeUserId !== user.id) return;
 
       document.body.classList.remove('diary-locked');
@@ -917,6 +1016,77 @@ render();
   );
 
   window.writersHQClient = client;
+
+  $('saveProfileNameBtn').addEventListener('click', async () => {
+    const name = $('profileDisplayName').value.trim();
+    if (name.length < 2) {
+      $('settingsMessage').textContent = 'Имя должно содержать минимум 2 символа.';
+      $('settingsMessage').className = 'auth-message error';
+      return;
+    }
+    const button = $('saveProfileNameBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.from('profiles').update({ display_name: name }).eq('id', activeUserId);
+      if (error) throw error;
+      const { error: authError } = await client.auth.updateUser({ data: { display_name: name } });
+      if (authError) throw authError;
+      setOwnerName(name);
+      $('settingsMessage').textContent = 'Имя сохранено.';
+      $('settingsMessage').className = 'auth-message success';
+      await loadFollowing();
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось сохранить имя: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('changePasswordBtn').addEventListener('click', async () => {
+    const password = $('newPassword').value;
+    if (password.length < 6) {
+      $('settingsMessage').textContent = 'Новый пароль должен содержать минимум 6 символов.';
+      $('settingsMessage').className = 'auth-message error';
+      return;
+    }
+    const button = $('changePasswordBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.auth.updateUser({ password });
+      if (error) throw error;
+      $('newPassword').value = '';
+      $('settingsMessage').textContent = 'Пароль изменён.';
+      $('settingsMessage').className = 'auth-message success';
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось изменить пароль: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('saveVisibilityBtn').addEventListener('click', async () => {
+    const allowed = $('allowStatsVisibility').checked;
+    const button = $('saveVisibilityBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.from('writer_settings').upsert({
+        user_id: activeUserId,
+        show_stats_to_mutuals: allowed
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
+      $('settingsMessage').textContent = allowed
+        ? 'Статистика и достижения теперь видны твоим подписчикам.'
+        : 'Показ статистики и достижений отключён.';
+      $('settingsMessage').className = 'auth-message success';
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось сохранить настройку: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally {
+      button.disabled = false;
+    }
+  });
 
   $('signUpForm').addEventListener('submit', async event => {
     event.preventDefault();
