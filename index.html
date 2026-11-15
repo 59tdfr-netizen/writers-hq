@@ -79,6 +79,7 @@ details summary{user-select:none}
             <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email"></div>
           </div>
           <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required autocomplete="new-password"></div>
+          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать мою статистику и достижения авторам, на которых они подписаны</strong><br>Настройка выбирается при регистрации. Другому автору достаточно подписаться на тебя — взаимная подписка не нужна.</span></label>
           <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
         </form>
       </details>
@@ -86,7 +87,7 @@ details summary{user-select:none}
 
     <div id="signedInPanel" class="auth-hidden">
       <p class="small" style="margin:0 0 12px">Вы вошли как: <strong id="signedInEmail"></strong></p>
-      <label class="privacy-setting"><input id="shareStatsWithMutuals" type="checkbox"><span><strong>Показывать мою статистику взаимным подписчикам</strong><br>Другой автор увидит её, только если вы подписаны друг на друга.</span></label>
+      <p class="small" style="margin:0 0 12px">Разрешение на показ статистики и достижений выбирается один раз при регистрации.</p>
       <button id="signOutBtn" class="btn secondary" type="button">Выйти</button>
     </div>
 
@@ -642,12 +643,13 @@ render();
     const statsButton = document.createElement('button');
     statsButton.type = 'button';
     statsButton.className = 'btn secondary';
-    statsButton.textContent = 'Статистика';
+    statsButton.textContent = 'Статистика и достижения';
+    statsButton.hidden = !isFollowing;
     const statsPanel = document.createElement('div');
     statsPanel.className = 'author-stats';
     statsPanel.hidden = true;
     statsButton.addEventListener('click', async () => {
-      if (!statsPanel.hidden) { statsPanel.hidden = true; statsButton.textContent = 'Статистика'; return; }
+      if (!statsPanel.hidden) { statsPanel.hidden = true; statsButton.textContent = 'Статистика и достижения'; return; }
       statsPanel.hidden = false;
       statsPanel.textContent = 'Загружаем статистику…';
       statsButton.disabled = true;
@@ -655,8 +657,13 @@ render();
         const { data, error } = await client.rpc('get_writer_stats', { p_target_user_id: profile.id });
         if (error) throw error;
         const record = Array.isArray(data) ? data[0] : data;
+        const { data: earnedIds, error: achievementsError } = await client.rpc('get_writer_achievements', { p_target_user_id: profile.id });
+        if (achievementsError) throw achievementsError;
+        statsPanel.replaceChildren();
         if (!record || typeof record !== 'object' || !Object.keys(record).length) {
-          statsPanel.textContent = 'Статистика пока недоступна.';
+          const unavailable = document.createElement('p');
+          unavailable.textContent = 'Статистика пока недоступна.';
+          statsPanel.append(unavailable);
         } else {
           const labels = {
             total_chars: 'Всего написано', chars_written: 'Всего написано', total_written: 'Всего написано',
@@ -666,7 +673,6 @@ render();
             all_time_chars: 'За всё время', today_chars: 'Сегодня',
             monthly_rating: 'Место в рейтинге за месяц', all_time_rating: 'Место в рейтинге за всё время'
           };
-          statsPanel.replaceChildren();
           Object.entries(record).forEach(([key, value]) => {
             if (value === null || value === undefined || typeof value === 'object') return;
             const line = document.createElement('div');
@@ -680,9 +686,33 @@ render();
           });
           if (!statsPanel.children.length) statsPanel.textContent = 'Статистика пока недоступна.';
         }
-        statsButton.textContent = 'Скрыть статистику';
+        const earned = Array.isArray(earnedIds) ? earnedIds : [];
+        const achievementHeading = document.createElement('h4');
+        achievementHeading.textContent = 'Достижения';
+        achievementHeading.style.margin = '14px 0 8px';
+        statsPanel.append(achievementHeading);
+        const defs = Array.isArray(achievementDefs) ? achievementDefs : [];
+        if (!earned.length) {
+          const none = document.createElement('p');
+          none.className = 'small';
+          none.textContent = 'Пока нет полученных достижений.';
+          statsPanel.append(none);
+        } else {
+          earned.forEach(id => {
+            const definition = defs.find(item => item.id === id);
+            const line = document.createElement('div');
+            line.className = 'stat-line';
+            const label = document.createElement('span');
+            label.textContent = definition ? `${definition.icon} ${definition.title}` : String(id);
+            const val = document.createElement('strong');
+            val.textContent = 'Получено';
+            line.append(label, val);
+            statsPanel.append(line);
+          });
+        }
+        statsButton.textContent = 'Скрыть статистику и достижения';
       } catch (error) {
-        statsPanel.textContent = 'Статистика недоступна. Для просмотра нужна взаимная подписка и разрешение автора.';
+        statsPanel.textContent = 'Статистика и достижения доступны, если ты подписан на автора и он разрешил показ при регистрации.';
         statsButton.textContent = 'Статистика';
       } finally {
         statsButton.disabled = false;
@@ -713,31 +743,15 @@ render();
     setOwnerName(name);
   }
 
-  async function loadStatsPreference() {
-    const { data, error } = await client.from('writer_settings')
-      .select('show_stats_to_mutuals').eq('user_id', activeUserId).maybeSingle();
+  async function loadStatsPreference(user) {
+    // Метаданные регистрации — единственный источник выбора; интерфейса для изменения после регистрации нет.
+    const optedIn = !!(user.user_metadata && user.user_metadata.share_stats_on_follow);
+    const { error } = await client.from('writer_settings').upsert({
+      user_id: activeUserId,
+      show_stats_to_mutuals: optedIn
+    }, { onConflict: 'user_id' });
     if (error) throw error;
-    $('shareStatsWithMutuals').checked = !!(data && data.show_stats_to_mutuals);
   }
-
-  $('shareStatsWithMutuals').addEventListener('change', async () => {
-    if (!activeUserId) return;
-    const checkbox = $('shareStatsWithMutuals');
-    checkbox.disabled = true;
-    try {
-      const { error } = await client.from('writer_settings').upsert({
-        user_id: activeUserId,
-        show_stats_to_mutuals: checkbox.checked
-      }, { onConflict: 'user_id' });
-      if (error) throw error;
-      showMessage(checkbox.checked ? 'Статистика будет видна взаимным подписчикам.' : 'Показ статистики отключён.', 'success');
-    } catch (error) {
-      checkbox.checked = !checkbox.checked;
-      showMessage('Не удалось изменить настройку статистики: ' + (error.message || 'ошибка'), 'error');
-    } finally {
-      checkbox.disabled = false;
-    }
-  });
 
   async function loadFollowing() {
     if (!activeUserId) return;
@@ -853,7 +867,7 @@ render();
       }
 
       await loadOwnProfile(user);
-      await loadStatsPreference();
+      await loadStatsPreference(user);
       await loadFollowing();
       if (version !== syncVersion || activeUserId !== user.id) return;
 
@@ -918,7 +932,10 @@ render();
         email,
         password,
         options: {
-          data: { display_name: displayName },
+          data: {
+            display_name: displayName,
+            share_stats_on_follow: $('shareStatsOnFollow').checked
+          },
           emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'
         }
       });
