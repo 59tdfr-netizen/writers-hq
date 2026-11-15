@@ -234,6 +234,8 @@ const achievementDefs=[
 {id:'days10',icon:'🌿',title:'Вошёл в ритм',desc:'Писал в 10 разных дней',check:()=>activeEntries().length>=10},
 {id:'days30',icon:'🏆',title:'Писательская привычка',desc:'Писал в 30 разных дней',check:()=>activeEntries().length>=30}
 ];
+// Делаем каталог достижений доступным социальному блоку во втором скрипте.
+window.writersHQAchievementDefs = achievementDefs;
 function longestStreak(){
  const dates=activeEntries().map(([d])=>d).sort();
  let best=0,run=0,prev=null;
@@ -760,7 +762,7 @@ render();
         achievementHeading.textContent = 'Достижения';
         achievementHeading.style.margin = '14px 0 8px';
         statsPanel.append(achievementHeading);
-        const defs = Array.isArray(achievementDefs) ? achievementDefs : [];
+        const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
         if (!earned.length) {
           const none = document.createElement('p');
           none.className = 'small';
