@@ -118,7 +118,7 @@ details summary{user-select:none}
   </main>
   <div class="bottom-grid">
     <section class="card"><div class="card-head"><h2>Последние записи</h2><span class="small">10 последних активных дней</span></div><div class="history-list" id="historyList"></div></section>
-    <section class="card"><div class="eyebrow">Главное правило</div><p class="tip" id="tipText">Не обязательно писать много каждый день. Важно видеть свой настоящий темп — и возвращаться к тексту.</p><p class="small" style="margin-top:13px">Твои записи сохраняются в этом браузере на этом устройстве.</p></section>
+    <section class="card"><div class="eyebrow">Главное правило</div><p class="tip" id="tipText">Не обязательно писать много каждый день. Важно видеть свой настоящий темп — и возвращаться к тексту.</p><p class="small" style="margin-top:13px">Дневник и цель сохраняются в облаке и доступны после входа в аккаунт.</p></section>
     <section class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Мои достижения</h2><div class="small" style="margin-top:4px">Каждый написанный день и каждый знак приближают тебя к следующей награде.</div></div><span class="small" id="achievementCount">0 получено</span></div><div class="achievement-list" id="achievementList"></div></section>
   </div>
   <footer class="footer"><span>Штаб писателя · первая версия</span><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
@@ -174,10 +174,18 @@ function longestStreak(){
  for(const d of dates){if(prev&&dayDiff(prev,d)===1)run++;else run=1;best=Math.max(best,run);prev=d}
  return best;
 }
-function checkAchievements(){
+async function checkAchievements(){
  const earned=[];
  achievementDefs.forEach(a=>{if(!state.achievements.includes(a.id)&&a.check()){state.achievements.push(a.id);earned.push(a)}});
- if(earned.length){persist();showToast(earned.length===1?`🎉 Достижение получено: ${earned[0].title}`:`🎉 Новые достижения: ${earned.map(a=>a.title).join(', ')}`)}
+ if(earned.length){
+   persist();
+   try {
+     await window.writersHQDiary.saveSettings();
+     showToast(earned.length===1?`🎉 Достижение получено: ${earned[0].title}`:`🎉 Новые достижения: ${earned.map(a=>a.title).join(', ')}`);
+   } catch (error) {
+     showToast('Достижение получено, но не удалось сохранить его в облаке. Проверь соединение.');
+   }
+ }
 }
 function renderAchievements(){
  $('achievementCount').textContent=`${state.achievements.length} из ${achievementDefs.length} получено`;
@@ -274,21 +282,27 @@ window.writersHQDiary = {
       localStorage.setItem(PRE_CLOUD_BACKUP_KEY, rawLocalState);
     }
 
-    const { data, error } = await client
-      .from('daily_progress')
-      .select('progress_date, chars_written')
-      .eq('user_id', userId)
-      .is('project_id', null)
-      .is('club_id', null)
-      .order('progress_date', { ascending: true });
+    // Загружаем прогресс и настройки параллельно, чтобы не ждать два запроса по очереди.
+    const [progressResult, settingsResult] = await Promise.all([
+      client
+        .from('daily_progress')
+        .select('progress_date, chars_written')
+        .eq('user_id', userId)
+        .is('project_id', null)
+        .is('club_id', null)
+        .order('progress_date', { ascending: true }),
+      client
+        .from('writer_settings')
+        .select('diary_goal, diary_achievements')
+        .eq('user_id', userId)
+        .maybeSingle()
+    ]);
 
-    if (error) {
-      throw error;
-    }
+    if (progressResult.error) throw progressResult.error;
+    if (settingsResult.error) throw settingsResult.error;
 
     const cloudEntries = {};
-
-    for (const row of data || []) {
+    for (const row of progressResult.data || []) {
       cloudEntries[row.progress_date] = Number(row.chars_written) || 0;
     }
 
@@ -299,8 +313,61 @@ window.writersHQDiary = {
     }
 
     state.entries = cloudEntries;
+
+    const settings = settingsResult.data;
+    // Цель и достижения берутся из облака. Если это новый аккаунт без настроек,
+    // используем безопасные значения по умолчанию, не копируя данные другого аккаунта.
+    state.goal = settings && settings.diary_goal && typeof settings.diary_goal === 'object'
+      ? { ...defaultState.goal, ...settings.diary_goal }
+      : { ...defaultState.goal };
+    state.achievements = settings && Array.isArray(settings.diary_achievements)
+      ? settings.diary_achievements
+      : [];
+
     persist();
     render();
+  },
+
+  async saveSettings() {
+    const client = window.writersHQClient;
+    const userId = window.writersHQUserId;
+
+    if (!client || !userId || document.body.classList.contains('diary-locked')) {
+      throw new Error('Войди в аккаунт, чтобы сохранять настройки.');
+    }
+
+    const { error } = await client
+      .from('writer_settings')
+      .upsert({
+        user_id: userId,
+        diary_goal: state.goal,
+        diary_achievements: state.achievements
+      }, { onConflict: 'user_id' });
+
+    if (error) throw error;
+    persist();
+  },
+
+  async refreshAchievements() {
+    let changed = false;
+
+    achievementDefs.forEach(a => {
+      if (!state.achievements.includes(a.id) && a.check()) {
+        state.achievements.push(a.id);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      persist();
+      try {
+        await this.saveSettings();
+      } catch (error) {
+        showToast('Достижения рассчитаны, но не удалось сохранить их в облаке.');
+      }
+    }
+
+    renderAchievements();
   },
 
   async saveEntry(date, chars) {
@@ -371,7 +438,7 @@ $('saveEntry').addEventListener('click', async () => {
       Math.round(val)
     );
 
-    checkAchievements();
+    await checkAchievements();
     render();
     showToast('Результат сохранён в облаке.');
   } catch (error) {
@@ -408,7 +475,39 @@ $('clearEntry').addEventListener('click', async () => {
 function showGoalForm(){ $('goalForm').hidden=false;$('goalView').hidden=true;$('goalName').value=state.goal.name;$('goalSheets').value=state.goal.sheets;$('sheetSize').value=state.goal.sheetSize;$('goalDeadline').value=state.goal.deadline||''}
 function hideGoalForm(){$('goalForm').hidden=true;$('goalView').hidden=false}
 $('editGoalBtn').addEventListener('click',showGoalForm);$('cancelGoal').addEventListener('click',hideGoalForm);
-$('saveGoal').addEventListener('click',()=>{const sheets=Number($('goalSheets').value),size=Number($('sheetSize').value);if(!sheets||sheets<0||!size||size<1000){alert('Проверь количество авторских листов и размер одного листа.');return}state.goal={name:$('goalName').value.trim()||'Мой роман',sheets,sheetSize:size,deadline:$('goalDeadline').value};persist();hideGoalForm();render()});
+$('saveGoal').addEventListener('click', async () => {
+  const sheets = Number($('goalSheets').value);
+  const size = Number($('sheetSize').value);
+
+  if (!sheets || sheets < 0 || !size || size < 1000) {
+    alert('Проверь количество авторских листов и размер одного листа.');
+    return;
+  }
+
+  const button = $('saveGoal');
+  const previousGoal = { ...state.goal };
+  button.disabled = true;
+
+  state.goal = {
+    name: $('goalName').value.trim() || 'Мой роман',
+    sheets,
+    sheetSize: size,
+    deadline: $('goalDeadline').value
+  };
+
+  try {
+    await window.writersHQDiary.saveSettings();
+    hideGoalForm();
+    render();
+    showToast('Цель сохранена в облаке.');
+  } catch (error) {
+    state.goal = previousGoal;
+    render();
+    alert('Не удалось сохранить цель в облаке. Проверь подключение и попробуй ещё раз.\n\n' + (error.message || ''));
+  } finally {
+    button.disabled = false;
+  }
+});
 $('prevMonth').addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);renderCalendar()});
 $('nextMonth').addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);renderCalendar()});
 $('exportBtn').addEventListener('click',exportBackup);
@@ -504,6 +603,9 @@ render();
       }
 
       document.body.classList.remove('diary-locked');
+
+      // Восстанавливаем достижения, которые уже заслужены по облачному прогрессу.
+      await window.writersHQDiary.refreshAchievements();
 
       authStatus.textContent =
         'Дневник синхронизирован с облаком. Записи доступны в этом аккаунте.';
