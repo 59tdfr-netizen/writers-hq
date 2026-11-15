@@ -732,20 +732,17 @@ render();
     }
   });
 
-  client.auth.onAuthStateChange((_event, session) => {
-    window.setTimeout(() => {
-      syncSession(session);
-    }, 0);
-  });
-
-  client.auth.getSession().then(({ data, error }) => {
-    if (error) {
-      window.writersHQDiary.lock();
-      showMessage(error.message, 'error');
+  // INITIAL_SESSION восстанавливает сохранённый вход при запуске страницы.
+  // SIGNED_IN / SIGNED_OUT обновляют интерфейс после действий пользователя.
+  // TOKEN_REFRESHED не требует повторной загрузки всего дневника.
+  client.auth.onAuthStateChange((event, session) => {
+    if (!['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT'].includes(event)) {
       return;
     }
 
-    syncSession(data ? data.session : null);
+    window.setTimeout(() => {
+      syncSession(session);
+    }, 0);
   });
 })();
 </script>
