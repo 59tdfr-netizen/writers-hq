@@ -1,3 +1,4 @@
+
 name: AI Design Review
 
 on:
@@ -12,6 +13,7 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -105,47 +107,68 @@ jobs:
                   result = json.loads(response.read().decode("utf-8"))
           except urllib.error.HTTPError as error:
               print(f"Cloudflare API returned HTTP {error.code}.")
-              sys.exit("Review failed. Check the API response and model access.")
+              try:
+                  print(error.read().decode("utf-8")[:3000])
+              except Exception:
+                  pass
+              sys.exit("Review failed. Check the API error above.")
           except Exception as error:
               print(f"Request failed: {type(error).__name__}")
-              sys.exit("Review failed. No changes were made to the website.")
+              sys.exit("Review failed. No website files were modified.")
 
-          if not result.get("success"):
+          if not result.get("success", False):
               print("Cloudflare reported an unsuccessful request.")
               for item in result.get("errors", []):
-                  print(f"API error: {item.get('code', 'unknown')} — "
-                        f"{item.get('message', 'No details')}")
+                  print(
+                      f"API error: {item.get('code', 'unknown')} — "
+                      f"{item.get('message', 'No details')}"
+                  )
               sys.exit(1)
 
           api_result = result.get("result", {})
-print("Top-level result keys:", list(result.keys()))
-print("Model result keys:", list(api_result.keys()))
+          print("Top-level result keys:", list(result.keys()))
 
-choices = api_result.get("choices", [])
-print("Choices count:", len(choices))
+          if isinstance(api_result, dict):
+              print("Model result keys:", list(api_result.keys()))
+          else:
+              print("Model result type:", type(api_result).__name__)
 
-if choices:
-    choice = choices[0]
-    print("Choice keys:", list(choice.keys()))
+          report = ""
 
-    message = choice.get("message", {})
-    print("Message keys:", list(message.keys()))
+          if isinstance(api_result, dict):
+              response_text = api_result.get("response")
+              if isinstance(response_text, str) and response_text.strip():
+                  report = response_text
 
-    report = message.get("content", "")
-    print("Content type:", type(report).__name__)
-    print("Content length:", len(report) if isinstance(report, str) else "not a string")
+              if not report:
+                  choices = api_result.get("choices", [])
+                  print("Choices count:", len(choices))
 
-    if isinstance(report, str) and report.strip():
-        print("\n" + "=" * 60)
-        print("AI DESIGN REVIEW — ШТАБ ПИСАТЕЛЯ")
-        print("=" * 60 + "\n")
-        print(report)
-    else:
-        print("No text report found in the expected content field.")
-        sys.exit(1)
-else:
-    print("No answer choices found.")
-    sys.exit(1)
+                  if choices:
+                      choice = choices[0]
+                      message = choice.get("message", {})
+                      content = message.get("content", "")
+
+                      if isinstance(content, str):
+                          report = content
+                      elif isinstance(content, list):
+                          report = "\n".join(
+                              item.get("text", "")
+                              for item in content
+                              if isinstance(item, dict)
+                              and isinstance(item.get("text", ""), str)
+                          )
+
+              if not report:
+                  output_text = api_result.get("output_text")
+                  if isinstance(output_text, str):
+                      report = output_text
+
+          if not report.strip():
+              print("No report text found in the supported response fields.")
+              print("No website files were modified.")
+              sys.exit(1)
+
           print("\n" + "=" * 60)
           print("AI DESIGN REVIEW — ШТАБ ПИСАТЕЛЯ")
           print("=" * 60 + "\n")
