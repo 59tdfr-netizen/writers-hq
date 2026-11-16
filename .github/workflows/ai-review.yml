@@ -3,7 +3,10 @@ name: AI Review
 
 on:
   workflow_dispatch:
-
+  push:
+    branches:
+      - ai-agent-setup
+      
 permissions:
   contents: read
 
