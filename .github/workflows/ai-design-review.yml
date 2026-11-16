@@ -117,14 +117,35 @@ jobs:
                         f"{item.get('message', 'No details')}")
               sys.exit(1)
 
-          choices = result.get("result", {}).get("choices", [])
-          if not choices:
-              sys.exit("The API returned no answer choices.")
+          api_result = result.get("result", {})
+print("Top-level result keys:", list(result.keys()))
+print("Model result keys:", list(api_result.keys()))
 
-          report = choices[0].get("message", {}).get("content", "")
-          if not report:
-              sys.exit("The model returned an empty report.")
+choices = api_result.get("choices", [])
+print("Choices count:", len(choices))
 
+if choices:
+    choice = choices[0]
+    print("Choice keys:", list(choice.keys()))
+
+    message = choice.get("message", {})
+    print("Message keys:", list(message.keys()))
+
+    report = message.get("content", "")
+    print("Content type:", type(report).__name__)
+    print("Content length:", len(report) if isinstance(report, str) else "not a string")
+
+    if isinstance(report, str) and report.strip():
+        print("\n" + "=" * 60)
+        print("AI DESIGN REVIEW — ШТАБ ПИСАТЕЛЯ")
+        print("=" * 60 + "\n")
+        print(report)
+    else:
+        print("No text report found in the expected content field.")
+        sys.exit(1)
+else:
+    print("No answer choices found.")
+    sys.exit(1)
           print("\n" + "=" * 60)
           print("AI DESIGN REVIEW — ШТАБ ПИСАТЕЛЯ")
           print("=" * 60 + "\n")
