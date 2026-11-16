@@ -1,6 +1,9 @@
 name: AI Design Review
 
 on:
+  push:
+    branches:
+      - ai-agent-setup
   workflow_dispatch:
 
 permissions:
