@@ -1,0 +1,31 @@
+
+name: AI Review
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inspect repository
+        run: |
+          echo "Repository files:"
+          find . -maxdepth 2 -type f \
+            ! -path './.git/*' \
+            ! -path './.github/*' \
+            | sort
+
+          echo ""
+          echo "Main HTML file size:"
+          wc -c index.html
+
+          echo ""
+          echo "HTML title and headings:"
+          grep -Eo '<title>[^<]*|<h[1-6][^>]*>[^<]*' index.html || true
