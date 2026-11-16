@@ -1,0 +1,32 @@
+name: Test Cloudflare AI
+
+on:
+  push:
+    branches:
+      - ai-agent-setup
+
+permissions:
+  contents: read
+
+jobs:
+  test-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test free Cloudflare AI model
+        env:
+          CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$CLOUDFLARE_AI_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "ERROR: GitHub Secrets are missing."
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/zai-org/glm-4.7-flash" \
+            --header "Authorization: Bearer ${CLOUDFLARE_AI_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data '{"messages":[{"role":"user","content":"Reply with exactly CONNECTION_OK"}]}'
