@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate reviewable design proposal
+      - name: Generate design proposal
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
@@ -51,19 +51,21 @@ jobs:
 
           css_parts = []
           for path in sorted(Path(".").rglob("*.css")):
-              if any(x in path.parts for x in (".git", "node_modules", ".venv")):
+              if any(part in {".git", "node_modules", ".venv"}
+                     for part in path.parts):
                   continue
               css_parts.append(
                   f"\n/* {path.as_posix()} */\n"
                   + path.read_text(encoding="utf-8", errors="replace")
               )
 
-          for number, css in enumerate(re.findall(
+          inline_css = re.findall(
               r"<style\b[^>]*>(.*?)</style\s*>",
               html,
               flags=re.I | re.S
-          ), start=1):
-              css_parts.append(f"\n/* Inline CSS {number} */\n{css}")
+          )
+          for i, content in enumerate(inline_css, start=1):
+              css_parts.append(f"\n/* Inline CSS {i} */\n{content}")
 
           css = "\n".join(css_parts)
           if not css.strip():
@@ -79,10 +81,10 @@ jobs:
                   "tag": tag.lower(),
                   "text": re.sub(
                       r"\s+", " ",
-                      re.sub(r"<[^>]+>", " ", value)
+                      re.sub(r"<[^>]+>", " ", content)
                   ).strip()[:80]
               }
-              for tag, value in headings[:20]
+              for tag, content in headings[:15]
           ]
 
           classes = sorted(set(re.findall(
@@ -92,63 +94,43 @@ jobs:
               r'\bid=["\']([^"\']+)["\']', html
           )))
 
-          # Keep the request compact to reduce the risk of truncated output.
           context = {
               "headings": headings,
-              "classes": classes[:55],
-              "ids": ids[:55],
-              "html_excerpt": html[:1800],
-              "css_excerpt": css[:4000]
+              "classes": classes[:45],
+              "ids": ids[:45],
+              "html_excerpt": html[:1400],
+              "css_excerpt": css[:3000]
           }
 
           system_prompt = """
           Ты UX/UI-дизайнер проекта «Штаб писателя». Отвечай по-русски.
-
-          ЦЕЛЬ:
-          Предложить осторожный визуальный редизайн «Контрастная мастерская»:
+          Предложи осторожный редизайн «Контрастная мастерская»:
           тёмная боковая панель и верхняя зона, светлая рабочая область,
-          старый пергамент, угольный, бордовый, терракотовый, приглушённое
-          золото, классическая антиква в заголовках и читаемый системный
-          шрифт интерфейса. Эстетика Возрождения — умеренно.
+          старый пергамент, угольный, бордовый, терракотовый и приглушённое
+          золото. Заголовки — выразительная антиква, интерфейс — читаемый
+          системный шрифт. Эстетика Возрождения умеренная.
 
-          ПРЕДЫДУЩИЕ НАБЛЮДЕНИЯ:
-          - Не менять --bg вслепую.
-          - Не скрывать .sub, пока не проверено его содержимое.
-          - Georgia — только один из вариантов антиквы.
-          - Проверить переполнение карточек, длинный текст и узкие экраны.
-          - Проверить контраст, подписи полей и видимый фокус.
-          - Подтверждение опасных действий — функциональная задача, не CSS.
-          - Развитие «Авторов» и сообщества — отдельные функциональные задачи.
-          - Визуализация книги и активности — возможные улучшения интерфейса.
-          - Большой приветственный заголовок, подпись под логотипом и цитата
-            ранее рассматривались как кандидаты на удаление. Не скрывай их
-            через CSS; укажи в отчёте для отдельного согласования.
-
-          ПРАВИЛА:
-          - Ничего не изменяй в исходном сайте.
-          - Не меняй HTML, JavaScript, функции, навигацию или данные.
-          - Не удаляй и не скрывай элементы.
-          - Используй только проверяемые селекторы из предоставленного кода.
+          Ограничения:
+          - Не меняй исходный сайт, HTML, JavaScript, функции или данные.
+          - Не скрывай и не удаляй элементы.
+          - Используй только селекторы, подтверждённые предоставленным кодом.
           - Не используй внешние шрифты, URL, импорты или платные сервисы.
-          - Сохраняй адаптивность и видимый клавиатурный фокус.
-          - Не выдавай предположения за подтверждённые дефекты.
-          - Браузерная проверка не выполнялась.
-          - CSS-патч должен быть коротким. Если безопасного изменения нет,
-            верни пустой css_patch.
+          - Не меняй --bg вслепую.
+          - Не скрывай .sub, не проверив его содержимое.
+          - Проверь контраст, клавиатурный фокус, поля и адаптивность.
+          - Длинный приветственный заголовок, подпись под логотипом и цитата
+            — только кандидаты на отдельное согласование, не CSS-скрытие.
+          - Подтверждение опасных действий и развитие сообщества — задачи
+            функциональности, не CSS.
+          - Проверка в браузере не выполнялась.
+          - Если безопасного CSS-изменения нет, css_patch должен быть "".
 
-          Верни только валидный JSON, без Markdown, ровно с этими ключами:
-          {
-            "css_patch": "короткий CSS или пустая строка",
-            "confirmed_findings": ["короткие наблюдения, подтверждённые кодом"],
-            "needs_verification": ["что проверить вручную"],
-            "accessibility_responsiveness": ["проверки доступности и адаптивности"],
-            "functional_roadmap": ["функциональные задачи вне CSS"],
-            "html_candidates": ["кандидаты на отдельные согласованные изменения HTML"],
-            "implementation_stages": ["короткие следующие шаги"]
-          }
-
-          Не более двух пунктов в каждом списке. Каждый пункт — одно короткое
-          предложение. Не включай длинные объяснения.
+          Верни только JSON, без Markdown, с ключами:
+          css_patch, confirmed_findings, needs_verification,
+          accessibility_responsiveness, functional_roadmap,
+          html_candidates, implementation_stages.
+          css_patch — строка CSS. Остальные поля — списки максимум из
+          двух коротких пунктов каждый. Не выдумывай подтверждённые дефекты.
           """
 
           endpoint = (
@@ -159,133 +141,122 @@ jobs:
 
           def extract_text(data):
               result = data.get("result") or {}
+              if not isinstance(result, dict):
+                  return "", None
 
-              # Some Cloudflare responses use result.response.
-              if isinstance(result, dict):
-                  value = result.get("response")
+              response = result.get("response")
+              if isinstance(response, str) and response.strip():
+                  return response.strip(), None
+
+              choices = result.get("choices") or []
+              if not choices:
+                  return "", None
+
+              choice = choices[0] or {}
+              message = choice.get("message") or {}
+              finish = choice.get("finish_reason")
+
+              content = message.get("content")
+              if isinstance(content, str) and content.strip():
+                  return content.strip(), finish
+
+              if isinstance(content, list):
+                  pieces = [
+                      item["text"]
+                      for item in content
+                      if isinstance(item, dict)
+                      and isinstance(item.get("text"), str)
+                  ]
+                  if pieces:
+                      return "\n".join(pieces).strip(), finish
+
+              # Diagnostic fallback: some responses expose text under
+              # reasoning_content even when content is null.
+              for key in ("reasoning_content", "reasoning"):
+                  value = message.get(key)
                   if isinstance(value, str) and value.strip():
-                      return value.strip(), result.get("finish_reason")
+                      print(f"Using fallback response field: {key}")
+                      return value.strip(), finish
 
-                  # OpenAI-compatible responses use result.choices.
-                  choices = result.get("choices") or []
-                  if choices:
-                      choice = choices[0] or {}
-                      finish = choice.get("finish_reason")
-                      message = choice.get("message") or {}
-                      content = message.get("content", "")
-
-                      if isinstance(content, str):
-                          return content.strip(), finish
-
-                      # Also handle array-style message content.
-                      if isinstance(content, list):
-                          pieces = []
-                          for part in content:
-                              if isinstance(part, dict):
-                                  text = part.get("text")
-                                  if isinstance(text, str):
-                                      pieces.append(text)
-                          return "\n".join(pieces).strip(), finish
-
-              return "", None
-
-          def call_model(prompt, max_tokens):
-              payload = {
-                  "messages": [
-                      {"role": "system", "content": system_prompt},
-                      {"role": "user", "content": prompt}
-                  ],
-                  "max_tokens": max_tokens,
-                  "temperature": 0.1
-              }
-
-              request = urllib.request.Request(
-                  endpoint,
-                  data=json.dumps(payload).encode("utf-8"),
-                  headers={
-                      "Authorization": f"Bearer {token}",
-                      "Content-Type": "application/json"
-                  },
-                  method="POST"
-              )
-
-              try:
-                  with urllib.request.urlopen(request, timeout=180) as response:
-                      data = json.loads(response.read().decode("utf-8"))
-              except Exception as exc:
-                  print(f"Cloudflare request failed: {type(exc).__name__}: {exc}")
-                  if hasattr(exc, "read"):
-                      try:
-                          print(exc.read().decode("utf-8", errors="replace")[:1200])
-                      except Exception:
-                          pass
-                  return "", None
-
-              if not data.get("success"):
-                  print("Cloudflare API error:", json.dumps(
-                      data.get("errors", []), ensure_ascii=False
-                  )[:1200])
-                  return "", None
-
-              result = data.get("result") or {}
-              answer, finish = extract_text(data)
-
-              print("Response format keys:", list(result.keys()))
-              print("Choice finish reason:", finish)
-              print("Usage:", json.dumps(
-                  result.get("usage", {}), ensure_ascii=False
-              )[:400])
-              print("Extracted text characters:", len(answer))
-
-              if not answer:
-                  choices = result.get("choices") or []
-                  if choices:
-                      choice = choices[0] or {}
-                      message = choice.get("message") or {}
-                      print("Choice keys:", list(choice.keys()))
-                      print("Message keys:", list(message.keys()))
-                      print("Message content type:", type(
-                          message.get("content")
-                      ).__name__)
-                      print("Message content preview:", repr(
-                          message.get("content")
-                      )[:500])
-
-              return answer, finish
+              print("Response keys:", list(result.keys()))
+              print("Choice keys:", list(choice.keys()))
+              print("Message keys:", list(message.keys()))
+              print("Content type:", type(content).__name__)
+              print("Finish reason:", finish)
+              print("Stop reason:", choice.get("stop_reason"))
+              return "", finish
 
           prompt = (
-              "Проанализируй исходный код и подготовь компактный CSS-патч "
-              "и короткий отчёт по правилам. Не более двух пунктов в каждом "
-              "списке. Верни только JSON.\n\n"
+              "Проанализируй код и подготовь компактное предложение. "
+              "Верни только JSON по заданной схеме. "
+              "Не более двух пунктов в каждом списке.\n\n"
               + json.dumps(context, ensure_ascii=False)
           )
 
-          print("Requesting a compact design proposal.")
-          answer, finish = call_model(prompt, 1800)
+          payload = {
+              "messages": [
+                  {"role": "system", "content": system_prompt},
+                  {"role": "user", "content": prompt}
+              ],
+              "max_tokens": 1400,
+              "temperature": 0.1,
+              "chat_template_kwargs": {
+                  "enable_thinking": False
+              }
+          }
+
+          request = urllib.request.Request(
+              endpoint,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json"
+              },
+              method="POST"
+          )
+
+          print("Requesting compact design proposal.")
+          print("Thinking mode disabled.")
+          try:
+              with urllib.request.urlopen(request, timeout=180) as response:
+                  data = json.loads(response.read().decode("utf-8"))
+          except Exception as exc:
+              print(f"Request failed: {type(exc).__name__}: {exc}")
+              if hasattr(exc, "read"):
+                  try:
+                      print(exc.read().decode("utf-8", errors="replace")[:1000])
+                  except Exception:
+                      pass
+              sys.exit("ERROR: Cloudflare request failed.")
+
+          if not data.get("success"):
+              print(json.dumps(data.get("errors", []), ensure_ascii=False)[:1500])
+              sys.exit("ERROR: Cloudflare returned an unsuccessful response.")
+
+          answer, finish = extract_text(data)
+          print("Extracted text characters:", len(answer))
+          print("Finish reason:", finish)
+          print("Usage:", json.dumps(
+              (data.get("result") or {}).get("usage", {}),
+              ensure_ascii=False
+          )[:500])
 
           if not answer:
               sys.exit(
-                  "ERROR: The model returned no readable text. "
-                  "Diagnostic details are printed above. "
-                  "No website files were modified."
+                  "ERROR: No readable model text. "
+                  "Website files were not modified."
               )
 
           answer = re.sub(
-              r"^```(?:json)?\s*",
-              "",
-              answer.strip(),
-              flags=re.I
+              r"^```(?:json)?\s*", "", answer.strip(), flags=re.I
           )
           answer = re.sub(r"\s*```$", "", answer).strip()
 
           try:
               report = json.loads(answer)
           except json.JSONDecodeError as exc:
-              print("Model output preview:", answer[:1000])
-              sys.exit(
-                  f"ERROR: Model output is not valid JSON: {exc}. "
-                  "No website files were modified."
-              )
+              print("Output preview:", answer[:1200])
+              sys.exit(f"ERROR: Invalid JSON: {exc}")
 
           required = [
               "css_patch",
@@ -299,13 +270,11 @@ jobs:
 
           missing = [key for key in required if key not in report]
           if missing:
-              sys.exit("ERROR: Missing report fields: " + ", ".join(missing))
+              sys.exit("ERROR: Missing fields: " + ", ".join(missing))
 
           patch = report["css_patch"]
           if not isinstance(patch, str):
               sys.exit("ERROR: css_patch must be a string.")
-
-          patch = patch.strip()
 
           if re.search(
               r"<\s*/?\s*(?:script|html|body|iframe)\b|javascript\s*:",
@@ -319,11 +288,12 @@ jobs:
 
           Path("design-proposal.css").write_text(
               "/* AI proposal only. Not applied to the website. */\n\n"
-              + (patch + "\n" if patch else "/* No safe CSS changes proposed. */\n"),
+              + (patch.strip() + "\n" if patch.strip()
+                 else "/* No safe CSS changes proposed. */\n"),
               encoding="utf-8"
           )
 
-          headings = {
+          section_titles = {
               "confirmed_findings": "Подтверждённые наблюдения",
               "needs_verification": "Что проверить вручную",
               "accessibility_responsiveness": "Доступность и адаптивность",
@@ -335,38 +305,35 @@ jobs:
           lines = [
               "# Предложение по дизайну «Штаба писателя»",
               "",
-              "> Отчёт создан по исходному коду. Проверка в браузере не выполнялась.",
+              "> Проверка в браузере не выполнялась.",
               "> Исходные файлы сайта не изменялись.",
               ""
           ]
 
-          for key, title in headings.items():
+          for key, title in section_titles.items():
               lines.extend(["## " + title, ""])
               items = report.get(key, [])
               if not isinstance(items, list) or not items:
                   lines.extend(["- Нет записей.", ""])
                   continue
               for item in items[:2]:
-                  if isinstance(item, (dict, list)):
-                      item = json.dumps(item, ensure_ascii=False)
                   lines.append("- " + str(item))
               lines.append("")
 
           lines.extend([
               "## Важно",
               "",
-              "CSS-патч является предложением и требует проверки перед применением.",
+              "CSS-патч — предложение, а не внесённое изменение.",
               "Функциональные задачи не входят в CSS-патч.",
               ""
           ])
 
           Path("design-review-report.md").write_text(
-              "\n".join(lines),
-              encoding="utf-8"
+              "\n".join(lines), encoding="utf-8"
           )
 
           print("Proposal generated successfully.")
-          print("Original website files were not modified.")
+          print("Website source files were not modified.")
           PY
 
       - name: Upload review files
