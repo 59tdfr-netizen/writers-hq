@@ -13,6 +13,7 @@ permissions:
 jobs:
   design-plan:
     runs-on: ubuntu-latest
+    timeout-minutes: 6
 
     steps:
       - name: Checkout repository
@@ -40,7 +41,7 @@ jobs:
           account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
 
           if not token or not account_id:
-              sys.exit("ERROR: Required GitHub Secrets are missing.")
+              sys.exit("ERROR: Cloudflare GitHub Secrets are missing.")
 
           path = Path("index.html")
           if not path.is_file():
@@ -48,27 +49,23 @@ jobs:
 
           html = path.read_text(encoding="utf-8")
 
-          class PageAnalyzer(HTMLParser):
+          class Analyzer(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
                   self.headings = []
                   self.buttons = []
                   self.sections = []
                   self.inputs = []
-                  self.ids = []
                   self.classes = Counter()
                   self.capture = None
-                  self.capture_depth = 0
-                  self.capture_text = []
+                  self.depth = 0
+                  self.parts = []
 
               def handle_starttag(self, tag, attrs):
                   attrs = dict(attrs)
 
-                  if attrs.get("id"):
-                      self.ids.append(attrs["id"])
-
-                  for cls in attrs.get("class", "").split():
-                      self.classes[cls] += 1
+                  for name in attrs.get("class", "").split():
+                      self.classes[name] += 1
 
                   if tag == "section":
                       self.sections.append({
@@ -81,163 +78,126 @@ jobs:
                           "tag": tag,
                           "type": attrs.get("type", ""),
                           "id": attrs.get("id", ""),
-                          "class": attrs.get("class", ""),
                           "placeholder": attrs.get("placeholder", "")
                       })
 
-                  if tag in ("h1", "h2", "h3", "h4"):
+                  if tag in ("h1", "h2", "h3", "h4", "button"):
                       self.capture = tag
-                      self.capture_depth = 1
-                      self.capture_text = []
-                  elif tag == "button":
-                      self.capture = tag
-                      self.capture_depth = 1
-                      self.capture_text = []
+                      self.depth = 1
+                      self.parts = []
                   elif self.capture:
-                      self.capture_depth += 1
+                      self.depth += 1
 
               def handle_endtag(self, tag):
                   if not self.capture:
                       return
 
-                  if tag == self.capture and self.capture_depth == 1:
-                      value = " ".join(" ".join(self.capture_text).split())
+                  if tag == self.capture and self.depth == 1:
+                      value = " ".join(" ".join(self.parts).split())
                       if value:
                           if self.capture == "button":
-                              self.buttons.append(value[:180])
+                              self.buttons.append(value[:100])
                           else:
                               self.headings.append({
                                   "tag": self.capture,
-                                  "text": value[:180]
+                                  "text": value[:120]
                               })
                       self.capture = None
-                      self.capture_depth = 0
-                      self.capture_text = []
+                      self.depth = 0
+                      self.parts = []
                   elif self.capture:
-                      self.capture_depth = max(1, self.capture_depth - 1)
+                      self.depth = max(1, self.depth - 1)
 
               def handle_data(self, data):
                   if self.capture and data.strip():
-                      self.capture_text.append(data.strip())
+                      self.parts.append(data.strip())
 
-          analyzer = PageAnalyzer()
+          analyzer = Analyzer()
           analyzer.feed(html)
 
           css_blocks = re.findall(
               r"<style\b[^>]*>(.*?)</style\s*>",
               html,
-              flags=re.IGNORECASE | re.DOTALL
+              flags=re.I | re.S
           )
           css = "\n\n".join(css_blocks)
 
-          css_variables = re.findall(
+          variables = list(dict.fromkeys(re.findall(
               r"--[\w-]+\s*:\s*[^;}{]+;",
               css
-          )
+          )))[:35]
 
-          media_queries = re.findall(
-              r"@media[^{]+",
-              css
-          )
+          selectors = list(dict.fromkeys(
+              s.strip() for s in re.findall(r"([^{}]+)\{", css)
+              if s.strip()
+              and len(s.strip()) < 100
+              and not s.strip().startswith("@")
+          ))[:55]
 
-          css_selectors = re.findall(
-              r"([^{}]+)\{",
-              css
-          )
-
-          css_summary = {
-              "inline_style_blocks": len(css_blocks),
-              "css_variables": list(dict.fromkeys(css_variables))[:100],
-              "media_queries": list(dict.fromkeys(
-                  item.strip() for item in media_queries
-              ))[:40],
-              "selectors": list(dict.fromkeys(
-                  item.strip() for item in css_selectors
-                  if item.strip() and len(item.strip()) < 180
-                  and not item.strip().startswith("@")
-              ))[:120],
-              "css_excerpt": css[:10000]
-          }
-
-          page_summary = {
-              "title": re.findall(
+          summary = {
+              "page_title": re.findall(
                   r"<title\b[^>]*>(.*?)</title\s*>",
                   html,
-                  flags=re.IGNORECASE | re.DOTALL
+                  flags=re.I | re.S
               )[:1],
               "html_characters": len(html),
-              "headings": analyzer.headings[:100],
-              "buttons": analyzer.buttons[:100],
-              "sections": analyzer.sections[:80],
-              "inputs": analyzer.inputs[:80],
-              "element_ids": analyzer.ids[:120],
-              "common_classes": analyzer.classes.most_common(60),
-              "css": css_summary
+              "headings": analyzer.headings[:55],
+              "buttons": analyzer.buttons[:45],
+              "sections": analyzer.sections[:40],
+              "inputs": analyzer.inputs[:35],
+              "common_classes": analyzer.classes.most_common(35),
+              "css_variables": variables,
+              "css_selectors": selectors,
+              "css_excerpt": css[:3000]
           }
 
           print("Starting design planning...")
           print(f"HTML size: {len(html)} characters")
-          print(f"CSS blocks found: {len(css_blocks)}")
+          print(f"CSS blocks: {len(css_blocks)}")
 
           system_prompt = """
           Ты — опытный UX/UI-дизайнер и frontend-архитектор.
-          Ты готовишь план редизайна существующего приложения
-          «Штаб писателя» на основании его HTML и CSS.
+          Подготовь краткий, конкретный план редизайна существующего
+          приложения «Штаб писателя» на основе переданного HTML/CSS.
 
-          НОВОЕ ВИЗУАЛЬНОЕ НАПРАВЛЕНИЕ:
-          - Контрастная мастерская: тёмная боковая панель и
-            верхняя зона, светлая рабочая область.
-          - Цвета: угольный, тёплый пергамент, бордовый,
-            терракотовый и приглушённое золото.
-          - В заголовках — выразительная книжная антиква
-            в духе старых изданий. В рабочих элементах —
-            хорошо читаемый современный шрифт.
-          - Умеренные визуальные отсылки к искусству Возрождения:
-            живопись, фрески, классическая скульптура.
-          - Сохраняй функциональность и читаемость.
-          - Не используй декоративные элементы без назначения.
-          - Убрать большой приветственный заголовок в верхней
-            зоне, подпись под логотипом и текстовую цитату
-            в декоративной карточке справа. Само изображение
-            в этой карточке можно сохранить без цитаты.
+          УТВЕРЖДЁННЫЙ СТИЛЬ:
+          - Контрастная мастерская: тёмная боковая панель и верхняя
+            зона, светлая рабочая область.
+          - Угольный, пергаментный, бордовый, терракотовый,
+            приглушённое золото.
+          - Книжная антиква в заголовках, читаемый шрифт
+            в полях, кнопках, календаре и статистике.
+          - Умеренные отсылки к живописи и скульптуре Возрождения.
+          - Сохранить функции, навигацию, авторизацию и данные.
+          - Убрать большой приветственный заголовок в верхней зоне,
+            подпись под логотипом и текстовую цитату в декоративной
+            карточке справа. Изображение карточки можно сохранить.
 
-          ОБЯЗАТЕЛЬНЫЕ ОГРАНИЧЕНИЯ:
-          - Это план, а не выполнение редизайна.
-          - Не изменяй и не переписывай файлы.
-          - Не предлагай удалять существующие функции.
-          - Не придумывай несуществующие селекторы, разделы
-            и возможности приложения.
-          - Различай подтверждённые сведения из кода
-            и предположения, которые нужно проверить.
-          - Не утверждай, что видел сайт в браузере.
+          ПРАВИЛА:
+          - Только план. Не изменяй файлы и не утверждай, что сайт
+            проверен в браузере.
+          - Используй только существующие селекторы из данных.
+          - Отделяй факты от предположений.
           - Учитывай мобильную адаптацию и доступность.
+          - Не предлагай переписывать приложение с нуля.
           - Не раскрывай внутренние рассуждения.
-          - Отвечай по-русски, конкретно и без общих похвал.
+          - Отвечай по-русски.
 
-          Составь практический план:
-          1. Краткая стратегия редизайна.
-          2. Таблица: существующая часть интерфейса,
-             предлагаемое изменение, что важно сохранить.
-          3. Цветовые переменные и типографика.
-          4. Конкретные существующие CSS-селекторы,
-             которые нужно изучить или изменить.
-          5. Последовательность внедрения небольшими этапами.
-          6. Риски для функций, данных, авторизации
-             и мобильной версии.
-          7. Проверки, которые необходимо выполнить после изменений.
+          Формат ответа:
+          1. Краткая стратегия.
+          2. Таблица: элемент, изменение, что сохранить.
+          3. Цвета и типографика.
+          4. Существующие CSS-селекторы для изучения.
+          5. Три безопасных этапа внедрения.
+          6. Риски и проверки после изменений.
 
-          Если в исходных данных не хватает сведений,
-          укажи это явно. Не выдумывай содержимое сайта.
+          Будь кратким и практичным. Если данных недостаточно,
+          прямо укажи это.
           """
 
           user_prompt = (
-              "Подготовь план редизайна на основе этих данных.\n"
-              "Ничего не изменяй в файлах.\n\n"
-              + json.dumps(
-                  page_summary,
-                  ensure_ascii=False,
-                  indent=2
-              )
+              "Подготовь план редизайна. Ничего не изменяй.\n\n"
+              + json.dumps(summary, ensure_ascii=False)
           )
 
           payload = {
@@ -245,7 +205,7 @@ jobs:
                   {"role": "system", "content": system_prompt},
                   {"role": "user", "content": user_prompt}
               ],
-              "max_tokens": 3000
+              "max_tokens": 1800
           }
 
           url = (
@@ -265,12 +225,12 @@ jobs:
           )
 
           try:
-              with urllib.request.urlopen(request, timeout=120) as response:
+              with urllib.request.urlopen(request, timeout=240) as response:
                   result = json.loads(response.read().decode("utf-8"))
           except urllib.error.HTTPError as error:
-              print(f"Cloudflare API returned HTTP {error.code}.")
+              print(f"Cloudflare API HTTP error: {error.code}")
               try:
-                  print(error.read().decode("utf-8")[:2000])
+                  print(error.read().decode("utf-8")[:1200])
               except Exception:
                   pass
               sys.exit("Design planning request failed.")
@@ -280,33 +240,26 @@ jobs:
 
           if not result.get("success", False):
               for item in result.get("errors", []):
-                  print(
-                      "API error:",
-                      item.get("code", "unknown"),
-                      item.get("message", "No details")
-                  )
+                  print("API error:", item.get("message", "Unknown error"))
               sys.exit("Cloudflare reported an unsuccessful request.")
 
-          api_result = result.get("result", {})
-          choices = api_result.get("choices", [])
-
-          print("Model:", api_result.get("model", "unknown"))
-
+          choices = result.get("result", {}).get("choices", [])
           if not choices:
               sys.exit("The model returned no answer choices.")
 
           choice = choices[0]
-          report = choice.get("message", {}).get("content")
+          message = choice.get("message", {})
+          report = message.get("content")
 
+          print("Model:", result.get("result", {}).get("model", "unknown"))
           print("Finish reason:", choice.get("finish_reason"))
 
           if not isinstance(report, str) or not report.strip():
-              sys.exit("The model returned no design plan.")
+              sys.exit("The model returned an empty design plan.")
 
-          print("\n" + "=" * 60)
+          print("\n" + "=" * 55)
           print("ПЛАН РЕДИЗАЙНА — ШТАБ ПИСАТЕЛЯ")
-          print("=" * 60 + "\n")
+          print("=" * 55 + "\n")
           print(report)
-          print("\n" + "=" * 60)
-          print("Planning complete. No website files were modified.")
+          print("\nPlanning complete. No website files were modified.")
           PY
