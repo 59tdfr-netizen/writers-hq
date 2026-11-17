@@ -494,7 +494,7 @@ textarea { resize: vertical; }
 .stat .value { overflow-wrap: anywhere; }
 .history-item, .achievement-item { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
-  body:not(.diary-locked) .wrap { margin: 0; max-width: 100%; width: 100%; padding: 78px 13px 28px; }
+  body:not(.diary-locked) .wrap { margin: 0; max-width: 100%; width: 100%; padding: max(88px, calc(env(safe-area-inset-top) + 76px)) 13px 28px; }
   body:not(.diary-locked) #sectionNav {
     position: fixed; inset: 0 auto 0 0; z-index: 61;
     width: min(82vw, 300px); height: 100dvh; max-height: 100dvh;
@@ -514,7 +514,7 @@ textarea { resize: vertical; }
   #sectionNav .section-tab.coming-soon { flex-wrap: wrap; }
   #sectionNav .section-tab.coming-soon span { display: block; flex-basis: 100%; padding-left: 32px; }
   #mobileMenuToggle {
-    display: inline-flex; position: fixed; top: 12px !important; left: 12px;
+    display: inline-flex; position: fixed; top: max(12px, calc(env(safe-area-inset-top) + 8px)) !important; left: 12px;
     z-index: 55; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px;
     border: 1px solid #b99462; border-radius: 999px; background: #251e1a;
     color: #f7ead6; font: 600 13px Manrope, Inter, sans-serif;
