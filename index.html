@@ -6,7 +6,12 @@
 <title>Штаб писателя</title>
 <style>
 :root{--bg:#f5f3ee;--paper:#fffefa;--ink:#252923;--muted:#777c72;--line:#e7e4db;--green:#496b52;--green2:#dce9d9;--orange:#c47748;--red:#b85d54;--shadow:0 8px 30px rgba(40,44,35,.06)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,"Arial",sans-serif;line-height:1.5}
+button,input,select,textarea{font-family:Manrope,"Arial",sans-serif}
+textarea{width:100%;max-width:100%;min-width:0;border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);outline:none;resize:vertical;line-height:1.55}
+textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px #702a3219}
+p,span,strong,label,h1,h2,h3,.social-person-meta,.small{overflow-wrap:anywhere}
+.card,.settings-grid>div,.profile-editor,.profile-avatar-copy{min-width:0}
 .wrap{max-width:1160px;margin:0 auto;padding:34px 24px 50px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:750;color:var(--green)}h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(34px,5vw,52px);letter-spacing:-.04em;margin:7px 0 8px}.sub{color:var(--muted);max-width:600px;font-size:15px}.date-chip{background:var(--paper);border:1px solid var(--line);padding:10px 14px;border-radius:14px;color:var(--muted);font-size:13px;white-space:nowrap}
 .grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr);gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);min-width:0}.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.card h2{font-size:17px;margin:0;font-weight:700;letter-spacing:-.02em}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8f7f1;border-radius:14px;padding:14px}.stat .label{font-size:12px;color:var(--muted);margin-bottom:8px}.stat .value{font-size:clamp(20px,2.6vw,29px);font-weight:700;letter-spacing:-.04em}.stat .unit{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
 label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6px}input,select{width:100%;border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);outline:none}input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px #496b5219}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.btn{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;cursor:default}.primary{background:var(--green);color:white}.secondary{background:#efeee7;color:var(--ink)}.danger{background:#f7e7e4;color:#8e3e37}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.entry-note{font-size:12px;color:var(--muted);margin-top:10px}
@@ -15,7 +20,21 @@ label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.achievement-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.achievement{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfaf6}.achievement.locked{opacity:.52;filter:grayscale(.7)}.achievement-icon{font-size:23px;line-height:1.2}.achievement strong{display:block;font-size:13px}.achievement p{font-size:11px;color:var(--muted);margin:3px 0 0}.backup-notice{display:none;margin:0 0 18px;padding:16px 18px;border:1px solid #e6c9a8;border-radius:15px;background:#fff6e9}.backup-notice.show{display:flex;justify-content:space-between;align-items:center;gap:14px}.backup-notice strong{display:block;font-size:14px}.backup-notice p{font-size:12px;color:var(--muted);margin:4px 0 0}.toast{position:fixed;right:20px;bottom:20px;max-width:340px;background:#2e4935;color:#fff;padding:15px 18px;border-radius:14px;box-shadow:var(--shadow);z-index:10;display:none}.toast.show{display:block}.toast strong{display:block;margin-bottom:3px}.backup-actions{display:flex;gap:8px;flex-wrap:wrap}.tip{font-family:Georgia,serif;font-size:20px;line-height:1.35;margin:5px 0 0}.history-list{display:flex;flex-direction:column;gap:10px}.history-item{display:flex;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:13px}.history-item:last-child{border-bottom:0;padding-bottom:0}.history-item strong{white-space:nowrap}.footer{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:11px}.link-btn{border:0;background:none;padding:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit}
 
 
-.owner-name{margin:0 0 8px;color:var(--green);font-size:14px;font-weight:650}
+.owner-name{margin:0 0 8px;color:var(--green);font-size:14px;font-weight:650;display:flex;align-items:center;gap:12px;min-width:0;overflow-wrap:anywhere}
+.owner-avatar{width:48px;height:48px;flex:0 0 48px;border-radius:50%;object-fit:cover;filter:sepia(.32) saturate(.72) contrast(1.02);border:2px solid #c7a77d;box-shadow:0 2px 9px #30292320}
+.profile-editor{border:1px solid var(--line);background:#fcf6eb;border-radius:16px;padding:18px;margin:4px 0 18px}
+.profile-editor-heading{display:grid;grid-template-columns:112px minmax(0,1fr);gap:18px;align-items:center}
+.profile-avatar-frame{width:112px;aspect-ratio:1;border-radius:50%;overflow:hidden;border:3px solid #d5b98e;background:radial-gradient(circle at 35% 28%,#f3e2c3,#9b7055);box-shadow:inset 0 0 0 5px #f8edda,0 5px 16px #30292318;display:grid;place-items:center;color:#f8edda;font:38px Georgia,serif}
+.profile-avatar-frame img{width:100%;height:100%;object-fit:cover;filter:sepia(.34) saturate(.72) contrast(1.04) brightness(.96);display:block}
+.profile-editor h3{font:600 23px/1.2 "Cormorant Garamond",Georgia,serif;margin:0 0 6px;color:var(--ink)}
+.profile-avatar-copy p{margin:0 0 10px}
+.upload-label{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin:0 0 8px}
+.visually-hidden-file{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.profile-avatar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.profile-bio-field{margin-top:18px}
+.bio-counter{text-align:right;color:var(--muted);font-size:11px;margin-top:4px}
+.profile-editor .small{line-height:1.5}
+@media(max-width:520px){.profile-editor{padding:14px}.profile-editor-heading{grid-template-columns:76px minmax(0,1fr);gap:12px;align-items:start}.profile-avatar-frame{width:76px}.profile-avatar-actions{display:grid;grid-template-columns:minmax(0,1fr)}.profile-avatar-actions .btn,.upload-label{width:100%;white-space:normal;text-align:center}.profile-editor h3{font-size:21px}.owner-avatar{width:40px;height:40px;flex-basis:40px}}
 .social-card{margin-bottom:18px}
 .social-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 .social-list{display:flex;flex-direction:column;gap:9px;margin-top:12px}
@@ -584,7 +603,7 @@ textarea { resize: vertical; }
   <section class="fresco-banner" aria-label="Штаб писателя">
     <div class="fresco-copy">
       <h1>Штаб писателя</h1>
-      <h2 class="profile-heading owner-name auth-hidden" id="ownerNameLine"><span id="ownerName">Павел Прокудин</span></h2>
+      <h2 class="profile-heading owner-name auth-hidden" id="ownerNameLine"><img id="ownerAvatar" class="owner-avatar" alt="" hidden><span id="ownerName">Павел Прокудин</span></h2>
       <div class="date-chip" id="todayChip"></div>
     </div>
     <div class="renaissance-fresco">
@@ -734,6 +753,31 @@ textarea { resize: vertical; }
   <section class="app-section" id="settingsSection" aria-label="Настройки профиля">
   <section class="card social-card auth-hidden" id="profileSettingsCard">
     <div class="card-head"><div><h2>Настройки профиля</h2><div class="small" style="margin-top:4px">Управляй именем, паролем и видимостью своих данных.</div></div></div>
+    <section class="profile-editor" aria-labelledby="profileEditorTitle">
+      <div class="profile-editor-heading">
+        <div class="profile-avatar-frame">
+          <img id="profileAvatarPreview" alt="Предпросмотр аватара" hidden>
+          <span id="profileAvatarPlaceholder" aria-hidden="true">✦</span>
+        </div>
+        <div class="profile-avatar-copy">
+          <h3 id="profileEditorTitle">Портрет автора</h3>
+          <p class="small">Загрузи фотографию. Мы кадрируем её и обработаем тёплой сепией в стиле старинной живописи.</p>
+          <label class="btn secondary upload-label" for="profileAvatarFile">Выбрать фотографию</label>
+          <input id="profileAvatarFile" class="visually-hidden-file" type="file" accept="image/jpeg,image/png,image/webp,image/avif">
+          <div class="profile-avatar-actions">
+            <button id="uploadAvatarBtn" class="btn primary" type="button" disabled>Сохранить портрет</button>
+            <button id="removeAvatarBtn" class="btn secondary" type="button" hidden>Убрать фото</button>
+          </div>
+          <p id="avatarMessage" class="small" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="field profile-bio-field">
+        <label for="profileBio">Немного о себе</label>
+        <textarea id="profileBio" rows="4" maxlength="500" placeholder="О чём ты пишешь, что тебя занимает, какие истории хочется рассказать…"></textarea>
+        <div class="bio-counter"><span id="bioCounter">0</span> / 500</div>
+      </div>
+      <button id="saveProfileBioBtn" class="btn primary" type="button">Сохранить информацию</button>
+    </section>
     <div class="settings-grid">
       <div>
         <div class="field"><label for="profileDisplayName">Имя автора</label><input id="profileDisplayName" type="text" minlength="2" maxlength="60" autocomplete="nickname"></div>
@@ -1424,9 +1468,28 @@ render();
     return row;
   }
 
+  function setAvatarPreview(url) {
+    const preview = $('profileAvatarPreview');
+    const placeholder = $('profileAvatarPlaceholder');
+    const ownerAvatar = $('ownerAvatar');
+    if (url) {
+      preview.src = url;
+      preview.hidden = false;
+      placeholder.hidden = true;
+      ownerAvatar.src = url;
+      ownerAvatar.hidden = false;
+    } else {
+      preview.removeAttribute('src');
+      preview.hidden = true;
+      placeholder.hidden = false;
+      ownerAvatar.removeAttribute('src');
+      ownerAvatar.hidden = true;
+    }
+  }
+
   async function loadOwnProfile(user) {
     const { data, error } = await client.from('profiles')
-      .select('id, display_name').eq('id', user.id).maybeSingle();
+      .select('id, display_name, bio, avatar_url').eq('id', user.id).maybeSingle();
     if (error) throw error;
     const metadataName = user.user_metadata && user.user_metadata.display_name;
     let name = (data && data.display_name || metadataName || '').trim();
@@ -1434,9 +1497,16 @@ render();
       name = (metadataName || 'Автор').trim();
     }
     if (!data || data.display_name !== name) {
-      const { error: saveError } = await client.from('profiles').upsert({ id: user.id, display_name: name }, { onConflict: 'id' });
+      const profilePatch = { id: user.id, display_name: name };
+      if (!data) { profilePatch.bio = ''; profilePatch.avatar_url = null; }
+      const { error: saveError } = await client.from('profiles').upsert(profilePatch, { onConflict: 'id' });
       if (saveError) throw saveError;
     }
+    $('profileDisplayName').value = name;
+    $('profileBio').value = data && data.bio || '';
+    $('bioCounter').textContent = String($('profileBio').value.length);
+    setAvatarPreview(data && data.avatar_url || '');
+    $('removeAvatarBtn').hidden = !(data && data.avatar_url);
     setOwnerName(name);
   }
 
@@ -1723,6 +1793,112 @@ render();
   );
 
   window.writersHQClient = client;
+
+  $('profileBio').addEventListener('input', () => {
+    $('bioCounter').textContent = String($('profileBio').value.length);
+  });
+
+  let pendingAvatarBlob = null;
+  $('profileAvatarFile').addEventListener('change', async () => {
+    const file = $('profileAvatarFile').files && $('profileAvatarFile').files[0];
+    pendingAvatarBlob = null;
+    $('uploadAvatarBtn').disabled = true;
+    $('avatarMessage').textContent = '';
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp|avif)$/.test(file.type)) {
+      $('avatarMessage').textContent = 'Выбери изображение JPG, PNG, WebP или AVIF.';
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      $('avatarMessage').textContent = 'Файл слишком большой. Максимальный размер — 8 МБ.';
+      return;
+    }
+    try {
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error('Не удалось открыть изображение.'));
+        image.src = objectUrl;
+      });
+      const side = Math.min(image.naturalWidth, image.naturalHeight);
+      const sx = Math.floor((image.naturalWidth - side) / 2);
+      const sy = Math.floor((image.naturalHeight - side) / 2);
+      const canvas = document.createElement('canvas');
+      canvas.width = 640; canvas.height = 640;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Браузер не поддерживает обработку изображения.');
+      ctx.filter = 'sepia(0.42) saturate(0.72) contrast(1.05) brightness(0.98)';
+      ctx.drawImage(image, sx, sy, side, side, 0, 0, 640, 640);
+      ctx.filter = 'none';
+      ctx.fillStyle = 'rgba(116, 68, 42, 0.055)';
+      ctx.fillRect(0, 0, 640, 640);
+      pendingAvatarBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.88));
+      URL.revokeObjectURL(objectUrl);
+      if (!pendingAvatarBlob) throw new Error('Не удалось обработать изображение.');
+      setAvatarPreview(canvas.toDataURL('image/webp', 0.82));
+      $('uploadAvatarBtn').disabled = false;
+      $('avatarMessage').textContent = 'Предпросмотр готов: квадратный кадр, тёплая сепия.';
+    } catch (error) {
+      $('avatarMessage').textContent = error.message || 'Не удалось обработать изображение.';
+    }
+  });
+
+  $('uploadAvatarBtn').addEventListener('click', async () => {
+    if (!activeUserId || !pendingAvatarBlob) return;
+    const button = $('uploadAvatarBtn');
+    button.disabled = true;
+    $('avatarMessage').textContent = 'Обрабатываем и сохраняем портрет…';
+    try {
+      const path = activeUserId + '/avatar-' + Date.now() + '.webp';
+      const { error: uploadError } = await client.storage.from('writer-avatars').upload(path, pendingAvatarBlob, {
+        contentType: 'image/webp', upsert: true, cacheControl: '3600'
+      });
+      if (uploadError) throw uploadError;
+      const { data: publicData } = client.storage.from('writer-avatars').getPublicUrl(path);
+      const avatarUrl = publicData.publicUrl;
+      const { error: profileError } = await client.from('profiles').update({ avatar_url: avatarUrl }).eq('id', activeUserId);
+      if (profileError) throw profileError;
+      setAvatarPreview(avatarUrl);
+      $('removeAvatarBtn').hidden = false;
+      $('profileAvatarFile').value = '';
+      pendingAvatarBlob = null;
+      $('avatarMessage').textContent = 'Портрет сохранён.';
+    } catch (error) {
+      $('avatarMessage').textContent = 'Не удалось сохранить портрет: ' + (error.message || 'ошибка') + '. Проверь настройки хранилища в Supabase.';
+      button.disabled = false;
+    }
+  });
+
+  $('removeAvatarBtn').addEventListener('click', async () => {
+    if (!activeUserId) return;
+    const button = $('removeAvatarBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.from('profiles').update({ avatar_url: null }).eq('id', activeUserId);
+      if (error) throw error;
+      setAvatarPreview('');
+      button.hidden = true;
+      $('avatarMessage').textContent = 'Фотография удалена из профиля.';
+    } catch (error) {
+      $('avatarMessage').textContent = 'Не удалось убрать фотографию: ' + (error.message || 'ошибка');
+    } finally { button.disabled = false; }
+  });
+
+  $('saveProfileBioBtn').addEventListener('click', async () => {
+    const bio = $('profileBio').value.trim();
+    const button = $('saveProfileBioBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.from('profiles').update({ bio }).eq('id', activeUserId);
+      if (error) throw error;
+      $('settingsMessage').textContent = 'Информация о себе сохранена.';
+      $('settingsMessage').className = 'auth-message success';
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось сохранить информацию: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally { button.disabled = false; }
+  });
 
   $('saveProfileNameBtn').addEventListener('click', async () => {
     const name = $('profileDisplayName').value.trim();
