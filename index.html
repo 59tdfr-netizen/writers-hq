@@ -431,6 +431,114 @@ input:focus, select:focus { border-color: #8a4838; box-shadow: 0 0 0 3px #8a4838
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
 </style>
+
+<style id="section-art-mobile-drawer-v3">
+/* Fixed editorial rail on desktop; off-canvas drawer on phones. */
+body:not(.diary-locked) #sectionNav {
+  position: fixed; inset: 0 auto 0 0; z-index: 40; height: 100dvh;
+  overflow-y: auto; overflow-x: hidden; margin: 0; border-radius: 0;
+  flex-direction: column; flex-wrap: nowrap; align-items: stretch;
+  scrollbar-width: thin; scrollbar-color: #7d5b3d transparent;
+}
+body:not(.diary-locked) #sectionNav .section-tab { flex: 0 0 auto; width: 100%; min-width: 0; text-align: left; }
+#mobileMenuToggle, #mobileNavBackdrop { display: none; }
+.fresco-banner { overflow: hidden; isolation: isolate; }
+.renaissance-fresco { position: relative; overflow: hidden; }
+.renaissance-fresco img { transition: opacity .34s ease, filter .34s ease, transform .55s ease; }
+.fresco-banner.is-changing .renaissance-fresco img {
+  opacity: .22; filter: blur(7px) sepia(.5) saturate(.7) brightness(.65); transform: scale(1.025);
+}
+.app-section.active { animation: section-arrive .28s ease both; }
+@keyframes section-arrive {
+  from { opacity: 0; filter: blur(3px); transform: translateY(7px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@keyframes art-arrive {
+  from { opacity: .35; filter: blur(6px) sepia(.45) saturate(.65); }
+  to { opacity: 1; filter: sepia(.22) saturate(.78) contrast(.98) brightness(.86); }
+}
+.fresco-banner .renaissance-fresco img.art-loaded { animation: art-arrive .48s ease both; }
+body, .wrap, .app-section, .grid, .bottom-grid, .card, .card-head,
+.form-row, .field, .stat, .social-person, .settings-grid { min-width: 0; }
+.card, .social-card, .auth-panel { overflow-wrap: anywhere; }
+.card h2, .card h3, .small, .tip, .meta-box, .social-person-name,
+.status, .backup-notice, .profile-heading { overflow-wrap: anywhere; word-break: normal; }
+input, select, textarea { max-width: 100%; min-width: 0; }
+.form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.btn, .btn-row button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.card-head { align-items: flex-start; gap: 10px; }
+.card-head > * { min-width: 0; }
+.stats, .grid > *, .bottom-grid > *, .settings-grid > * { min-width: 0; }
+.stat .value { overflow-wrap: anywhere; }
+.history-item, .achievement-item { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  body:not(.diary-locked) .wrap { margin: 0; max-width: 100%; width: 100%; padding: 66px 13px 28px; }
+  body:not(.diary-locked) #sectionNav {
+    position: fixed; inset: 0 auto 0 0; z-index: 61;
+    width: min(82vw, 300px); height: 100dvh; max-height: 100dvh;
+    padding: 22px 14px max(20px, env(safe-area-inset-bottom));
+    margin: 0; display: flex; flex-direction: column; flex-wrap: nowrap;
+    overflow-y: auto; overflow-x: hidden; border-radius: 0 14px 14px 0;
+    box-shadow: 16px 0 42px #17100e45;
+    transform: translateX(-110%); visibility: hidden; pointer-events: none;
+    transition: transform .28s cubic-bezier(.2,.75,.25,1), visibility .28s;
+  }
+  body.mobile-menu-open #sectionNav {
+    transform: translateX(0); visibility: visible; pointer-events: auto;
+  }
+  #sectionNav::before { min-height: 98px; padding-bottom: 18px; font-size: 27px; }
+  #sectionNav .section-tab { width: 100%; flex: 0 0 auto; min-height: 44px; padding: 11px 12px; white-space: normal; }
+  #sectionNav .section-tab.coming-soon { flex-wrap: wrap; }
+  #sectionNav .section-tab.coming-soon span { display: block; flex-basis: 100%; padding-left: 32px; }
+  #mobileMenuToggle {
+    display: inline-flex; position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px;
+    z-index: 55; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px;
+    border: 1px solid #b99462; border-radius: 999px; background: #251e1a;
+    color: #f7ead6; font: 600 13px Manrope, Inter, sans-serif;
+    box-shadow: 0 5px 18px #21150f25; cursor: pointer;
+  }
+  #mobileMenuToggle > span:first-child { font-size: 19px; line-height: 1; color: #d7b577; }
+  #sectionNav.auth-hidden ~ #mobileMenuToggle { display: none; }
+  #mobileNavBackdrop {
+    display: block; position: fixed; inset: 0; z-index: 60; width: 100%; height: 100%;
+    padding: 0; border: 0; border-radius: 0; background: #17100ec0;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .24s ease, visibility .24s;
+  }
+  body.mobile-menu-open #mobileNavBackdrop { opacity: 1; visibility: visible; pointer-events: auto; }
+  .fresco-banner { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .renaissance-fresco { grid-row: 1; min-height: clamp(150px, 43vw, 235px); }
+  .renaissance-fresco img { object-position: center 26%; }
+  .fresco-copy { grid-row: 2; padding: 20px 19px 22px; }
+  .fresco-copy h1 { max-width: 100%; font-size: clamp(35px, 9vw, 48px); line-height: 1.02; overflow-wrap: anywhere; }
+  .profile-heading { max-width: 100%; font-size: clamp(26px, 7vw, 34px); line-height: 1.12; }
+  .grid, .bottom-grid, .settings-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .form-row { grid-template-columns: minmax(0, 1fr); }
+  .card { padding: 17px; }
+  .card-head { flex-wrap: wrap; }
+  .card-head h2 { font-size: clamp(22px, 6vw, 27px); }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat { padding: 10px; }
+  .btn-row { flex-wrap: wrap; }
+  .btn-row .btn { flex: 1 1 140px; }
+  .calendar-grid, .calendar-weekdays { min-width: 0; }
+  .calendar-day, .day { min-width: 0; padding-left: 0; padding-right: 0; }
+  footer { flex-wrap: wrap; gap: 10px; }
+}
+@media (max-width: 380px) {
+  body:not(.diary-locked) .wrap { padding-left: 9px; padding-right: 9px; }
+  .card { padding: 14px; }
+  .fresco-copy { padding: 17px; }
+  .stats { gap: 6px; }
+  .stat .value { font-size: 23px; }
+  .mobile-menu-label { display: inline; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-section.active, .fresco-banner .renaissance-fresco img.art-loaded { animation: none !important; }
+  .fresco-banner.is-changing .renaissance-fresco img { filter: none; transform: none; }
+  #sectionNav, #mobileNavBackdrop, .renaissance-fresco img { transition: none !important; }
+}
+</style>
 </head>
 <body class="diary-locked">
 <div class="wrap">
@@ -491,6 +599,10 @@ input:focus, select:focus { border-color: #8a4838; box-shadow: 0 0 0 3px #8a4838
     <button type="button" class="section-tab coming-soon" disabled aria-disabled="true" title="Работы ещё ведутся">Проекты <span>Работы ещё ведутся</span></button>
     <button type="button" class="section-tab coming-soon" disabled aria-disabled="true" title="Работы ещё ведутся">Синопсисы <span>Работы ещё ведутся</span></button>
   </nav>
+  <button type="button" id="mobileMenuToggle" aria-label="Открыть меню" aria-controls="sectionNav" aria-expanded="false">
+    <span aria-hidden="true">☰</span><span class="mobile-menu-label">Меню</span>
+  </button>
+  <button type="button" id="mobileNavBackdrop" aria-label="Закрыть меню"></button>
   <section class="app-section active" id="diarySection" aria-label="Мой дневник">
   <div class="backup-notice" id="backupNotice">
     <div><strong>🛟 Пора сохранить резервную копию</strong><p>Прошло 7 дней с последней копии (или с начала работы). Скачай файл, чтобы не потерять записи.</p></div>
@@ -1741,6 +1853,87 @@ render();
     window.setTimeout(() => {
       syncSession(session);
     }, 0);
+  });
+})();
+</script>
+
+<script id="section-art-and-mobile-drawer-v3">
+(() => {
+  const nav = document.getElementById('sectionNav');
+  const toggle = document.getElementById('mobileMenuToggle');
+  const backdrop = document.getElementById('mobileNavBackdrop');
+  const banner = document.querySelector('.fresco-banner');
+  const art = document.querySelector('.renaissance-fresco img');
+  if (!nav || !toggle || !backdrop || !banner || !art) return;
+
+  const originalTitle = 'Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы';
+  const artworks = {
+    diarySection: {
+      src: 'https://www.nationalgallery.org.uk/server.iip?IIIF=%2Ffronts%2FN-1418-00-000069-FS-PYR.tif%2Ffull%2F%211200%2C1200%2F0%2Fdefault.jpg',
+      alt: 'Антонелло да Мессина, «Святой Иероним в келье», около 1475 года',
+      position: 'center 50%'
+    },
+    communitySection: {
+      src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Raphael-School-of-Athens.jpg?width=1400',
+      alt: 'Рафаэль, «Афинская школа», фреска',
+      position: 'center 45%'
+    },
+    settingsSection: {
+      src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Michelangelo%27s_David.JPG?width=1200',
+      alt: 'Микеланджело, скульптура «Давид»; изображение оформлено в тёплой сепийной палитре Штаба писателя',
+      position: 'center 14%'
+    }
+  };
+
+  let changeToken = 0;
+  function closeMenu() {
+    document.body.classList.remove('mobile-menu-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Открыть меню');
+  }
+  toggle.addEventListener('click', () => {
+    const open = !document.body.classList.contains('mobile-menu-open');
+    document.body.classList.toggle('mobile-menu-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+  });
+  backdrop.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMenu();
+  });
+
+  const observer = new MutationObserver(() => {
+    if (nav.classList.contains('auth-hidden')) closeMenu();
+  });
+  observer.observe(nav, { attributes: true, attributeFilter: ['class'] });
+
+  nav.querySelectorAll('.section-tab[data-section]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const item = artworks[tab.dataset.section];
+      closeMenu();
+      if (!item) return;
+      const token = ++changeToken;
+      banner.classList.add('is-changing');
+      window.setTimeout(() => {
+        if (token !== changeToken) return;
+        art.classList.remove('art-loaded');
+        art.alt = item.alt;
+        art.style.objectPosition = item.position;
+        const reveal = () => {
+          if (token !== changeToken) return;
+          art.classList.add('art-loaded');
+          banner.classList.remove('is-changing');
+        };
+        art.addEventListener('load', reveal, { once: true });
+        art.addEventListener('error', () => {
+          art.src = 'https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400';
+          art.alt = originalTitle;
+          banner.classList.remove('is-changing');
+        }, { once: true });
+        art.src = item.src;
+        if (art.complete && art.naturalWidth > 0) reveal();
+      }, 120);
+    });
   });
 })();
 </script>
