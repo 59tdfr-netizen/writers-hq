@@ -13,7 +13,7 @@ permissions:
 jobs:
   design-plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
 
     steps:
       - name: Checkout repository
@@ -125,30 +125,31 @@ jobs:
           variables = list(dict.fromkeys(re.findall(
               r"--[\w-]+\s*:\s*[^;}{]+;",
               css
-          )))[:35]
+          )))[:30]
 
           selectors = list(dict.fromkeys(
-              s.strip() for s in re.findall(r"([^{}]+)\{", css)
-              if s.strip()
-              and len(s.strip()) < 100
-              and not s.strip().startswith("@")
-          ))[:55]
+              item.strip()
+              for item in re.findall(r"([^{}]+)\{", css)
+              if item.strip()
+              and len(item.strip()) < 100
+              and not item.strip().startswith("@")
+          ))[:45]
 
           summary = {
-              "page_title": re.findall(
+              "title": re.findall(
                   r"<title\b[^>]*>(.*?)</title\s*>",
                   html,
                   flags=re.I | re.S
               )[:1],
               "html_characters": len(html),
-              "headings": analyzer.headings[:55],
-              "buttons": analyzer.buttons[:45],
-              "sections": analyzer.sections[:40],
-              "inputs": analyzer.inputs[:35],
-              "common_classes": analyzer.classes.most_common(35),
+              "headings": analyzer.headings[:45],
+              "buttons": analyzer.buttons[:35],
+              "sections": analyzer.sections[:30],
+              "inputs": analyzer.inputs[:25],
+              "common_classes": analyzer.classes.most_common(30),
               "css_variables": variables,
               "css_selectors": selectors,
-              "css_excerpt": css[:3000]
+              "css_excerpt": css[:2200]
           }
 
           print("Starting design planning...")
@@ -156,47 +157,52 @@ jobs:
           print(f"CSS blocks: {len(css_blocks)}")
 
           system_prompt = """
-          Ты — опытный UX/UI-дизайнер и frontend-архитектор.
-          Подготовь краткий, конкретный план редизайна существующего
-          приложения «Штаб писателя» на основе переданного HTML/CSS.
+          Ты — UX/UI-дизайнер и frontend-архитектор.
+          Подготовь практический план редизайна приложения
+          «Штаб писателя» по переданному описанию HTML и CSS.
 
           УТВЕРЖДЁННЫЙ СТИЛЬ:
-          - Контрастная мастерская: тёмная боковая панель и верхняя
-            зона, светлая рабочая область.
-          - Угольный, пергаментный, бордовый, терракотовый,
-            приглушённое золото.
-          - Книжная антиква в заголовках, читаемый шрифт
-            в полях, кнопках, календаре и статистике.
+          - Контрастная мастерская: тёмная боковая панель
+            и верхняя зона, светлая рабочая область.
+          - Угольный, цвет старого пергамента, бордовый,
+            терракотовый и приглушённое золото.
+          - Книжная антиква в заголовках, простой читаемый
+            шрифт в полях, кнопках и статистике.
           - Умеренные отсылки к живописи и скульптуре Возрождения.
-          - Сохранить функции, навигацию, авторизацию и данные.
-          - Убрать большой приветственный заголовок в верхней зоне,
-            подпись под логотипом и текстовую цитату в декоративной
-            карточке справа. Изображение карточки можно сохранить.
+          - Не перегружай интерфейс изображениями и декором.
+          - Убрать большой приветственный заголовок в верхней
+            зоне, подпись под логотипом и текстовую цитату
+            в декоративной карточке справа. Изображение карточки
+            можно сохранить.
 
-          ПРАВИЛА:
-          - Только план. Не изменяй файлы и не утверждай, что сайт
-            проверен в браузере.
-          - Используй только существующие селекторы из данных.
-          - Отделяй факты от предположений.
-          - Учитывай мобильную адаптацию и доступность.
+          ОБЯЗАТЕЛЬНО:
+          - Только план. Ничего не изменяй.
+          - Не утверждай, что проверял сайт в браузере.
+          - Используй только реально указанные селекторы.
           - Не предлагай переписывать приложение с нуля.
+          - Сохраняй функции, навигацию, авторизацию и данные.
+          - Отмечай предположения, которые надо проверить.
+          - Учитывай мобильную адаптацию и доступность.
           - Не раскрывай внутренние рассуждения.
-          - Отвечай по-русски.
+          - Пиши по-русски, коротко и конкретно.
 
-          Формат ответа:
-          1. Краткая стратегия.
-          2. Таблица: элемент, изменение, что сохранить.
-          3. Цвета и типографика.
-          4. Существующие CSS-селекторы для изучения.
-          5. Три безопасных этапа внедрения.
-          6. Риски и проверки после изменений.
+          Выдай ровно пять разделов:
+          1. Стратегия редизайна — до 4 предложений.
+          2. Изменения интерфейса — 5 пунктов:
+             элемент, предлагаемое изменение, что сохранить.
+          3. Цвета и типографика — конкретные рекомендации.
+          4. CSS — до 8 существующих подходящих селекторов
+             и что проверить в каждом.
+          5. Этапы внедрения и проверки — 3 этапа.
 
-          Будь кратким и практичным. Если данных недостаточно,
-          прямо укажи это.
+          Максимум 700 слов. Не добавляй вступление,
+          заключение или повторяющееся описание задачи.
+          Если данных недостаточно, скажи об этом кратко.
           """
 
           user_prompt = (
-              "Подготовь план редизайна. Ничего не изменяй.\n\n"
+              "Подготовь план редизайна по этим данным.\n"
+              "Это анализ, не изменение сайта.\n\n"
               + json.dumps(summary, ensure_ascii=False)
           )
 
@@ -205,7 +211,7 @@ jobs:
                   {"role": "system", "content": system_prompt},
                   {"role": "user", "content": user_prompt}
               ],
-              "max_tokens": 1800
+              "max_tokens": 3000
           }
 
           url = (
@@ -243,23 +249,34 @@ jobs:
                   print("API error:", item.get("message", "Unknown error"))
               sys.exit("Cloudflare reported an unsuccessful request.")
 
-          choices = result.get("result", {}).get("choices", [])
+          api_result = result.get("result", {})
+          choices = api_result.get("choices", [])
+
+          print("Model:", api_result.get("model", "unknown"))
+
           if not choices:
               sys.exit("The model returned no answer choices.")
 
           choice = choices[0]
-          message = choice.get("message", {})
-          report = message.get("content")
+          report = choice.get("message", {}).get("content")
+          finish_reason = choice.get("finish_reason", "unknown")
 
-          print("Model:", result.get("result", {}).get("model", "unknown"))
-          print("Finish reason:", choice.get("finish_reason"))
+          print("Finish reason:", finish_reason)
 
           if not isinstance(report, str) or not report.strip():
               sys.exit("The model returned an empty design plan.")
+
+          if finish_reason == "length":
+              print("The response was truncated by the model token limit.")
+              sys.exit("Incomplete plan rejected. No website files were modified.")
+
+          if finish_reason not in ("stop", None):
+              sys.exit("The model did not confirm a normal response ending.")
 
           print("\n" + "=" * 55)
           print("ПЛАН РЕДИЗАЙНА — ШТАБ ПИСАТЕЛЯ")
           print("=" * 55 + "\n")
           print(report)
-          print("\nPlanning complete. No website files were modified.")
+          print("\n" + "=" * 55)
+          print("Planning complete. No website files were modified.")
           PY
