@@ -55,6 +55,73 @@ details summary{user-select:none}
 @media(max-width:800px){.grid{grid-template-columns:1fr}.calendar-card{grid-column:auto}.bottom-grid{grid-template-columns:1fr}.top{flex-direction:column}.date-chip{display:none}.day{min-height:62px;padding:6px}.day .chars{font-size:10px}.card{padding:17px}.stats{gap:7px}.stat{padding:10px}.stat .value{font-size:21px}}
 @media(max-width:420px){.wrap{padding:22px 12px 32px}.calendar{gap:4px}.day{min-height:56px}.day .num{font-size:10px}.day .chars{font-size:9px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.form-row{grid-template-columns:1fr}}
 </style>
+
+<style>
+/* UX polish: usability pass 1 — visual states and responsive navigation */
+:root {
+  --focus-ring: 0 0 0 3px rgba(73, 107, 82, .22);
+}
+button, input, select, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+:where(button, input, select, a, [role="button"]):focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 3px;
+}
+.btn, .section-tab, .icon-btn, .day {
+  transition: background-color .16s ease, border-color .16s ease,
+    color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.btn:not(:disabled):hover {
+  filter: brightness(.97);
+  box-shadow: 0 3px 10px rgba(37, 41, 35, .10);
+}
+.btn:disabled {
+  box-shadow: none;
+}
+.section-tab:not(.active):hover {
+  background: rgba(255, 254, 250, .65);
+  color: var(--ink);
+}
+.icon-btn:hover {
+  background: var(--bg);
+  border-color: #c9c5b8;
+}
+.day:hover {
+  border-color: #aeb9a8;
+  background: #f8faf6;
+}
+.day.selected {
+  box-shadow: inset 0 0 0 1px var(--green);
+}
+input:focus-visible, select:focus-visible {
+  border-color: var(--green);
+  box-shadow: var(--focus-ring);
+}
+@media (max-width: 520px) {
+  .section-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding: 5px;
+  }
+  .section-tab {
+    flex: 0 0 auto;
+    min-width: max-content;
+    padding: 11px 13px;
+  }
+  .section-nav .section-tab:focus-visible {
+    outline-offset: -2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .section-tab, .icon-btn, .day {
+    transition: none !important;
+  }
+}
+</style>
+
 </head>
 <body class="diary-locked">
 <div class="wrap">
