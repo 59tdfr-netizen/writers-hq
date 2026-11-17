@@ -885,10 +885,9 @@ render();
   }
 
   async function renderLikeButton(container, targetUserId, itemType, achievementId = null) {
-    // Кнопка поддержки живёт отдельно от панели статистики: приватность цифр не блокирует поддержку автора.
-    let likes = [];
+    // Поддержка не зависит от видимости статистики. Запрашиваем только собственную реакцию,
+    // не читаем общий список лайков и не раскрываем чужие данные.
     let liked = false;
-    let countKnown = false;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'like-btn';
@@ -896,33 +895,30 @@ render();
     button.setAttribute('aria-pressed', 'false');
     container.replaceChildren(button);
 
-    const makeQuery = () => achievementId
-      ? client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
-      : client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+    const ownLikeQuery = () => {
+      let query = client.from('writer_likes')
+        .select('id')
+        .eq('liker_id', activeUserId)
+        .eq('target_user_id', targetUserId)
+        .eq('item_type', itemType);
+      query = achievementId ? query.eq('achievement_id', achievementId) : query.is('achievement_id', null);
+      return query;
+    };
     const updateLabel = () => {
-      const heart = liked ? '♥' : '♡';
-      const label = itemType === 'stats' ? 'Поддержать автора' : 'Поддержать';
-      button.textContent = heart + ' ' + label + (countKnown ? ' · ' + new Intl.NumberFormat('ru-RU').format(likes.length) : '');
+      button.textContent = (liked ? '♥ ' : '♡ ') + (itemType === 'stats' ? 'Поддержать автора' : 'Поддержать');
       button.classList.toggle('liked', liked);
       button.setAttribute('aria-pressed', String(liked));
     };
 
-    try {
-      const { data, error } = await makeQuery();
-      if (error) throw error;
-      likes = data || [];
-      liked = likes.some(item => item.liker_id === activeUserId);
-      countKnown = true;
-    } catch (readError) {
-      // Если политика БД скрывает общий список лайков, всё равно оставляем доступную кнопку.
+    if (activeUserId) {
       try {
-        const ownQuery = achievementId
-          ? client.from('writer_likes').select('id').eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
-          : client.from('writer_likes').select('id').eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
-        const { data: ownLike, error: ownError } = await ownQuery;
-        if (!ownError) liked = Array.isArray(ownLike) && ownLike.length > 0;
-      } catch (_) {}
-      button.title = 'Счётчик поддержки временно недоступен, но кнопку можно использовать.';
+        const { data, error } = await ownLikeQuery();
+        if (error) throw error;
+        liked = Array.isArray(data) && data.length > 0;
+      } catch (readError) {
+        // Оставляем кнопку доступной; при нажатии покажем точную ошибку политики БД.
+        button.title = 'Не удалось проверить вашу поддержку. Проверьте политики доступа writer_likes в Supabase.';
+      }
     }
     updateLabel();
 
@@ -934,9 +930,11 @@ render();
       button.disabled = true;
       try {
         if (liked) {
-          const query = achievementId
-            ? client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
-            : client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+          let query = client.from('writer_likes').delete()
+            .eq('liker_id', activeUserId)
+            .eq('target_user_id', targetUserId)
+            .eq('item_type', itemType);
+          query = achievementId ? query.eq('achievement_id', achievementId) : query.is('achievement_id', null);
           const { error: deleteError } = await query;
           if (deleteError) throw deleteError;
         } else {
@@ -952,7 +950,7 @@ render();
       } catch (error) {
         const detail = error && error.message ? error.message : 'неизвестная ошибка';
         const hint = detail.toLowerCase().includes('row-level security')
-          ? ' Нужно проверить политику writer_likes в Supabase.'
+          ? ' Проверь INSERT policy для writer_likes: liker_id должен совпадать с auth.uid().'
           : '';
         showMessage('Не удалось изменить поддержку: ' + detail + hint, 'error');
         button.title = detail + hint;
