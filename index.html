@@ -225,49 +225,66 @@ body:not(.diary-locked) #sectionNav {
   .btn, .section-tab, .like-btn { transition: none !important; }
 }
 </style>
+
+<style id="sistine-fresco-and-compact-heading">
+.fresco-banner {
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.35fr);
+  min-height: 310px;
+  margin-top: 0;
+  background: #f8efe2;
+}
+.fresco-copy { padding: clamp(25px, 3.2vw, 46px); }
+.fresco-copy > .eyebrow, .fresco-copy > .fresco-motto { display: none; }
+.fresco-copy h1 {
+  margin: 0;
+  color: #302923;
+  font: 500 clamp(42px, 5vw, 66px)/.98 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.045em;
+}
+.profile-heading {
+  margin: 10px 0 0;
+  color: #702a32;
+  font: 600 clamp(25px, 3vw, 38px)/1.08 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.02em;
+  overflow-wrap: anywhere;
+}
+.fresco-description { margin: 18px 0 0; color: #81766b; font-size: 13px; }
+.fresco-copy .date-chip { display: inline-flex; margin-top: 20px; padding: 8px 13px; font-size: 11px; }
+.renaissance-fresco { min-height: 310px; background: #a66f55; }
+.renaissance-fresco img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+  filter: sepia(.19) saturate(.78) contrast(.94) brightness(.97);
+  opacity: .94;
+}
+.renaissance-fresco::after {
+  background: linear-gradient(90deg, #7b45331f, #7b453300 25%, #702a3217),
+    linear-gradient(0deg, #542d2b20, transparent 35%);
+  mix-blend-mode: multiply;
+}
+.renaissance-fresco .fresco-ornament {
+  z-index: 2; bottom: 12px; color: #f3dfb1; text-shadow: 0 1px 5px #402523;
+}
+@media (max-width: 760px) {
+  .fresco-banner { grid-template-columns: 1fr; }
+  .renaissance-fresco { grid-row: 1; min-height: clamp(180px, 48vw, 300px); }
+  .renaissance-fresco img { object-position: center 43%; }
+  .fresco-copy { grid-row: 2; padding: 24px; }
+  .fresco-copy h1 { font-size: clamp(42px, 10vw, 56px); }
+  .profile-heading { font-size: clamp(27px, 7vw, 36px); }
+}
+</style>
 </head>
 <body class="diary-locked">
 <div class="wrap">
-  <header class="top">
-    <div><div class="eyebrow">Writers HQ · Личный кабинет</div><h1>Штаб писателя</h1><div class="owner-name auth-hidden" id="ownerNameLine">Личный кабинет · <strong id="ownerName">Павел Прокудин</strong></div><div class="sub">Не жди вдохновения. Замечай работу, которую уже сделал, и двигайся к своей книге по одному дню за раз.</div></div>
-    <div class="date-chip" id="todayChip"></div>
-  </header>
-
-  <section class="fresco-banner" aria-label="Штаб писателя — пространство для работы над книгами">
+  <section class="fresco-banner" aria-label="Штаб писателя">
     <div class="fresco-copy">
-      <div class="eyebrow">Творческая мастерская</div>
-      <h2>Истории растут день за днём.</h2>
-      <p>Сохраняй нить своей работы, возвращайся к замыслам и поддерживай авторов рядом.</p>
-      <span class="fresco-motto">Nulla dies sine linea · Ни дня без строки</span>
+      <h1>Штаб писателя</h1>
+      <h2 class="profile-heading owner-name auth-hidden" id="ownerNameLine"><span id="ownerName">Павел Прокудин</span></h2>
+      <p class="fresco-description">Твоё пространство для работы над книгами.</p>
+      <div class="date-chip" id="todayChip"></div>
     </div>
     <div class="renaissance-fresco">
-      <svg viewBox="0 0 360 280" role="img" aria-label="Фреска в духе Возрождения: писатель за книгой в арочной галерее">
-        <defs>
-          <linearGradient id="frescoWall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9bd87"/><stop offset=".52" stop-color="#b77758"/><stop offset="1" stop-color="#6e3439"/></linearGradient>
-          <linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8f3b42"/><stop offset="1" stop-color="#512832"/></linearGradient>
-          <linearGradient id="blueRobe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#657b75"/><stop offset="1" stop-color="#344b49"/></linearGradient>
-        </defs>
-        <path d="M24 270V112a156 156 0 0 1 312 0v158Z" fill="#e4ca91" stroke="#f6e7bd" stroke-width="4"/>
-        <path d="M38 270V114a142 142 0 0 1 284 0v156Z" fill="url(#frescoWall)" stroke="#6f393a" stroke-width="4"/>
-        <path d="M54 270V117a126 126 0 0 1 252 0v153Z" fill="#d9ad78"/>
-        <path d="M70 270V122a110 110 0 0 1 220 0v148Z" fill="#b87558" opacity=".8"/>
-        <circle cx="180" cy="89" r="48" fill="#f0d59b" opacity=".7"/>
-        <circle cx="180" cy="89" r="38" fill="none" stroke="#f7e4b8" stroke-width="2" stroke-dasharray="2 5"/>
-        <path d="M73 270q12-66 54-88l24-9 28 16 27-16 26 10q38 24 51 87Z" fill="url(#blueRobe)"/>
-        <path d="M113 190q-10-29 8-49l20-13 23 12 12 29-12 29-28 9Z" fill="#e7c19a"/>
-        <path d="M116 149q-1-34 27-38 29 5 31 38l-11-9-17-6-18 9-6 17Z" fill="#5c4035"/>
-        <path d="M128 135q14-11 29 0" fill="none" stroke="#8b5b45" stroke-width="2"/>
-        <path d="M180 270q2-51 26-76l24-13 23 13q26 24 33 76Z" fill="url(#robe)"/>
-        <path d="M207 189q-9-29 8-47l19-12 22 11 11 29-11 26-28 8Z" fill="#e8c49c"/>
-        <path d="M210 148q-1-31 24-36 27 4 28 35l-10-8-17-6-16 9-5 14Z" fill="#654436"/>
-        <path d="M149 197q20 4 34 24l-5 15-27-6-18-16Z" fill="#f0d9ae" stroke="#9b6a4c" stroke-width="2"/>
-        <path d="M177 219l31-9 7 12-32 12Z" fill="#f8ebce" stroke="#9b6a4c" stroke-width="2"/>
-        <path d="M180 224l28-8" stroke="#b68b5e" stroke-width="1.5"/>
-        <path d="M53 270h254" stroke="#f3dfb1" stroke-width="4"/>
-        <path d="M58 263q-8-35 5-55m-5 20q-13-10-13-23m14 12q12-13 10-24" fill="none" stroke="#f1d69b" stroke-width="2"/>
-        <path d="M300 263q8-35-5-55m5 20q13-10 13-23m-14 12q-12-13-10-24" fill="none" stroke="#f1d69b" stroke-width="2"/>
-        <g fill="#f7e4b8"><path d="M180 27l4 11 11 4-11 4-4 11-4-11-11-4 11-4Z"/><circle cx="91" cy="104" r="2.5"/><circle cx="270" cy="99" r="2.5"/><circle cx="82" cy="145" r="2"/><circle cx="280" cy="147" r="2"/></g>
-      </svg>
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400" alt="Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы" loading="eager" decoding="async">
       <span class="fresco-ornament" aria-hidden="true">❦</span>
     </div>
   </section>
