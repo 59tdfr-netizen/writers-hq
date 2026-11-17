@@ -15,13 +15,13 @@ permissions:
 jobs:
   propose-design:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 6
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate CSS proposal
+      - name: Generate compact CSS proposal
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
@@ -43,108 +43,81 @@ jobs:
           if not account or not token:
               sys.exit("ERROR: Cloudflare secrets are missing.")
 
-          html_path = Path("index.html")
-          if not html_path.is_file():
-              sys.exit("ERROR: index.html was not found.")
+          html = Path("index.html").read_text(encoding="utf-8")
 
-          html = html_path.read_text(encoding="utf-8")
-
-          css_parts = []
-
-          for path in sorted(Path(".").rglob("*.css")):
-              if any(
-                  part in {".git", "node_modules", ".venv"}
-                  for part in path.parts
-              ):
-                  continue
-              css_parts.append(
-                  f"\n/* {path.as_posix()} */\n"
-                  + path.read_text(
-                      encoding="utf-8",
-                      errors="replace"
-                  )
-              )
-
-          inline_css = re.findall(
+          styles = re.findall(
               r"<style\b[^>]*>(.*?)</style\s*>",
               html,
               flags=re.I | re.S
           )
 
-          for i, content in enumerate(inline_css, start=1):
-              css_parts.append(f"\n/* Inline CSS {i} */\n{content}")
+          if not styles:
+              sys.exit("ERROR: No inline CSS was found in index.html.")
 
-          current_css = "\n".join(css_parts)
-
-          if not current_css.strip():
-              sys.exit("ERROR: No existing CSS found.")
-
-          headings = re.findall(
-              r"<(h1|h2|h3)\b[^>]*>(.*?)</\1\s*>",
-              html,
-              flags=re.I | re.S
-          )
-
-          heading_text = []
-          for tag, content in headings[:12]:
-              text = re.sub(r"<[^>]+>", " ", content)
-              text = re.sub(r"\s+", " ", text).strip()
-              if text:
-                  heading_text.append(f"{tag}: {text[:70]}")
+          css = "\n".join(styles)
 
           classes = sorted(set(
-              cls
+              name
               for value in re.findall(
                   r'class=["\']([^"\']+)["\']',
                   html
               )
-              for cls in value.split()
+              for name in value.split()
+              if re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_-]*", name)
           ))
 
+          wanted = (
+              "body", ":root", ".top", ".wrap", ".eyebrow",
+              "h1", ".sub", ".card", ".card-head", ".btn",
+              ".primary", ".secondary", ".stat", ".date-chip",
+              "input", "select", "label"
+          )
+
+          rules = []
+          for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+              selector = re.sub(r"\s+", " ", match.group(1)).strip()
+              declarations = re.sub(
+                  r"\s+", " ", match.group(2)
+              ).strip()
+
+              if not selector or not declarations:
+                  continue
+
+              if any(term in selector for term in wanted):
+                  rules.append(f"{selector} {{{declarations}}}")
+
+          existing_rules = "\n".join(rules)[:3000]
+
+          if not existing_rules:
+              sys.exit("ERROR: Could not extract relevant CSS rules.")
+
           context = {
-              "page_headings": heading_text,
-              "existing_classes": classes[:90],
-              "existing_css": current_css[:6500],
-              "html_excerpt": html[:1800]
+              "existing_classes": classes[:65],
+              "relevant_css": existing_rules
           }
 
           system_prompt = """
-          Ты профессиональный UX/UI-дизайнер приложения «Штаб писателя».
+          You are a senior UI designer for a Russian writing app.
+          Return CSS code only. No Markdown, JSON, comments or explanations.
 
-          Верни ТОЛЬКО CSS-код. Никакого JSON, Markdown, вступления,
-          пояснений или заключения. Не используй блоки ```.
+          Design direction: "Contrast Workshop" — restrained Renaissance
+          atmosphere, charcoal and burgundy accents, terracotta, muted gold,
+          warm paper, elegant headings, readable interface.
+          Keep the workspace and cards light. Avoid visual clutter.
 
-          Задача: предложить конкретное улучшение существующего дизайна.
+          Propose at most 3 small, useful visual improvements to existing
+          elements. Use only selectors and CSS variables confirmed in the
+          supplied context. Prefer hover, focus, spacing, borders or subtle
+          accents. Do not redesign the whole page or change its layout.
+          Do not hide elements. Do not use URLs, imports or new fonts.
+          Do not repeat unchanged CSS rules.
 
-          Направление «Контрастная мастерская»:
-          - эстетика Возрождения без декоративной перегруженности;
-          - угольный, бордовый, терракотовый и приглушённое золото;
-          - светлая рабочая область и светлые карточки;
-          - выразительные заголовки и удобочитаемый интерфейс;
-          - аккуратные границы, состояния наведения и фокуса.
-
-          Требования:
-          1. Изучи существующие HTML и CSS.
-          2. Выбери 2–4 действительно полезных изменения.
-          3. Используй только подтверждённые классы, элементы и переменные.
-          4. Не добавляй селекторы классов, которых нет во входных данных.
-          5. Не делай весь интерфейс тёмным.
-          6. Не меняй структуру сетки и расположение крупных блоков.
-          7. Не скрывай элементы и не меняй функциональность.
-          8. Не добавляй HTML, JavaScript, @import или URL.
-          9. Не переписывай без необходимости уже существующие правила.
-          10. Не выдумывай новые переменные CSS.
-          11. Патч должен быть компактным: максимум 1200 символов.
-          12. Верни только законченные CSS-правила с закрытыми скобками.
-          13. Не утверждай, что проверял сайт в браузере.
-
-          Если не удаётся обосновать изменение, выбери самое безопасное
-          улучшение существующих карточек, кнопок или заголовков.
+          Output no more than 450 characters of valid, complete CSS.
+          Return only CSS rules with balanced braces.
           """
 
           user_prompt = (
-              "Создай компактный CSS-патч. "
-              "Верни только CSS, не JSON.\n\n"
+              "Create a very small CSS patch from this context:\n"
               + json.dumps(context, ensure_ascii=False)
           )
 
@@ -156,16 +129,10 @@ jobs:
 
           payload = {
               "messages": [
-                  {
-                      "role": "system",
-                      "content": system_prompt
-                  },
-                  {
-                      "role": "user",
-                      "content": user_prompt
-                  }
+                  {"role": "system", "content": system_prompt},
+                  {"role": "user", "content": user_prompt}
               ],
-              "max_tokens": 1800,
+              "max_tokens": 900,
               "temperature": 0.1,
               "chat_template_kwargs": {
                   "enable_thinking": False
@@ -176,20 +143,17 @@ jobs:
               endpoint,
               data=json.dumps(payload).encode("utf-8"),
               headers={
-                  "Authorization": f"Bearer {token}",
+                  "Authorization": "Bearer " + token,
                   "Content-Type": "application/json"
               },
               method="POST"
           )
 
-          print("Requesting CSS-only proposal.")
-          print("Website source files will not be modified.")
+          print("Requesting a small CSS-only proposal.")
+          print("Original website files will not be modified.")
 
           try:
-              with urllib.request.urlopen(
-                  request,
-                  timeout=180
-              ) as response:
+              with urllib.request.urlopen(request, timeout=150) as response:
                   data = json.loads(
                       response.read().decode("utf-8")
                   )
@@ -203,116 +167,91 @@ jobs:
               print(json.dumps(
                   data.get("errors", []),
                   ensure_ascii=False
-              )[:1200])
-              sys.exit("ERROR: Cloudflare returned an unsuccessful response.")
+              )[:1000])
+              sys.exit("ERROR: Cloudflare API returned failure.")
 
           result = data.get("result") or {}
           choices = result.get("choices") or []
 
-          if not choices:
-              sys.exit("ERROR: The model returned no choices.")
+          answer = ""
+          finish = None
 
-          choice = choices[0] or {}
-          finish = choice.get("finish_reason")
-          message = choice.get("message") or {}
-          answer = message.get("content")
+          if choices:
+              choice = choices[0] or {}
+              finish = choice.get("finish_reason")
+              message = choice.get("message") or {}
+              content = message.get("content")
 
-          if not isinstance(answer, str) or not answer.strip():
-              if isinstance(result.get("response"), str):
-                  answer = result["response"]
-              else:
-                  sys.exit("ERROR: The model returned no CSS text.")
+              if isinstance(content, str):
+                  answer = content.strip()
+
+          if not answer and isinstance(result.get("response"), str):
+              answer = result["response"].strip()
 
           print("Finish reason:", finish)
           print("Response characters:", len(answer))
           print("Usage:", json.dumps(
               result.get("usage", {}),
               ensure_ascii=False
-          )[:400])
+          )[:350])
 
           if finish == "length":
               sys.exit(
                   "ERROR: Model output was truncated. "
-                  "No proposal was accepted."
+                  "No CSS proposal was accepted."
               )
 
-          patch = answer.strip()
-
-          patch = re.sub(
+          answer = re.sub(
               r"^```(?:css)?\s*",
               "",
-              patch,
+              answer,
               flags=re.I
           )
-          patch = re.sub(r"\s*```$", "", patch).strip()
+          answer = re.sub(r"\s*```$", "", answer).strip()
 
-          if not patch:
-              sys.exit("ERROR: The CSS proposal is empty.")
+          if not answer:
+              sys.exit("ERROR: The model returned empty CSS.")
 
-          if len(patch) > 1800:
-              sys.exit("ERROR: CSS proposal exceeds the size limit.")
+          if len(answer) > 700:
+              sys.exit("ERROR: CSS proposal is longer than allowed.")
 
-          if not re.search(r"[^{}]+\{[^{}]+\}", patch):
-              sys.exit("ERROR: No complete CSS rule was found.")
-
-          if patch.count("{") != patch.count("}"):
+          if answer.count("{") != answer.count("}"):
               sys.exit("ERROR: CSS braces are unbalanced.")
 
-          if re.search(
-              r"<\s*/?\s*(?:script|html|body|iframe)\b"
-              r"|javascript\s*:|expression\s*\(",
-              patch,
-              flags=re.I
-          ):
-              sys.exit("ERROR: Unsafe or unexpected content in CSS.")
+          if not re.search(r"[^{}]+\{[^{}]+\}", answer):
+              sys.exit("ERROR: No complete CSS rule was found.")
 
           if re.search(
-              r"@import\b|url\s*\(|behavior\s*:",
-              patch,
+              r"<|>|javascript\s*:|expression\s*\(|@import\b|url\s*\(",
+              answer,
               flags=re.I
           ):
-              sys.exit("ERROR: Imports and external URLs are not allowed.")
+              sys.exit("ERROR: Unsafe or unexpected CSS content.")
 
           Path("design-proposal.css").write_text(
               "/* AI proposal only. Not applied to the website. */\n\n"
-              + patch + "\n",
+              + answer + "\n",
               encoding="utf-8"
           )
-
-          report = """# Предложение по дизайну «Штаба писателя»
-
-          > Предложение не применено к сайту.
-          > Проверка в браузере не выполнялась.
-          > Исходные файлы сайта не изменялись.
-
-          ## Результат
-
-          Получен CSS-патч от модели Cloudflare AI.
-          Проверены наличие CSS-правил, баланс фигурных скобок
-          и отсутствие некоторых небезопасных конструкций.
-
-          ## Важно
-
-          Автоматическая проверка не подтверждает визуальную
-          корректность, доступность или адаптивность патча.
-          Перед применением необходимо проверить каждый селектор
-          и оценить результат в браузере.
-
-          ## CSS
-
-          Полный патч находится в файле design-proposal.css.
-          """
 
           Path("design-review-report.md").write_text(
-              report,
+              "# Предложение по дизайну «Штаба писателя»\n\n"
+              "> Патч не применён к сайту.\n"
+              "> Проверка в браузере не выполнялась.\n"
+              "> Исходные файлы не изменялись.\n\n"
+              "## Результат\n\n"
+              "Получен компактный CSS-патч. Проверены длина, "
+              "наличие CSS-правил и баланс фигурных скобок. "
+              "Это не заменяет ручную проверку селекторов "
+              "и визуального результата.\n",
               encoding="utf-8"
           )
 
-          print("CSS proposal generated and basic checks passed.")
+          print("CSS proposal generated.")
           print("Website source files were not modified.")
           PY
 
-      - name: Upload review files
+      - name: Upload proposal
         uses: actions/upload-artifact@v4
         with:
           name: writers-hq-design-review
