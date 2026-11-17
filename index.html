@@ -905,7 +905,9 @@ $('entryDate').value=selectedDate;$('selectedDateLabel').textContent=fmtDate(sel
 $('entryChars').value=sessionEntries()[selectedDate]??'';
 $('todayTotal').innerHTML=`${fmt(sessionEntries()[todayKey()]||0)} <span class="unit">симв.</span>`;
 document.querySelector('.stats .stat .label').textContent=state.workMode==='editing'?'Отредактировано сегодня':'Сегодня';
-$('allTotal').innerHTML=`${fmt(total())} <span class="unit">симв.</span>`;
+$('allTotal').innerHTML=`${fmt(Object.values(sessionEntries()).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0))} <span class="unit">симв.</span>`;
+document.querySelectorAll('.stats .stat .label')[1].textContent=state.workMode==='editing'?'Всего отредактировано':'Всего написано';
+$('activeDays').innerHTML=`${fmt(Object.values(sessionEntries()).filter(n=>Number(n)>0).length)} <span class="unit">дней</span>`;
 $('activeDays').innerHTML=`${fmt(activeEntries().length)} <span class="unit">дней</span>`;
 }
 function renderGoal(){
