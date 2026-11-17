@@ -273,6 +273,29 @@ body:not(.diary-locked) #sectionNav {
   .profile-heading { font-size: clamp(27px, 7vw, 36px); }
 }
 </style>
+
+<style id="ux-cleanup-november">
+/* Убираем декоративный текст, который дублирует название продукта или не помогает работе. */
+#sectionNav::after { display: none !important; }
+.fresco-description { display: none !important; }
+.footer { justify-content: flex-end; margin-top: 18px; }
+.fresco-banner { align-items: stretch; }
+.fresco-copy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; }
+.fresco-copy h1 { max-width: 10ch; }
+.profile-heading { margin-top: 8px; }
+.fresco-copy .date-chip { margin-top: 18px; }
+.renaissance-fresco { min-width: 0; }
+.card-head h2 { line-height: 1.15; }
+.auth-panel .small#authStatus { max-width: 62ch; }
+#sectionNav .section-tab.coming-soon { opacity: .58; }
+#sectionNav .section-tab.coming-soon span { font-size: 10px; font-weight: 500; }
+@media (max-width: 760px) {
+  .fresco-copy h1 { max-width: none; }
+  .fresco-copy .date-chip { margin-top: 14px; }
+  .footer { justify-content: flex-start; }
+}
+</style>
+
 </head>
 <body class="diary-locked">
 <div class="wrap">
@@ -280,7 +303,6 @@ body:not(.diary-locked) #sectionNav {
     <div class="fresco-copy">
       <h1>Штаб писателя</h1>
       <h2 class="profile-heading owner-name auth-hidden" id="ownerNameLine"><span id="ownerName">Павел Прокудин</span></h2>
-      <p class="fresco-description">Твоё пространство для работы над книгами.</p>
       <div class="date-chip" id="todayChip"></div>
     </div>
     <div class="renaissance-fresco">
@@ -328,7 +350,7 @@ body:not(.diary-locked) #sectionNav {
   </section>
 
   <nav class="section-nav auth-hidden" id="sectionNav" aria-label="Разделы Штаба писателя">
-    <button type="button" class="section-tab active" data-section="diarySection" aria-pressed="true">Мой дневник</button>
+    <button type="button" class="section-tab active" data-section="diarySection" aria-pressed="true">Дневник</button>
     <button type="button" class="section-tab" data-section="communitySection" aria-pressed="false">Сообщество</button>
     <button type="button" class="section-tab" data-section="settingsSection" aria-pressed="false">Настройки профиля</button>
     <button type="button" class="section-tab coming-soon" disabled aria-disabled="true" title="Работы ещё ведутся">Проекты <span>Работы ещё ведутся</span></button>
@@ -443,7 +465,7 @@ body:not(.diary-locked) #sectionNav {
     <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
   </section>
   </section>
-  <footer class="footer"><span>Штаб писателя · первая версия</span><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
+  <footer class="footer"><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
