@@ -1,0 +1,312 @@
+
+name: AI Design Plan
+
+on:
+  push:
+    branches:
+      - ai-agent-setup
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare design plan with Cloudflare AI
+        env:
+          CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import urllib.request
+          import urllib.error
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from collections import Counter
+
+          token = os.environ.get("CLOUDFLARE_AI_TOKEN", "")
+          account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+
+          if not token or not account_id:
+              sys.exit("ERROR: Required GitHub Secrets are missing.")
+
+          path = Path("index.html")
+          if not path.is_file():
+              sys.exit("ERROR: index.html was not found.")
+
+          html = path.read_text(encoding="utf-8")
+
+          class PageAnalyzer(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.headings = []
+                  self.buttons = []
+                  self.sections = []
+                  self.inputs = []
+                  self.ids = []
+                  self.classes = Counter()
+                  self.capture = None
+                  self.capture_depth = 0
+                  self.capture_text = []
+
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+
+                  if attrs.get("id"):
+                      self.ids.append(attrs["id"])
+
+                  for cls in attrs.get("class", "").split():
+                      self.classes[cls] += 1
+
+                  if tag == "section":
+                      self.sections.append({
+                          "id": attrs.get("id", ""),
+                          "class": attrs.get("class", "")
+                      })
+
+                  if tag in ("input", "textarea", "select"):
+                      self.inputs.append({
+                          "tag": tag,
+                          "type": attrs.get("type", ""),
+                          "id": attrs.get("id", ""),
+                          "class": attrs.get("class", ""),
+                          "placeholder": attrs.get("placeholder", "")
+                      })
+
+                  if tag in ("h1", "h2", "h3", "h4"):
+                      self.capture = tag
+                      self.capture_depth = 1
+                      self.capture_text = []
+                  elif tag == "button":
+                      self.capture = tag
+                      self.capture_depth = 1
+                      self.capture_text = []
+                  elif self.capture:
+                      self.capture_depth += 1
+
+              def handle_endtag(self, tag):
+                  if not self.capture:
+                      return
+
+                  if tag == self.capture and self.capture_depth == 1:
+                      value = " ".join(" ".join(self.capture_text).split())
+                      if value:
+                          if self.capture == "button":
+                              self.buttons.append(value[:180])
+                          else:
+                              self.headings.append({
+                                  "tag": self.capture,
+                                  "text": value[:180]
+                              })
+                      self.capture = None
+                      self.capture_depth = 0
+                      self.capture_text = []
+                  elif self.capture:
+                      self.capture_depth = max(1, self.capture_depth - 1)
+
+              def handle_data(self, data):
+                  if self.capture and data.strip():
+                      self.capture_text.append(data.strip())
+
+          analyzer = PageAnalyzer()
+          analyzer.feed(html)
+
+          css_blocks = re.findall(
+              r"<style\b[^>]*>(.*?)</style\s*>",
+              html,
+              flags=re.IGNORECASE | re.DOTALL
+          )
+          css = "\n\n".join(css_blocks)
+
+          css_variables = re.findall(
+              r"--[\w-]+\s*:\s*[^;}{]+;",
+              css
+          )
+
+          media_queries = re.findall(
+              r"@media[^{]+",
+              css
+          )
+
+          css_selectors = re.findall(
+              r"([^{}]+)\{",
+              css
+          )
+
+          css_summary = {
+              "inline_style_blocks": len(css_blocks),
+              "css_variables": list(dict.fromkeys(css_variables))[:100],
+              "media_queries": list(dict.fromkeys(
+                  item.strip() for item in media_queries
+              ))[:40],
+              "selectors": list(dict.fromkeys(
+                  item.strip() for item in css_selectors
+                  if item.strip() and len(item.strip()) < 180
+                  and not item.strip().startswith("@")
+              ))[:120],
+              "css_excerpt": css[:10000]
+          }
+
+          page_summary = {
+              "title": re.findall(
+                  r"<title\b[^>]*>(.*?)</title\s*>",
+                  html,
+                  flags=re.IGNORECASE | re.DOTALL
+              )[:1],
+              "html_characters": len(html),
+              "headings": analyzer.headings[:100],
+              "buttons": analyzer.buttons[:100],
+              "sections": analyzer.sections[:80],
+              "inputs": analyzer.inputs[:80],
+              "element_ids": analyzer.ids[:120],
+              "common_classes": analyzer.classes.most_common(60),
+              "css": css_summary
+          }
+
+          print("Starting design planning...")
+          print(f"HTML size: {len(html)} characters")
+          print(f"CSS blocks found: {len(css_blocks)}")
+
+          system_prompt = """
+          Ты — опытный UX/UI-дизайнер и frontend-архитектор.
+          Ты готовишь план редизайна существующего приложения
+          «Штаб писателя» на основании его HTML и CSS.
+
+          НОВОЕ ВИЗУАЛЬНОЕ НАПРАВЛЕНИЕ:
+          - Контрастная мастерская: тёмная боковая панель и
+            верхняя зона, светлая рабочая область.
+          - Цвета: угольный, тёплый пергамент, бордовый,
+            терракотовый и приглушённое золото.
+          - В заголовках — выразительная книжная антиква
+            в духе старых изданий. В рабочих элементах —
+            хорошо читаемый современный шрифт.
+          - Умеренные визуальные отсылки к искусству Возрождения:
+            живопись, фрески, классическая скульптура.
+          - Сохраняй функциональность и читаемость.
+          - Не используй декоративные элементы без назначения.
+          - Убрать большой приветственный заголовок в верхней
+            зоне, подпись под логотипом и текстовую цитату
+            в декоративной карточке справа. Само изображение
+            в этой карточке можно сохранить без цитаты.
+
+          ОБЯЗАТЕЛЬНЫЕ ОГРАНИЧЕНИЯ:
+          - Это план, а не выполнение редизайна.
+          - Не изменяй и не переписывай файлы.
+          - Не предлагай удалять существующие функции.
+          - Не придумывай несуществующие селекторы, разделы
+            и возможности приложения.
+          - Различай подтверждённые сведения из кода
+            и предположения, которые нужно проверить.
+          - Не утверждай, что видел сайт в браузере.
+          - Учитывай мобильную адаптацию и доступность.
+          - Не раскрывай внутренние рассуждения.
+          - Отвечай по-русски, конкретно и без общих похвал.
+
+          Составь практический план:
+          1. Краткая стратегия редизайна.
+          2. Таблица: существующая часть интерфейса,
+             предлагаемое изменение, что важно сохранить.
+          3. Цветовые переменные и типографика.
+          4. Конкретные существующие CSS-селекторы,
+             которые нужно изучить или изменить.
+          5. Последовательность внедрения небольшими этапами.
+          6. Риски для функций, данных, авторизации
+             и мобильной версии.
+          7. Проверки, которые необходимо выполнить после изменений.
+
+          Если в исходных данных не хватает сведений,
+          укажи это явно. Не выдумывай содержимое сайта.
+          """
+
+          user_prompt = (
+              "Подготовь план редизайна на основе этих данных.\n"
+              "Ничего не изменяй в файлах.\n\n"
+              + json.dumps(
+                  page_summary,
+                  ensure_ascii=False,
+                  indent=2
+              )
+          )
+
+          payload = {
+              "messages": [
+                  {"role": "system", "content": system_prompt},
+                  {"role": "user", "content": user_prompt}
+              ],
+              "max_tokens": 3000
+          }
+
+          url = (
+              "https://api.cloudflare.com/client/v4/accounts/"
+              + account_id
+              + "/ai/run/@cf/zai-org/glm-4.7-flash"
+          )
+
+          request = urllib.request.Request(
+              url,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={
+                  "Authorization": "Bearer " + token,
+                  "Content-Type": "application/json"
+              },
+              method="POST"
+          )
+
+          try:
+              with urllib.request.urlopen(request, timeout=120) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as error:
+              print(f"Cloudflare API returned HTTP {error.code}.")
+              try:
+                  print(error.read().decode("utf-8")[:2000])
+              except Exception:
+                  pass
+              sys.exit("Design planning request failed.")
+          except Exception as error:
+              print(f"Request failed: {type(error).__name__}")
+              sys.exit("Design planning request failed.")
+
+          if not result.get("success", False):
+              for item in result.get("errors", []):
+                  print(
+                      "API error:",
+                      item.get("code", "unknown"),
+                      item.get("message", "No details")
+                  )
+              sys.exit("Cloudflare reported an unsuccessful request.")
+
+          api_result = result.get("result", {})
+          choices = api_result.get("choices", [])
+
+          print("Model:", api_result.get("model", "unknown"))
+
+          if not choices:
+              sys.exit("The model returned no answer choices.")
+
+          choice = choices[0]
+          report = choice.get("message", {}).get("content")
+
+          print("Finish reason:", choice.get("finish_reason"))
+
+          if not isinstance(report, str) or not report.strip():
+              sys.exit("The model returned no design plan.")
+
+          print("\n" + "=" * 60)
+          print("ПЛАН РЕДИЗАЙНА — ШТАБ ПИСАТЕЛЯ")
+          print("=" * 60 + "\n")
+          print(report)
+          print("\n" + "=" * 60)
+          print("Planning complete. No website files were modified.")
+          PY
