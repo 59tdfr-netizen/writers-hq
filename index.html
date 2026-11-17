@@ -122,6 +122,109 @@ input:focus-visible, select:focus-visible {
 }
 </style>
 
+
+<style id="renaissance-theme">
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root {
+  --bg: #eee5d9;
+  --paper: #fffaf1;
+  --ink: #302923;
+  --muted: #81766b;
+  --line: #e5d8c7;
+  --green: #702a32;
+  --green2: #f0e7d8;
+  --orange: #bd7652;
+  --shadow: 0 12px 34px rgba(70, 42, 31, .08);
+  --wine: #702a32;
+  --gold: #c9a66b;
+}
+body { background: var(--bg); color: var(--ink); font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif; line-height: 1.55; }
+body:not(.diary-locked) .wrap { margin-left: 245px; margin-right: 0; max-width: calc(100% - 245px); width: auto; padding: 30px clamp(20px, 4vw, 54px) 54px; }
+.top { align-items: center; margin-bottom: 20px; }
+.top h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(42px, 5vw, 62px); font-weight: 500; letter-spacing: -.035em; line-height: .98; margin: 8px 0 12px; color: var(--ink); }
+.eyebrow { color: var(--wine); letter-spacing: .17em; font-size: 10px; }
+.sub { color: var(--muted); max-width: 610px; line-height: 1.7; }
+.date-chip { background: var(--paper); border-color: var(--line); border-radius: 999px; box-shadow: 0 4px 18px rgba(70,42,31,.04); }
+.card, .auth-panel, .backup-notice { background: var(--paper); border-color: var(--line); border-radius: 16px; box-shadow: var(--shadow); }
+.card h2, .auth-panel h2 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 28px; letter-spacing: -.01em; }
+.card-head { margin-bottom: 16px; }
+.btn { border-radius: 9px; font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 750; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.btn.primary { background: var(--wine); color: #fff8ed; }
+.btn.primary:hover { background: #8b3a40; }
+.btn.secondary { background: #f0e7d8; color: var(--ink); border: 1px solid #e2d3bf; }
+input, select { border-color: #ded0be; background: #fffdf8; border-radius: 9px; }
+.section-nav { display: none; }
+body:not(.diary-locked) #sectionNav {
+  display: flex; flex-direction: column; align-items: stretch; gap: 7px;
+  position: fixed; z-index: 100; inset: 0 auto 0 0; width: 245px; height: 100vh;
+  overflow-y: auto; padding: 28px 16px 22px; margin: 0; border-radius: 0;
+  background: var(--wine); box-shadow: 8px 0 30px rgba(55, 25, 27, .12);
+}
+#sectionNav::before {
+  content: "Штаб писателя\\A ТВОРЧЕСКАЯ МАСТЕРСКАЯ";
+  white-space: pre; display: block; color: #fff8ed; font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 25px; line-height: 1.12; padding: 10px 8px 28px 54px; min-height: 64px;
+  background: radial-gradient(circle at 20px 25px, transparent 0 17px, #c9a66b 17px 18px, transparent 19px);
+}
+#sectionNav::after {
+  content: "❦  Пространство для историй";
+  display: block; margin-top: auto; padding: 20px 8px 6px; border-top: 1px solid #ffffff30;
+  color: #e7cbb9; font: italic 14px/1.5 "Cormorant Garamond", Georgia, serif;
+}
+#sectionNav .section-tab {
+  flex: 0 0 auto; min-width: 0; width: 100%; text-align: left; padding: 13px 12px;
+  border-radius: 10px; border: 1px solid transparent; color: #f6e9df; background: transparent;
+  font-size: 13px; font-weight: 700; line-height: 1.35; box-shadow: none;
+}
+#sectionNav .section-tab.active { background: #fff8ed; color: var(--wine); border-color: #d8bd91; }
+#sectionNav .section-tab:not(.active):not(:disabled):hover { background: #ffffff14; color: #fff8ed; }
+#sectionNav .section-tab:disabled { color: #d0b5a9; opacity: .64; cursor: not-allowed; background: transparent; }
+#sectionNav .section-tab.coming-soon { display: flex; flex-direction: column; gap: 3px; }
+#sectionNav .section-tab.coming-soon span { font-size: 10px; font-weight: 500; color: #d5b8ac; }
+.fresco-banner {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(280px, .95fr);
+  min-height: 260px; overflow: hidden; margin: 0 0 22px; border-radius: 18px;
+  border: 1px solid #e0cdb1; background: linear-gradient(115deg, #fffaf1 0%, #f3e5d2 58%, #d7b38b 100%);
+  box-shadow: 0 14px 38px rgba(70,42,31,.08);
+}
+.fresco-copy { padding: clamp(24px, 3.5vw, 42px); align-self: center; position: relative; z-index: 2; }
+.fresco-copy h2 { font: 500 clamp(34px, 4vw, 51px)/.98 "Cormorant Garamond", Georgia, serif; letter-spacing: -.035em; margin: 12px 0 13px; max-width: 480px; }
+.fresco-copy p { color: var(--muted); max-width: 440px; margin: 0 0 16px; font-size: 13px; }
+.fresco-motto { color: #8b5d42; font: italic 15px "Cormorant Garamond", Georgia, serif; }
+.renaissance-fresco { position: relative; display: grid; place-items: center; overflow: hidden; min-height: 260px; background: linear-gradient(135deg, #d3b08a, #8c5547 55%, #60343b); }
+.renaissance-fresco::before { content: ""; position: absolute; inset: 13px; border: 1px solid #f1dba8aa; outline: 1px solid #f1dba84f; outline-offset: 5px; pointer-events: none; }
+.renaissance-fresco::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #fffaf100 65%, #fffaf11a), radial-gradient(ellipse at 50% 15%, #edcf9870, transparent 42%); pointer-events: none; }
+.renaissance-fresco svg { width: min(100%, 370px); max-height: 290px; height: auto; position: relative; z-index: 1; filter: drop-shadow(0 10px 8px #321b1b30); }
+.author-support-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 9px; }
+.author-support-row .small { font-size: 11px; color: var(--muted); }
+.like-btn { border: 1px solid #d8c6b6; background: #fff7ed; color: #702a32; border-radius: 999px; padding: 7px 11px; font: 700 11px Manrope, Inter, sans-serif; cursor: pointer; }
+.like-btn:hover { background: #f4e5d9; border-color: #bd7652; }
+.like-btn.liked { background: #702a32; color: #fff8ed; border-color: #702a32; }
+.social-person { background: #fffdf8; border: 1px solid var(--line); border-radius: 12px; padding: 15px; gap: 12px; }
+.social-person-name { font-family: "Cormorant Garamond", Georgia, serif; font-size: 21px; }
+.stat, .stat-line, .achievement-item { border-color: var(--line); }
+:where(button, input, select, a, [role="button"]):focus-visible { outline: 3px solid #c9a66b; outline-offset: 3px; }
+@media (max-width: 760px) {
+  body:not(.diary-locked) .wrap { margin: 0; max-width: 100%; width: 100%; padding: 22px 14px 38px; }
+  body:not(.diary-locked) #sectionNav { position: sticky; inset: auto; width: 100%; height: auto; flex-direction: row; overflow-x: auto; overscroll-behavior-x: contain; padding: 8px; margin: 0 0 18px; border-radius: 13px; }
+  #sectionNav::before, #sectionNav::after { display: none; }
+  #sectionNav .section-tab { flex: 0 0 auto; width: auto; white-space: nowrap; padding: 11px 13px; }
+  #sectionNav .section-tab.coming-soon { align-items: flex-start; }
+  .fresco-banner { grid-template-columns: 1fr; }
+  .renaissance-fresco { grid-row: 1; min-height: 190px; }
+  .renaissance-fresco svg { max-height: 210px; }
+  .fresco-copy { grid-row: 2; padding: 24px; }
+  .top { align-items: flex-start; }
+}
+@media (max-width: 420px) {
+  .top h1 { font-size: 42px; }
+  .date-chip { padding: 8px 10px; font-size: 11px; }
+  .fresco-copy h2 { font-size: 37px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .section-tab, .like-btn { transition: none !important; }
+}
+</style>
 </head>
 <body class="diary-locked">
 <div class="wrap">
@@ -129,6 +232,45 @@ input:focus-visible, select:focus-visible {
     <div><div class="eyebrow">Writers HQ · Личный кабинет</div><h1>Штаб писателя</h1><div class="owner-name auth-hidden" id="ownerNameLine">Личный кабинет · <strong id="ownerName">Павел Прокудин</strong></div><div class="sub">Не жди вдохновения. Замечай работу, которую уже сделал, и двигайся к своей книге по одному дню за раз.</div></div>
     <div class="date-chip" id="todayChip"></div>
   </header>
+
+  <section class="fresco-banner" aria-label="Штаб писателя — пространство для работы над книгами">
+    <div class="fresco-copy">
+      <div class="eyebrow">Творческая мастерская</div>
+      <h2>Истории растут день за днём.</h2>
+      <p>Сохраняй нить своей работы, возвращайся к замыслам и поддерживай авторов рядом.</p>
+      <span class="fresco-motto">Nulla dies sine linea · Ни дня без строки</span>
+    </div>
+    <div class="renaissance-fresco">
+      <svg viewBox="0 0 360 280" role="img" aria-label="Фреска в духе Возрождения: писатель за книгой в арочной галерее">
+        <defs>
+          <linearGradient id="frescoWall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9bd87"/><stop offset=".52" stop-color="#b77758"/><stop offset="1" stop-color="#6e3439"/></linearGradient>
+          <linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8f3b42"/><stop offset="1" stop-color="#512832"/></linearGradient>
+          <linearGradient id="blueRobe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#657b75"/><stop offset="1" stop-color="#344b49"/></linearGradient>
+        </defs>
+        <path d="M24 270V112a156 156 0 0 1 312 0v158Z" fill="#e4ca91" stroke="#f6e7bd" stroke-width="4"/>
+        <path d="M38 270V114a142 142 0 0 1 284 0v156Z" fill="url(#frescoWall)" stroke="#6f393a" stroke-width="4"/>
+        <path d="M54 270V117a126 126 0 0 1 252 0v153Z" fill="#d9ad78"/>
+        <path d="M70 270V122a110 110 0 0 1 220 0v148Z" fill="#b87558" opacity=".8"/>
+        <circle cx="180" cy="89" r="48" fill="#f0d59b" opacity=".7"/>
+        <circle cx="180" cy="89" r="38" fill="none" stroke="#f7e4b8" stroke-width="2" stroke-dasharray="2 5"/>
+        <path d="M73 270q12-66 54-88l24-9 28 16 27-16 26 10q38 24 51 87Z" fill="url(#blueRobe)"/>
+        <path d="M113 190q-10-29 8-49l20-13 23 12 12 29-12 29-28 9Z" fill="#e7c19a"/>
+        <path d="M116 149q-1-34 27-38 29 5 31 38l-11-9-17-6-18 9-6 17Z" fill="#5c4035"/>
+        <path d="M128 135q14-11 29 0" fill="none" stroke="#8b5b45" stroke-width="2"/>
+        <path d="M180 270q2-51 26-76l24-13 23 13q26 24 33 76Z" fill="url(#robe)"/>
+        <path d="M207 189q-9-29 8-47l19-12 22 11 11 29-11 26-28 8Z" fill="#e8c49c"/>
+        <path d="M210 148q-1-31 24-36 27 4 28 35l-10-8-17-6-16 9-5 14Z" fill="#654436"/>
+        <path d="M149 197q20 4 34 24l-5 15-27-6-18-16Z" fill="#f0d9ae" stroke="#9b6a4c" stroke-width="2"/>
+        <path d="M177 219l31-9 7 12-32 12Z" fill="#f8ebce" stroke="#9b6a4c" stroke-width="2"/>
+        <path d="M180 224l28-8" stroke="#b68b5e" stroke-width="1.5"/>
+        <path d="M53 270h254" stroke="#f3dfb1" stroke-width="4"/>
+        <path d="M58 263q-8-35 5-55m-5 20q-13-10-13-23m14 12q12-13 10-24" fill="none" stroke="#f1d69b" stroke-width="2"/>
+        <path d="M300 263q8-35-5-55m5 20q13-10 13-23m-14 12q-12-13-10-24" fill="none" stroke="#f1d69b" stroke-width="2"/>
+        <g fill="#f7e4b8"><path d="M180 27l4 11 11 4-11 4-4 11-4-11-11-4 11-4Z"/><circle cx="91" cy="104" r="2.5"/><circle cx="270" cy="99" r="2.5"/><circle cx="82" cy="145" r="2"/><circle cx="280" cy="147" r="2"/></g>
+      </svg>
+      <span class="fresco-ornament" aria-hidden="true">❦</span>
+    </div>
+  </section>
 
   <section class="card auth-panel">
     <div class="card-head">
@@ -172,6 +314,8 @@ input:focus-visible, select:focus-visible {
     <button type="button" class="section-tab active" data-section="diarySection" aria-pressed="true">Мой дневник</button>
     <button type="button" class="section-tab" data-section="communitySection" aria-pressed="false">Сообщество</button>
     <button type="button" class="section-tab" data-section="settingsSection" aria-pressed="false">Настройки профиля</button>
+    <button type="button" class="section-tab coming-soon" disabled aria-disabled="true" title="Работы ещё ведутся">Проекты <span>Работы ещё ведутся</span></button>
+    <button type="button" class="section-tab coming-soon" disabled aria-disabled="true" title="Работы ещё ведутся">Синопсисы <span>Работы ещё ведутся</span></button>
   </nav>
   <section class="app-section active" id="diarySection" aria-label="Мой дневник">
   <div class="backup-notice" id="backupNotice">
@@ -724,25 +868,58 @@ render();
   }
 
   async function renderLikeButton(container, targetUserId, itemType, achievementId = null) {
-    const filteredQuery = achievementId
-      ? client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
-      : client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
-    const { data, error } = await filteredQuery;
-    if (error) throw error;
-    const likes = data || [];
-    const liked = likes.some(item => item.liker_id === activeUserId);
+    // Кнопка поддержки живёт отдельно от панели статистики: приватность цифр не блокирует поддержку автора.
+    let likes = [];
+    let liked = false;
+    let countKnown = false;
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'like-btn' + (liked ? ' liked' : '');
-    button.textContent = `${liked ? '♥' : '♡'} Поддержать · ${likes.length}`;
-    button.setAttribute('aria-pressed', String(liked));
+    button.className = 'like-btn';
+    button.textContent = itemType === 'stats' ? '♡ Поддержать автора' : '♡ Поддержать';
+    button.setAttribute('aria-pressed', 'false');
+    container.replaceChildren(button);
+
+    const makeQuery = () => achievementId
+      ? client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+      : client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+    const updateLabel = () => {
+      const heart = liked ? '♥' : '♡';
+      const label = itemType === 'stats' ? 'Поддержать автора' : 'Поддержать';
+      button.textContent = heart + ' ' + label + (countKnown ? ' · ' + new Intl.NumberFormat('ru-RU').format(likes.length) : '');
+      button.classList.toggle('liked', liked);
+      button.setAttribute('aria-pressed', String(liked));
+    };
+
+    try {
+      const { data, error } = await makeQuery();
+      if (error) throw error;
+      likes = data || [];
+      liked = likes.some(item => item.liker_id === activeUserId);
+      countKnown = true;
+    } catch (readError) {
+      // Если политика БД скрывает общий список лайков, всё равно оставляем доступную кнопку.
+      try {
+        const ownQuery = achievementId
+          ? client.from('writer_likes').select('id').eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+          : client.from('writer_likes').select('id').eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+        const { data: ownLike, error: ownError } = await ownQuery;
+        if (!ownError) liked = Array.isArray(ownLike) && ownLike.length > 0;
+      } catch (_) {}
+      button.title = 'Счётчик поддержки временно недоступен, но кнопку можно использовать.';
+    }
+    updateLabel();
+
     button.addEventListener('click', async () => {
+      if (!activeUserId) {
+        showMessage('Войди в аккаунт, чтобы поддержать автора.', 'error');
+        return;
+      }
       button.disabled = true;
       try {
-        const query = achievementId
-          ? client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
-          : client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
         if (liked) {
+          const query = achievementId
+            ? client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+            : client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
           const { error: deleteError } = await query;
           if (deleteError) throw deleteError;
         } else {
@@ -758,16 +935,14 @@ render();
       } catch (error) {
         const detail = error && error.message ? error.message : 'неизвестная ошибка';
         const hint = detail.toLowerCase().includes('row-level security')
-          ? ' Нужно применить SQL-исправление политики writer_likes.'
+          ? ' Нужно проверить политику writer_likes в Supabase.'
           : '';
-        showMessage('Не удалось изменить лайк: ' + detail + hint, 'error');
-        button.textContent = 'Не удалось поддержать';
+        showMessage('Не удалось изменить поддержку: ' + detail + hint, 'error');
         button.title = detail + hint;
       } finally {
         button.disabled = false;
       }
     });
-    container.replaceChildren(button);
   }
 
   function makePersonRow(profile, isFollowing, mode) {
@@ -781,6 +956,22 @@ render();
     meta.className = 'social-person-meta';
     meta.textContent = mode === 'following' ? 'Вы подписаны' : (isFollowing ? 'Уже в твоих подписках' : 'Автор «Штаба писателя»');
     info.append(name, meta);
+    const supportRow = document.createElement('div');
+    supportRow.className = 'author-support-row';
+    const supportLabel = document.createElement('span');
+    supportLabel.textContent = 'Поддержать автора';
+    supportLabel.className = 'small';
+    const supportControl = document.createElement('span');
+    supportRow.append(supportLabel, supportControl);
+    info.append(supportRow);
+    renderLikeButton(supportControl, profile.id, 'stats').catch(error => {
+      const fallback = document.createElement('button');
+      fallback.type = 'button';
+      fallback.className = 'like-btn';
+      fallback.textContent = '♡ Поддержать автора';
+      fallback.addEventListener('click', () => showMessage('Поддержка временно недоступна: ' + (error.message || 'ошибка загрузки').toString(), 'error'));
+      supportControl.replaceChildren(fallback);
+    });
     const actions = document.createElement('div');
     actions.style.display = 'flex';
     actions.style.flexDirection = 'column';
@@ -890,15 +1081,7 @@ render();
             await renderLikeButton(achievementLikeControl, profile.id, 'achievement', id);
           }
         }
-        const statsLikeRow = document.createElement('div');
-        statsLikeRow.className = 'like-row';
-        const statsLikeLabel = document.createElement('span');
-        statsLikeLabel.className = 'small';
-        statsLikeLabel.textContent = 'Поддержать статистику автора:';
-        const statsLikeControl = document.createElement('span');
-        statsLikeRow.append(statsLikeLabel, statsLikeControl);
-        statsPanel.append(statsLikeRow);
-        await renderLikeButton(statsLikeControl, profile.id, 'stats');
+        // Поддержка автора вынесена из приватной панели статистики и доступна независимо от её видимости.
 
         statsButton.textContent = 'Скрыть статистику и достижения';
       } catch (error) {
