@@ -78,6 +78,8 @@ details summary{user-select:none}
 
 @media(max-width:800px){.grid{grid-template-columns:1fr}.calendar-card{grid-column:auto}.bottom-grid{grid-template-columns:1fr}.top{flex-direction:column}.date-chip{display:none}.day{min-height:62px;padding:6px}.day .chars{font-size:10px}.card{padding:17px}.stats{gap:7px}.stat{padding:10px}.stat .value{font-size:21px}}
 @media(max-width:420px){.wrap{padding:22px 12px 32px}.calendar{gap:4px}.day{min-height:56px}.day .num{font-size:10px}.day .chars{font-size:9px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.form-row{grid-template-columns:1fr}}
+
+.project-switch-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}.project-switch-row select{min-width:0;width:100%}@media(max-width:520px){.project-switch-row{grid-template-columns:minmax(0,1fr)}.project-switch-row .btn{width:100%;white-space:normal}}
 </style>
 
 <style>
@@ -679,6 +681,8 @@ textarea { resize: vertical; }
         <div class="stat"><div class="label">Всего написано</div><div class="value" id="allTotal">0 <span class="unit">симв.</span></div></div>
         <div class="stat"><div class="label">Активных дней</div><div class="value" id="activeDays">0 <span class="unit">дней</span></div></div>
       </div>
+      <div class="field"><label for="projectSelect">Проект</label><div class="project-switch-row"><select id="projectSelect" aria-label="Выбрать проект"></select><button type="button" class="btn secondary" id="addProjectBtn">+ Проект</button></div></div>
+      <div class="field"><label for="workModeSelect">Что делал(а) сегодня?</label><select id="workModeSelect"><option value="writing">Писал(а)</option><option value="editing">Редактировал(а)</option></select></div>
       <div class="field"><label for="entryDate">Дата записи</label><input id="entryDate" type="date"></div>
       <div class="field"><label for="entryChars">Сколько символов написал(а) за этот день?</label><input id="entryChars" type="number" min="0" step="1" placeholder="Например, 2500"></div>
       <div class="btn-row"><button class="btn primary" id="saveEntry">Сохранить результат</button><button class="btn secondary" id="clearEntry">Обнулить этот день</button></div>
@@ -834,7 +838,7 @@ try {
   state = defaultState;
 }
 
-state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
+state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];state.projects=state.projects||[];state.projectSessions=state.projectSessions||{};state.workMode=state.workMode||'writing';state.selectedProjectId=state.selectedProjectId||null;if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 let selectedDate=todayKey(), viewDate=parseDate(todayKey());
 function persist(){localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 const achievementDefs=[
@@ -886,15 +890,21 @@ function exportBackup(){
  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='writers-hq-backup.json';a.click();URL.revokeObjectURL(url);
  renderBackupNotice();
 }
-function total(){return Object.values(state.entries).reduce((a,b)=>a+Math.max(0,Number(b)||0),0)}
-function activeEntries(){return Object.entries(state.entries).filter(([k,v])=>Number(v)>0).sort((a,b)=>b[0].localeCompare(a[0]))}
+function sessionEntries(mode=state.workMode, projectId=state.selectedProjectId){return (state.projectSessions&&state.projectSessions[projectId]&&state.projectSessions[projectId][mode])||{}}
+function writingEntries(projectId=state.selectedProjectId){return sessionEntries('writing',projectId)}
+function total(){return Object.values(writingEntries()).reduce((a,b)=>a+Math.max(0,Number(b)||0),0)}
+function activeEntries(){return Object.entries(writingEntries()).filter(([k,v])=>Number(v)>0).sort((a,b)=>b[0].localeCompare(a[0]))}
+function currentProject(){return state.projects.find(p=>p.id===state.selectedProjectId)||state.projects[0]||null}
+function selectProjectData(id){state.selectedProjectId=id;const p=currentProject();if(p)state.goal={name:p.name,sheets:Number(p.goal_sheets)||8,sheetSize:Number(p.sheet_size)||40000,deadline:p.deadline||''};state.entries=sessionEntries(state.workMode,id);persist()}
+function renderProjectControls(){const select=$('projectSelect');if(!select)return;select.replaceChildren();state.projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.selected=p.id===state.selectedProjectId;select.append(o)});$('workModeSelect').value=state.workMode}
 function dayDiff(a,b){return Math.ceil((parseDate(b)-parseDate(a))/86400000)}
 function goalTarget(){return Math.round(Number(state.goal.sheets||0)*Number(state.goal.sheetSize||40000))}
 function renderTop(){
 $('todayChip').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
 $('entryDate').value=selectedDate;$('selectedDateLabel').textContent=fmtDate(selectedDate);
-$('entryChars').value=state.entries[selectedDate]??'';
-$('todayTotal').innerHTML=`${fmt(state.entries[todayKey()]||0)} <span class="unit">симв.</span>`;
+$('entryChars').value=sessionEntries()[selectedDate]??'';
+$('todayTotal').innerHTML=`${fmt(sessionEntries()[todayKey()]||0)} <span class="unit">симв.</span>`;
+document.querySelector('.stats .stat .label').textContent=state.workMode==='editing'?'Отредактировано сегодня':'Сегодня';
 $('allTotal').innerHTML=`${fmt(total())} <span class="unit">симв.</span>`;
 $('activeDays').innerHTML=`${fmt(activeEntries().length)} <span class="unit">дней</span>`;
 }
@@ -965,29 +975,21 @@ window.writersHQDiary = {
       localStorage.setItem(PRE_CLOUD_BACKUP_KEY, rawLocalState);
     }
 
-    // Загружаем прогресс и настройки параллельно, чтобы не ждать два запроса по очереди.
-    const [progressResult, settingsResult] = await Promise.all([
-      client
-        .from('daily_progress')
-        .select('progress_date, chars_written')
-        .eq('user_id', userId)
-        .is('project_id', null)
-        .is('club_id', null)
-        .order('progress_date', { ascending: true }),
-      client
-        .from('writer_settings')
-        .select('diary_goal, diary_achievements')
-        .eq('user_id', userId)
-        .maybeSingle()
+    const [projectsResult,sessionsResult,settingsResult]=await Promise.all([
+      client.from('writer_projects').select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
+      client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count').eq('user_id',userId).order('work_date',{ascending:true}),
+      client.from('writer_settings').select('diary_goal,diary_achievements').eq('user_id',userId).maybeSingle()
     ]);
-
-    if (progressResult.error) throw progressResult.error;
-    if (settingsResult.error) throw settingsResult.error;
-
-    const cloudEntries = {};
-    for (const row of progressResult.data || []) {
-      cloudEntries[row.progress_date] = Number(row.chars_written) || 0;
+    if(projectsResult.error)throw projectsResult.error;
+    if(sessionsResult.error)throw sessionsResult.error;
+    if(settingsResult.error)throw settingsResult.error;
+    let projects=projectsResult.data||[];
+    if(!projects.length){
+      const {data:newProject,error:createError}=await client.from('writer_projects').insert({user_id:userId,name:'Мой роман',goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();
+      if(createError)throw createError;projects=[newProject];
     }
+    const projectSessions={};projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
+    for(const row of sessionsResult.data||[]){if(!projectSessions[row.project_id])continue;projectSessions[row.project_id][row.activity_type==='editing'?'editing':'writing'][row.work_date]=Number(row.chars_count)||0;}
 
     // Если пользователь сменился во время запроса,
     // не применяем данные предыдущего аккаунта.
@@ -995,19 +997,21 @@ window.writersHQDiary = {
       return;
     }
 
-    state.entries = cloudEntries;
+    state.projects=projects;state.projectSessions=projectSessions;
+    if(!state.selectedProjectId||!projects.some(p=>p.id===state.selectedProjectId))state.selectedProjectId=projects[0].id;
+    state.workMode=state.workMode==='editing'?'editing':'writing';state.entries=sessionEntries();
+    const selectedProject=currentProject();
 
     const settings = settingsResult.data;
     // Цель и достижения берутся из облака. Если это новый аккаунт без настроек,
     // используем безопасные значения по умолчанию, не копируя данные другого аккаунта.
-    state.goal = settings && settings.diary_goal && typeof settings.diary_goal === 'object'
-      ? { ...defaultState.goal, ...settings.diary_goal }
-      : { ...defaultState.goal };
+    state.goal=selectedProject?{name:selectedProject.name,sheets:Number(selectedProject.goal_sheets)||8,sheetSize:Number(selectedProject.sheet_size)||40000,deadline:selectedProject.deadline||''}:(settings&&settings.diary_goal&&typeof settings.diary_goal==='object'?{...defaultState.goal,...settings.diary_goal}:{...defaultState.goal});
     state.achievements = settings && Array.isArray(settings.diary_achievements)
       ? settings.diary_achievements
       : [];
 
     persist();
+    renderProjectControls();
     render();
   },
 
@@ -1019,6 +1023,8 @@ window.writersHQDiary = {
       throw new Error('Войди в аккаунт, чтобы сохранять настройки.');
     }
 
+    const project=currentProject();
+    if(project){const {error:pe}=await client.from('writer_projects').update({name:state.goal.name,goal_sheets:state.goal.sheets,sheet_size:state.goal.sheetSize,deadline:state.goal.deadline||null}).eq('id',project.id).eq('user_id',userId);if(pe)throw pe;Object.assign(project,{name:state.goal.name,goal_sheets:state.goal.sheets,sheet_size:state.goal.sheetSize,deadline:state.goal.deadline||null})}
     const { error } = await client
       .from('writer_settings')
       .upsert({
@@ -1061,16 +1067,11 @@ window.writersHQDiary = {
       throw new Error('Войди в аккаунт, чтобы сохранять записи.');
     }
 
-    const { error } = await client.rpc('save_personal_daily_progress', {
-      p_progress_date: date,
-      p_chars_written: chars
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    state.entries[date] = chars;
+    const project=currentProject();if(!project)throw new Error('Сначала создай проект.');
+    const {error}=await client.from('writer_work_sessions').upsert({user_id:userId,project_id:project.id,work_date:date,activity_type:state.workMode,chars_count:chars},{onConflict:'user_id,project_id,work_date,activity_type'});
+    if(error)throw error;
+    if(!state.projectSessions[project.id])state.projectSessions[project.id]={writing:{},editing:{}};
+    state.projectSessions[project.id][state.workMode][date]=chars;state.entries=state.projectSessions[project.id][state.workMode];
     persist();
   },
 
@@ -1082,13 +1083,8 @@ window.writersHQDiary = {
       throw new Error('Войди в аккаунт, чтобы изменять записи.');
     }
 
-    const { error } = await client
-      .from('daily_progress')
-      .delete()
-      .eq('user_id', userId)
-      .eq('progress_date', date)
-      .is('project_id', null)
-      .is('club_id', null);
+    const project=currentProject();if(!project)throw new Error('Проект не выбран.');
+    const {error}=await client.from('writer_work_sessions').delete().eq('user_id',userId).eq('project_id',project.id).eq('work_date',date).eq('activity_type',state.workMode);
 
     if (error) {
       throw error;
@@ -1099,6 +1095,9 @@ window.writersHQDiary = {
   }
 };
 
+$('projectSelect').addEventListener('change',()=>{selectProjectData($('projectSelect').value);renderProjectControls();render()});
+$('workModeSelect').addEventListener('change',()=>{state.workMode=$('workModeSelect').value==='editing'?'editing':'writing';state.entries=sessionEntries();persist();render()});
+$('addProjectBtn').addEventListener('click',async()=>{const name=prompt('Название нового проекта:');if(!name||!name.trim())return;const button=$('addProjectBtn');button.disabled=true;try{const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();if(error)throw error;state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();showToast('Проект добавлен.')}catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false}});
 $('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
 $('saveEntry').addEventListener('click', async () => {
   const val = Number($('entryChars').value);
