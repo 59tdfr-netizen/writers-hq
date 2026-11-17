@@ -59,12 +59,14 @@ jobs:
                   + path.read_text(encoding="utf-8", errors="replace")
               )
 
-          inline_css = re.findall(
-              r"<style\b[^>]*>(.*?)</style\s*>",
-              html,
-              flags=re.I | re.S
-          )
-          for i, content in enumerate(inline_css, start=1):
+          for i, content in enumerate(
+              re.findall(
+                  r"<style\b[^>]*>(.*?)</style\s*>",
+                  html,
+                  flags=re.I | re.S
+              ),
+              start=1
+          ):
               css_parts.append(f"\n/* Inline CSS {i} */\n{content}")
 
           css = "\n".join(css_parts)
@@ -82,9 +84,9 @@ jobs:
                   "text": re.sub(
                       r"\s+", " ",
                       re.sub(r"<[^>]+>", " ", content)
-                  ).strip()[:80]
+                  ).strip()[:70]
               }
-              for tag, content in headings[:15]
+              for tag, content in headings[:12]
           ]
 
           classes = sorted(set(re.findall(
@@ -96,41 +98,52 @@ jobs:
 
           context = {
               "headings": headings,
-              "classes": classes[:45],
-              "ids": ids[:45],
-              "html_excerpt": html[:1400],
-              "css_excerpt": css[:3000]
+              "classes": classes[:35],
+              "ids": ids[:35],
+              "html_excerpt": html[:1000],
+              "css_excerpt": css[:2200]
           }
 
           system_prompt = """
-          Ты UX/UI-дизайнер проекта «Штаб писателя». Отвечай по-русски.
-          Предложи осторожный редизайн «Контрастная мастерская»:
-          тёмная боковая панель и верхняя зона, светлая рабочая область,
-          старый пергамент, угольный, бордовый, терракотовый и приглушённое
-          золото. Заголовки — выразительная антиква, интерфейс — читаемый
-          системный шрифт. Эстетика Возрождения умеренная.
+          Ты UX/UI-дизайнер приложения «Штаб писателя». Пиши по-русски.
+          Верни только один корректный JSON-объект, без Markdown и пояснений.
 
-          Ограничения:
-          - Не меняй исходный сайт, HTML, JavaScript, функции или данные.
+          Ключи:
+          css_patch — строка с CSS;
+          confirmed_findings — список;
+          needs_verification — список;
+          accessibility_responsiveness — список;
+          functional_roadmap — список;
+          html_candidates — список;
+          implementation_stages — список.
+
+          Не более 2 коротких пунктов в каждом списке.
+          CSS-патч — не более 1800 символов.
+
+          Дизайн: «Контрастная мастерская». Тёмная боковая навигация,
+          светлая рабочая область, бумажные оттенки, угольный, бордовый,
+          терракотовый и приглушённое золото. Заголовки — выразительная
+          антиква, интерфейс — читаемый системный шрифт.
+
+          ОБЯЗАТЕЛЬНО:
+          - Сохраняй светлый фон рабочей области и карточек.
+          - Не превращай весь интерфейс в тёмную тему.
+          - Не меняй число колонок, размеры сетки и расположение блоков
+            без подтверждения из кода.
+          - Не меняй функции, JavaScript, данные, навигацию или авторизацию.
           - Не скрывай и не удаляй элементы.
-          - Используй только селекторы, подтверждённые предоставленным кодом.
+          - Не используй неподтверждённые селекторы.
+          - Не меняй глобальную переменную --bg вслепую.
+          - Не скрывай .sub без изучения её содержимого.
           - Не используй внешние шрифты, URL, импорты или платные сервисы.
-          - Не меняй --bg вслепую.
-          - Не скрывай .sub, не проверив его содержимое.
-          - Проверь контраст, клавиатурный фокус, поля и адаптивность.
-          - Длинный приветственный заголовок, подпись под логотипом и цитата
-            — только кандидаты на отдельное согласование, не CSS-скрытие.
-          - Подтверждение опасных действий и развитие сообщества — задачи
-            функциональности, не CSS.
-          - Проверка в браузере не выполнялась.
-          - Если безопасного CSS-изменения нет, css_patch должен быть "".
-
-          Верни только JSON, без Markdown, с ключами:
-          css_patch, confirmed_findings, needs_verification,
-          accessibility_responsiveness, functional_roadmap,
-          html_candidates, implementation_stages.
-          css_patch — строка CSS. Остальные поля — списки максимум из
-          двух коротких пунктов каждый. Не выдумывай подтверждённые дефекты.
+          - Не включай HTML или JavaScript в css_patch.
+          - Кандидаты на удаление элементов — только в html_candidates,
+            никаких CSS-правил для их скрытия.
+          - Доступность: контраст, видимый фокус, адаптивность.
+          - Функциональные идеи сообщества и подтверждения опасных действий
+            перечисляй отдельно, не выдавай их за CSS-изменения.
+          - Не утверждай, что проверял страницу в браузере.
+          - Если безопасных CSS-изменений нет, верни пустую строку css_patch.
           """
 
           endpoint = (
@@ -139,57 +152,11 @@ jobs:
               + "/ai/run/@cf/zai-org/glm-4.7-flash"
           )
 
-          def extract_text(data):
-              result = data.get("result") or {}
-              if not isinstance(result, dict):
-                  return "", None
-
-              response = result.get("response")
-              if isinstance(response, str) and response.strip():
-                  return response.strip(), None
-
-              choices = result.get("choices") or []
-              if not choices:
-                  return "", None
-
-              choice = choices[0] or {}
-              message = choice.get("message") or {}
-              finish = choice.get("finish_reason")
-
-              content = message.get("content")
-              if isinstance(content, str) and content.strip():
-                  return content.strip(), finish
-
-              if isinstance(content, list):
-                  pieces = [
-                      item["text"]
-                      for item in content
-                      if isinstance(item, dict)
-                      and isinstance(item.get("text"), str)
-                  ]
-                  if pieces:
-                      return "\n".join(pieces).strip(), finish
-
-              # Diagnostic fallback: some responses expose text under
-              # reasoning_content even when content is null.
-              for key in ("reasoning_content", "reasoning"):
-                  value = message.get(key)
-                  if isinstance(value, str) and value.strip():
-                      print(f"Using fallback response field: {key}")
-                      return value.strip(), finish
-
-              print("Response keys:", list(result.keys()))
-              print("Choice keys:", list(choice.keys()))
-              print("Message keys:", list(message.keys()))
-              print("Content type:", type(content).__name__)
-              print("Finish reason:", finish)
-              print("Stop reason:", choice.get("stop_reason"))
-              return "", finish
-
           prompt = (
-              "Проанализируй код и подготовь компактное предложение. "
-              "Верни только JSON по заданной схеме. "
-              "Не более двух пунктов в каждом списке.\n\n"
+              "Подготовь компактное предложение строго по схеме. "
+              "Сохраняй светлую рабочую область. "
+              "CSS не более 1800 символов. "
+              "Не более двух коротких пунктов на список.\n\n"
               + json.dumps(context, ensure_ascii=False)
           )
 
@@ -198,7 +165,7 @@ jobs:
                   {"role": "system", "content": system_prompt},
                   {"role": "user", "content": prompt}
               ],
-              "max_tokens": 1400,
+              "max_tokens": 2600,
               "temperature": 0.1,
               "chat_template_kwargs": {
                   "enable_thinking": False
@@ -217,45 +184,87 @@ jobs:
 
           print("Requesting compact design proposal.")
           print("Thinking mode disabled.")
+          print("Maximum output tokens: 2600.")
+
           try:
               with urllib.request.urlopen(request, timeout=180) as response:
-                  data = json.loads(response.read().decode("utf-8"))
+                  data = json.loads(
+                      response.read().decode("utf-8")
+                  )
           except Exception as exc:
               print(f"Request failed: {type(exc).__name__}: {exc}")
               if hasattr(exc, "read"):
                   try:
-                      print(exc.read().decode("utf-8", errors="replace")[:1000])
+                      print(exc.read().decode(
+                          "utf-8", errors="replace"
+                      )[:1000])
                   except Exception:
                       pass
               sys.exit("ERROR: Cloudflare request failed.")
 
           if not data.get("success"):
-              print(json.dumps(data.get("errors", []), ensure_ascii=False)[:1500])
+              print(json.dumps(
+                  data.get("errors", []), ensure_ascii=False
+              )[:1500])
               sys.exit("ERROR: Cloudflare returned an unsuccessful response.")
 
-          answer, finish = extract_text(data)
+          result = data.get("result") or {}
+          choices = result.get("choices") or []
+          answer = ""
+          finish = None
+
+          if choices:
+              choice = choices[0] or {}
+              message = choice.get("message") or {}
+              finish = choice.get("finish_reason")
+
+              content = message.get("content")
+              if isinstance(content, str):
+                  answer = content.strip()
+              elif isinstance(content, list):
+                  answer = "\n".join(
+                      item["text"]
+                      for item in content
+                      if isinstance(item, dict)
+                      and isinstance(item.get("text"), str)
+                  ).strip()
+
+          if not answer and isinstance(result.get("response"), str):
+              answer = result["response"].strip()
+
           print("Extracted text characters:", len(answer))
           print("Finish reason:", finish)
           print("Usage:", json.dumps(
-              (data.get("result") or {}).get("usage", {}),
-              ensure_ascii=False
+              result.get("usage", {}), ensure_ascii=False
           )[:500])
 
           if not answer:
+              if choices:
+                  message = choices[0].get("message") or {}
+                  print("Message keys:", list(message.keys()))
+                  print(
+                      "Content type:",
+                      type(message.get("content")).__name__
+                  )
               sys.exit(
                   "ERROR: No readable model text. "
                   "Website files were not modified."
               )
 
-          answer = re.sub(
-              r"^```(?:json)?\s*", "", answer.strip(), flags=re.I
+          cleaned = re.sub(
+              r"^```(?:json)?\s*", "", answer, flags=re.I
           )
-          answer = re.sub(r"\s*```$", "", answer).strip()
+          cleaned = re.sub(r"\s*```$", "", cleaned).strip()
 
           try:
-              report = json.loads(answer)
+              report = json.loads(cleaned)
           except json.JSONDecodeError as exc:
-              print("Output preview:", answer[:1200])
+              print("Output preview:", cleaned[:1800])
+              if finish == "length":
+                  sys.exit(
+                      "ERROR: Model output was truncated. "
+                      "Increase max_tokens or reduce the prompt."
+                  )
               sys.exit(f"ERROR: Invalid JSON: {exc}")
 
           required = [
@@ -276,6 +285,9 @@ jobs:
           if not isinstance(patch, str):
               sys.exit("ERROR: css_patch must be a string.")
 
+          if len(patch) > 2200:
+              sys.exit("ERROR: CSS proposal is longer than allowed.")
+
           if re.search(
               r"<\s*/?\s*(?:script|html|body|iframe)\b|javascript\s*:",
               patch,
@@ -288,12 +300,15 @@ jobs:
 
           Path("design-proposal.css").write_text(
               "/* AI proposal only. Not applied to the website. */\n\n"
-              + (patch.strip() + "\n" if patch.strip()
-                 else "/* No safe CSS changes proposed. */\n"),
+              + (
+                  patch.strip() + "\n"
+                  if patch.strip()
+                  else "/* No safe CSS changes proposed. */\n"
+              ),
               encoding="utf-8"
           )
 
-          section_titles = {
+          titles = {
               "confirmed_findings": "Подтверждённые наблюдения",
               "needs_verification": "Что проверить вручную",
               "accessibility_responsiveness": "Доступность и адаптивность",
@@ -305,12 +320,13 @@ jobs:
           lines = [
               "# Предложение по дизайну «Штаба писателя»",
               "",
+              "> Предложение не применено к сайту.",
               "> Проверка в браузере не выполнялась.",
               "> Исходные файлы сайта не изменялись.",
               ""
           ]
 
-          for key, title in section_titles.items():
+          for key, title in titles.items():
               lines.extend(["## " + title, ""])
               items = report.get(key, [])
               if not isinstance(items, list) or not items:
@@ -321,10 +337,10 @@ jobs:
               lines.append("")
 
           lines.extend([
-              "## Важно",
+              "## CSS",
               "",
-              "CSS-патч — предложение, а не внесённое изменение.",
-              "Функциональные задачи не входят в CSS-патч.",
+              "CSS-патч находится в отдельном файле design-proposal.css.",
+              "Его необходимо проверить перед применением.",
               ""
           ])
 
