@@ -483,6 +483,7 @@ input, select, textarea { max-width: 100%; min-width: 0; }
     transform: translateX(-110%); visibility: hidden; pointer-events: none;
     transition: transform .28s cubic-bezier(.2,.75,.25,1), visibility .28s;
   }
+  body.mobile-menu-open { overflow: hidden; }
   body.mobile-menu-open #sectionNav {
     transform: translateX(0); visibility: visible; pointer-events: auto;
   }
@@ -1869,7 +1870,7 @@ render();
   const originalTitle = 'Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы';
   const artworks = {
     diarySection: {
-      src: 'https://www.nationalgallery.org.uk/server.iip?IIIF=%2Ffronts%2FN-1418-00-000069-FS-PYR.tif%2Ffull%2F%211200%2C1200%2F0%2Fdefault.jpg',
+      src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Antonello_da_Messina_-_St_Jerome_in_his_study.jpg?width=1100',
       alt: 'Антонелло да Мессина, «Святой Иероним в келье», около 1475 года',
       position: 'center 50%'
     },
