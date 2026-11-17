@@ -1,0 +1,235 @@
+/*
+  ШТАБ ПИСАТЕЛЯ — тема «Контрастная мастерская»
+  Предварительный CSS для проверки в отдельной ветке.
+  Этот файл НЕ подключён к index.html и не меняет опубликованный сайт.
+*/
+
+:root {
+  --bg: #F3EFE7;
+  --paper: #FFFCF6;
+  --ink: #302D29;
+  --muted: #77736B;
+  --line: #E4DDD2;
+  --green: #496B52; /* зелёный сохраняется для семантики успеха */
+  --green2: #DCE9D9;
+  --orange: #C47748;
+  --red: #98483E;
+  --shadow: 0 8px 30px rgba(41, 37, 34, 0.07);
+
+  --burgundy: #812F35;
+  --burgundy-dark: #69252B;
+  --gold: #C5A15A;
+  --terracotta: #C47748;
+  --paper-warm: #F3EFE7;
+  --paper-light: #FFFCF6;
+  --charcoal: #292522;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.eyebrow,
+.owner-name,
+.link-btn {
+  color: var(--burgundy);
+}
+
+h1,
+.card h2,
+.goal-title,
+.tip {
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--charcoal);
+}
+
+.card {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--gold);
+}
+
+.section-nav {
+  background: #E9E1D6;
+  box-shadow: 0 4px 18px rgba(41, 37, 34, 0.06);
+}
+
+.section-tab {
+  color: var(--muted);
+}
+
+.section-tab.active {
+  background: var(--paper);
+  color: var(--burgundy);
+  box-shadow: 0 2px 8px rgba(41, 37, 34, 0.07);
+}
+
+.primary {
+  background: var(--burgundy);
+  color: #FFFFFF;
+}
+
+.primary:hover {
+  background: var(--burgundy-dark);
+}
+
+.secondary {
+  background: #EEE8DE;
+  color: var(--ink);
+}
+
+.secondary:hover {
+  background: #E5DACE;
+}
+
+input,
+select {
+  border-color: #D9D0C2;
+  background: #FFFEFB;
+  color: var(--ink);
+}
+
+input:focus,
+select:focus {
+  border-color: var(--burgundy);
+  box-shadow: 0 0 0 3px rgba(129, 47, 53, 0.16);
+}
+
+.stat,
+.author-stats {
+  background: #F7F2E9;
+}
+
+.bar {
+  background: #E9DFD2;
+}
+
+.bar-fill {
+  background: var(--burgundy);
+}
+
+.progress-num,
+.community-count-number {
+  color: var(--burgundy);
+}
+
+.status {
+  background: #F0E9DE;
+}
+
+.status.good {
+  background: #E6EFE3;
+  color: #3D6244;
+}
+
+.status.good .dot {
+  background: var(--green);
+}
+
+.status.bad {
+  background: #F7E7E4;
+  color: #98483E;
+}
+
+.status.bad .dot {
+  background: var(--red);
+}
+
+.auth-message.success {
+  color: #3D6244;
+}
+
+.auth-message.error {
+  color: var(--red);
+}
+
+.icon-btn {
+  border-color: var(--line);
+  background: var(--paper-light);
+}
+
+.day {
+  border-color: var(--line);
+  background: var(--paper-light);
+}
+
+.day:hover {
+  border-color: var(--gold);
+}
+
+.day.today {
+  outline-color: var(--burgundy);
+}
+
+.day.selected {
+  border-color: var(--burgundy);
+  background: #F4E6E4;
+}
+
+.day .activity {
+  background: #E9DFD2;
+}
+
+.day .activity.active,
+.sq.s1 {
+  background: #D9ADAD;
+}
+
+.day .activity.high,
+.sq.s3 {
+  background: var(--burgundy);
+}
+
+.sq {
+  background: #E9DFD2;
+}
+
+.sq.s2 {
+  background: #C98B8D;
+}
+
+.achievement {
+  background: #FBF7F0;
+  border-color: var(--line);
+}
+
+.social-person,
+.like-btn {
+  border-color: var(--line);
+  background: var(--paper-light);
+}
+
+.like-btn.liked {
+  background: #F4E6E4;
+  border-color: #D8B1B1;
+  color: var(--burgundy);
+}
+
+.meta-box,
+.setting-section {
+  border-top-color: var(--line);
+}
+
+.backup-notice {
+  border-color: #E6C9A8;
+  background: #FFF6E9;
+}
+
+.toast {
+  /* Оповещение об успешном действии сохраняет отдельный смысловой цвет. */
+  background: #2E4935;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .bar-fill,
+  .btn {
+    transition: none;
+  }
+}
