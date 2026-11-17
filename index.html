@@ -1488,8 +1488,17 @@ render();
   }
 
   async function loadOwnProfile(user) {
-    const { data, error } = await client.from('profiles')
+    let { data, error } = await client.from('profiles')
       .select('id, display_name, bio, avatar_url').eq('id', user.id).maybeSingle();
+    let profileFieldsReady = true;
+    if (error && /column .* does not exist|schema cache/i.test(error.message || '')) {
+      // Keep login usable before the optional bio/avatar database migration is applied.
+      profileFieldsReady = false;
+      const fallback = await client.from('profiles')
+        .select('id, display_name').eq('id', user.id).maybeSingle();
+      data = fallback.data;
+      error = fallback.error;
+    }
     if (error) throw error;
     const metadataName = user.user_metadata && user.user_metadata.display_name;
     let name = (data && data.display_name || metadataName || '').trim();
@@ -1503,10 +1512,11 @@ render();
       if (saveError) throw saveError;
     }
     $('profileDisplayName').value = name;
-    $('profileBio').value = data && data.bio || '';
+    $('profileBio').value = profileFieldsReady && data && data.bio || '';
     $('bioCounter').textContent = String($('profileBio').value.length);
-    setAvatarPreview(data && data.avatar_url || '');
-    $('removeAvatarBtn').hidden = !(data && data.avatar_url);
+    setAvatarPreview(profileFieldsReady && data && data.avatar_url || '');
+    $('removeAvatarBtn').hidden = !(profileFieldsReady && data && data.avatar_url);
+    if (!profileFieldsReady) $('avatarMessage').textContent = 'Чтобы включить аватары и информацию о себе, сначала обнови таблицу profiles в Supabase (инструкция в чате).';
     setOwnerName(name);
   }
 
