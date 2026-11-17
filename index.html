@@ -444,6 +444,13 @@ body:not(.diary-locked) #sectionNav .section-tab { flex: 0 0 auto; width: 100%; 
 #mobileMenuToggle, #mobileNavBackdrop { display: none; }
 .fresco-banner { overflow: hidden; isolation: isolate; }
 .renaissance-fresco { position: relative; overflow: hidden; }
+.art-credit {
+  position: absolute; z-index: 3; right: 19px; bottom: 17px;
+  color: #f2dfc0; background: #211b18a8; border: 1px solid #d9b77d55;
+  border-radius: 999px; padding: 5px 9px; font: 500 10px/1.2 Manrope, sans-serif;
+  text-decoration: none; opacity: .78; backdrop-filter: blur(4px);
+}
+.art-credit:hover, .art-credit:focus-visible { opacity: 1; color: #fff7e9; }
 .renaissance-fresco img { transition: opacity .34s ease, filter .34s ease, transform .55s ease; }
 .fresco-banner.is-changing .renaissance-fresco img {
   opacity: .22; filter: blur(7px) sepia(.5) saturate(.7) brightness(.65); transform: scale(1.025);
@@ -552,6 +559,7 @@ input, select, textarea { max-width: 100%; min-width: 0; }
     <div class="renaissance-fresco">
       <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400" alt="Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы" loading="eager" decoding="async">
       <span class="fresco-ornament" aria-hidden="true">❦</span>
+      <a id="artCredit" class="art-credit" href="https://commons.wikimedia.org/wiki/File:Sistine_Chapel_ceiling,_Creation_of_Adam.jpg" target="_blank" rel="noopener noreferrer">Источник изображения ↗</a>
     </div>
   </section>
 
@@ -1870,22 +1878,30 @@ render();
   const originalTitle = 'Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы';
   const artworks = {
     diarySection: {
+      credit: 'Antonello da Messina — Saint Jerome in his Study, Wikimedia Commons',
+      creditUrl: 'https://commons.wikimedia.org/wiki/File:Antonello_da_Messina_-_St_Jerome_in_his_study.jpg',
       src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Antonello_da_Messina_-_St_Jerome_in_his_study.jpg?width=1100',
       alt: 'Антонелло да Мессина, «Святой Иероним в келье», около 1475 года',
       position: 'center 50%'
     },
     communitySection: {
+      credit: 'Raphael — School of Athens, Wikimedia Commons',
+      creditUrl: 'https://commons.wikimedia.org/wiki/File:Raphael-School-of-Athens.jpg',
       src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Raphael-School-of-Athens.jpg?width=1400',
       alt: 'Рафаэль, «Афинская школа», фреска',
       position: 'center 45%'
     },
     settingsSection: {
+      credit: 'David photograph — Wikimedia Commons, CC BY-SA',
+      creditUrl: 'https://commons.wikimedia.org/wiki/File:Michelangelo%27s_David.JPG',
       src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Michelangelo%27s_David.JPG?width=1200',
       alt: 'Микеланджело, скульптура «Давид»; изображение оформлено в тёплой сепийной палитре Штаба писателя',
       position: 'center 14%'
     }
   };
 
+  const credit = document.getElementById('artCredit');
+  if (credit) { credit.href = 'https://commons.wikimedia.org/wiki/File:Sistine_Chapel_ceiling,_Creation_of_Adam.jpg'; credit.textContent = 'Микеланджело · Wikimedia Commons ↗'; }
   let changeToken = 0;
   function closeMenu() {
     document.body.classList.remove('mobile-menu-open');
@@ -1914,6 +1930,7 @@ render();
       closeMenu();
       if (!item) return;
       const token = ++changeToken;
+      if (credit) { credit.href = item.creditUrl; credit.textContent = item.credit || 'Источник изображения ↗'; credit.setAttribute('aria-label', item.credit || 'Источник изображения'); }
       banner.classList.add('is-changing');
       window.setTimeout(() => {
         if (token !== changeToken) return;
