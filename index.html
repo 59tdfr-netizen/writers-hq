@@ -444,14 +444,18 @@ body:not(.diary-locked) #sectionNav .section-tab { flex: 0 0 auto; width: 100%; 
 #mobileMenuToggle, #mobileNavBackdrop { display: none; }
 .fresco-banner { overflow: hidden; isolation: isolate; }
 .renaissance-fresco { position: relative; overflow: hidden; }
-.art-credit {
-  position: absolute; z-index: 3; right: 19px; bottom: 17px;
-  color: #f2dfc0; background: #211b18a8; border: 1px solid #d9b77d55;
-  border-radius: 999px; padding: 5px 9px; font: 500 10px/1.2 Manrope, sans-serif;
-  text-decoration: none; opacity: .78; backdrop-filter: blur(4px);
+.renaissance-fresco img {
+  position: absolute; inset: 0; z-index: 1; display: block;
+  width: 100%; height: 100%; max-width: 100%; max-height: 100%;
+  object-fit: cover; object-position: center;
+  filter: sepia(.25) saturate(.72) contrast(.96) brightness(.88);
+  transition: opacity .34s ease, filter .34s ease, transform .55s ease;
 }
-.art-credit:hover, .art-credit:focus-visible { opacity: 1; color: #fff7e9; }
-.renaissance-fresco img { transition: opacity .34s ease, filter .34s ease, transform .55s ease; }
+.renaissance-fresco img.art-full-statue {
+  object-fit: contain; object-position: center center;
+  padding: 10px 0; filter: sepia(.3) saturate(.68) contrast(.96) brightness(.88);
+}
+.renaissance-fresco img.art-full-statue + .fresco-ornament { z-index: 2; }
 .fresco-banner.is-changing .renaissance-fresco img {
   opacity: .22; filter: blur(7px) sepia(.5) saturate(.7) brightness(.65); transform: scale(1.025);
 }
@@ -470,7 +474,18 @@ body, .wrap, .app-section, .grid, .bottom-grid, .card, .card-head,
 .card, .social-card, .auth-panel { overflow-wrap: anywhere; }
 .card h2, .card h3, .small, .tip, .meta-box, .social-person-name,
 .status, .backup-notice, .profile-heading { overflow-wrap: anywhere; word-break: normal; }
-input, select, textarea { max-width: 100%; min-width: 0; }
+input, select, textarea {
+  box-sizing: border-box; display: block; width: 100%;
+  max-width: 100%; min-width: 0; font-size: 16px;
+}
+input[type="date"] {
+  -webkit-appearance: none; appearance: none; min-inline-size: 0;
+  inline-size: 100%; max-inline-size: 100%; padding-inline: 10px;
+}
+input[type="number"], input[type="text"], input[type="email"], input[type="password"] {
+  min-inline-size: 0; inline-size: 100%;
+}
+textarea { resize: vertical; }
 .form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .btn, .btn-row button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .card-head { align-items: flex-start; gap: 10px; }
@@ -479,7 +494,7 @@ input, select, textarea { max-width: 100%; min-width: 0; }
 .stat .value { overflow-wrap: anywhere; }
 .history-item, .achievement-item { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
-  body:not(.diary-locked) .wrap { margin: 0; max-width: 100%; width: 100%; padding: 66px 13px 28px; }
+  body:not(.diary-locked) .wrap { margin: 0; max-width: 100%; width: 100%; padding: 78px 13px 28px; }
   body:not(.diary-locked) #sectionNav {
     position: fixed; inset: 0 auto 0 0; z-index: 61;
     width: min(82vw, 300px); height: 100dvh; max-height: 100dvh;
@@ -499,13 +514,15 @@ input, select, textarea { max-width: 100%; min-width: 0; }
   #sectionNav .section-tab.coming-soon { flex-wrap: wrap; }
   #sectionNav .section-tab.coming-soon span { display: block; flex-basis: 100%; padding-left: 32px; }
   #mobileMenuToggle {
-    display: inline-flex; position: fixed; top: max(10px, env(safe-area-inset-top)); left: 12px;
+    display: inline-flex; position: fixed; top: 12px !important; left: 12px;
     z-index: 55; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px;
     border: 1px solid #b99462; border-radius: 999px; background: #251e1a;
     color: #f7ead6; font: 600 13px Manrope, Inter, sans-serif;
     box-shadow: 0 5px 18px #21150f25; cursor: pointer;
   }
   #mobileMenuToggle > span:first-child { font-size: 19px; line-height: 1; color: #d7b577; }
+  #mobileMenuToggle { transition: opacity .2s ease, transform .2s ease; }
+  #mobileMenuToggle.menu-toggle-hidden { opacity: 0; transform: translateY(-145%); pointer-events: none; }
   #sectionNav.auth-hidden ~ #mobileMenuToggle { display: none; }
   #mobileNavBackdrop {
     display: block; position: fixed; inset: 0; z-index: 60; width: 100%; height: 100%;
@@ -522,6 +539,12 @@ input, select, textarea { max-width: 100%; min-width: 0; }
   .profile-heading { max-width: 100%; font-size: clamp(26px, 7vw, 34px); line-height: 1.12; }
   .grid, .bottom-grid, .settings-grid { grid-template-columns: minmax(0, 1fr) !important; }
   .form-row { grid-template-columns: minmax(0, 1fr); }
+  .field, .field input, .field select, .field textarea { min-width: 0; width: 100%; }
+  .btn-row { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .btn-row .btn { width: 100%; min-width: 0; white-space: normal; line-height: 1.35; }
+  .calendar { width: 100%; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .day { width: 100%; min-width: 0; overflow: hidden; }
+  .day .num, .day .chars { max-width: 100%; overflow-wrap: anywhere; }
   .card { padding: 17px; }
   .card-head { flex-wrap: wrap; }
   .card-head h2 { font-size: clamp(22px, 6vw, 27px); }
@@ -540,11 +563,19 @@ input, select, textarea { max-width: 100%; min-width: 0; }
   .stats { gap: 6px; }
   .stat .value { font-size: 23px; }
   .mobile-menu-label { display: inline; }
+  #mobileMenuToggle { max-width: calc(100vw - 24px); }
+  .stat .label, .meta-box, .meta-box .big, .goal-meta > *, .card-head > * { overflow-wrap: anywhere; min-width: 0; }
+  .goal-top { flex-wrap: wrap; }
+  .goal-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .month-label { min-width: 0; flex: 1 1 auto; }
+  .calendar-nav { width: 100%; justify-content: space-between; }
+  .calendar-card { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) {
   .app-section.active, .fresco-banner .renaissance-fresco img.art-loaded { animation: none !important; }
   .fresco-banner.is-changing .renaissance-fresco img { filter: none; transform: none; }
-  #sectionNav, #mobileNavBackdrop, .renaissance-fresco img { transition: none !important; }
+  #sectionNav, #mobileNavBackdrop, .renaissance-fresco img, #mobileMenuToggle { transition: none !important; }
+  #mobileMenuToggle.menu-toggle-hidden { transform: none; }
 }
 </style>
 </head>
@@ -559,7 +590,6 @@ input, select, textarea { max-width: 100%; min-width: 0; }
     <div class="renaissance-fresco">
       <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400" alt="Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы" loading="eager" decoding="async">
       <span class="fresco-ornament" aria-hidden="true">❦</span>
-      <a id="artCredit" class="art-credit" href="https://commons.wikimedia.org/wiki/File:Sistine_Chapel_ceiling,_Creation_of_Adam.jpg" target="_blank" rel="noopener noreferrer">Источник изображения ↗</a>
     </div>
   </section>
 
@@ -1878,30 +1908,22 @@ render();
   const originalTitle = 'Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы';
   const artworks = {
     diarySection: {
-      credit: 'Antonello da Messina — Saint Jerome in his Study, Wikimedia Commons',
-      creditUrl: 'https://commons.wikimedia.org/wiki/File:Antonello_da_Messina_-_St_Jerome_in_his_study.jpg',
       src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Antonello_da_Messina_-_St_Jerome_in_his_study.jpg?width=1100',
       alt: 'Антонелло да Мессина, «Святой Иероним в келье», около 1475 года',
       position: 'center 50%'
     },
     communitySection: {
-      credit: 'Raphael — School of Athens, Wikimedia Commons',
-      creditUrl: 'https://commons.wikimedia.org/wiki/File:Raphael-School-of-Athens.jpg',
       src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Raphael-School-of-Athens.jpg?width=1400',
       alt: 'Рафаэль, «Афинская школа», фреска',
       position: 'center 45%'
     },
     settingsSection: {
-      credit: 'David photograph — Wikimedia Commons, CC BY-SA',
-      creditUrl: 'https://commons.wikimedia.org/wiki/File:Michelangelo%27s_David.JPG',
-      src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Michelangelo%27s_David.JPG?width=1200',
+      src: 'https://commons.wikimedia.org/wiki/Special:FilePath/David%20von%20Michelangelo.jpg?width=900',
       alt: 'Микеланджело, скульптура «Давид»; изображение оформлено в тёплой сепийной палитре Штаба писателя',
-      position: 'center 14%'
+      position: 'center center'
     }
   };
 
-  const credit = document.getElementById('artCredit');
-  if (credit) { credit.href = 'https://commons.wikimedia.org/wiki/File:Sistine_Chapel_ceiling,_Creation_of_Adam.jpg'; credit.textContent = 'Микеланджело · Wikimedia Commons ↗'; }
   let changeToken = 0;
   function closeMenu() {
     document.body.classList.remove('mobile-menu-open');
@@ -1911,9 +1933,31 @@ render();
   toggle.addEventListener('click', () => {
     const open = !document.body.classList.contains('mobile-menu-open');
     document.body.classList.toggle('mobile-menu-open', open);
+    toggle.classList.remove('menu-toggle-hidden');
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
   });
+
+  // Keep the floating control out of the reader's way while scrolling down.
+  // It reappears as soon as the reader scrolls up or returns near the top.
+  let lastScrollY = window.scrollY;
+  let scrollTicking = false;
+  window.addEventListener('scroll', () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    window.requestAnimationFrame(() => {
+      const currentY = window.scrollY;
+      if (document.body.classList.contains('mobile-menu-open')) {
+        toggle.classList.remove('menu-toggle-hidden');
+      } else if (currentY < 90 || currentY < lastScrollY - 4) {
+        toggle.classList.remove('menu-toggle-hidden');
+      } else if (currentY > lastScrollY + 4) {
+        toggle.classList.add('menu-toggle-hidden');
+      }
+      lastScrollY = currentY;
+      scrollTicking = false;
+    });
+  }, { passive: true });
   backdrop.addEventListener('click', closeMenu);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeMenu();
@@ -1930,13 +1974,13 @@ render();
       closeMenu();
       if (!item) return;
       const token = ++changeToken;
-      if (credit) { credit.href = item.creditUrl; credit.textContent = item.credit || 'Источник изображения ↗'; credit.setAttribute('aria-label', item.credit || 'Источник изображения'); }
       banner.classList.add('is-changing');
       window.setTimeout(() => {
         if (token !== changeToken) return;
         art.classList.remove('art-loaded');
         art.alt = item.alt;
         art.style.objectPosition = item.position;
+        art.classList.toggle('art-full-statue', tab.dataset.section === 'settingsSection');
         const reveal = () => {
           if (token !== changeToken) return;
           art.classList.add('art-loaded');
@@ -1945,6 +1989,7 @@ render();
         art.addEventListener('load', reveal, { once: true });
         art.addEventListener('error', () => {
           art.src = 'https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400';
+          art.classList.remove('art-full-statue');
           art.alt = originalTitle;
           banner.classList.remove('is-changing');
         }, { once: true });
