@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Штаб писателя</title>
+<style>
+:root{--bg:#f5f3ee;--paper:#fffefa;--ink:#252923;--muted:#777c72;--line:#e7e4db;--green:#496b52;--green2:#dce9d9;--orange:#c47748;--red:#b85d54;--shadow:0 8px 30px rgba(40,44,35,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+.wrap{max-width:1160px;margin:0 auto;padding:34px 24px 50px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:750;color:var(--green)}h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(34px,5vw,52px);letter-spacing:-.04em;margin:7px 0 8px}.sub{color:var(--muted);max-width:600px;font-size:15px}.date-chip{background:var(--paper);border:1px solid var(--line);padding:10px 14px;border-radius:14px;color:var(--muted);font-size:13px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr);gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);min-width:0}.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.card h2{font-size:17px;margin:0;font-weight:700;letter-spacing:-.02em}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8f7f1;border-radius:14px;padding:14px}.stat .label{font-size:12px;color:var(--muted);margin-bottom:8px}.stat .value{font-size:clamp(20px,2.6vw,29px);font-weight:700;letter-spacing:-.04em}.stat .unit{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
+label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6px}input,select{width:100%;border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);outline:none}input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px #496b5219}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.btn{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;cursor:default}.primary{background:var(--green);color:white}.secondary{background:#efeee7;color:var(--ink)}.danger{background:#f7e7e4;color:#8e3e37}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.entry-note{font-size:12px;color:var(--muted);margin-top:10px}
+.goal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.goal-title{font-family:Georgia,serif;font-size:23px;line-height:1.15;margin:4px 0 5px}.progress-num{font-size:25px;font-weight:750;letter-spacing:-.04em}.bar{height:9px;background:#eae8df;border-radius:20px;overflow:hidden;margin:16px 0 9px}.bar-fill{height:100%;background:var(--green);width:0%;border-radius:20px;transition:width .25s}.goal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.meta-box{border-top:1px solid var(--line);padding-top:11px}.meta-box .big{font-size:19px;font-weight:700;margin-top:3px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:100px;background:#f1efe7;padding:6px 9px;font-size:11px;font-weight:750}.dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}.status.good{background:#e6efe3;color:#3d6244}.status.good .dot{background:var(--green)}.status.bad{background:#f7e7e4;color:#98483e}.status.bad .dot{background:var(--red)}
+.calendar-card{grid-column:1/-1}.calendar-nav{display:flex;align-items:center;gap:8px}.month-label{min-width:135px;text-align:center;font-size:14px;font-weight:750}.icon-btn{border:1px solid var(--line);background:#fff;border-radius:9px;width:32px;height:32px;cursor:pointer;color:var(--ink);font-size:18px}.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.weekday{text-align:center;color:var(--muted);font-size:11px;padding:4px 0 7px}.day{min-height:76px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:8px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;cursor:pointer;color:var(--ink);min-width:0}.day:hover{border-color:#9bb09a}.day.empty{background:transparent;border-color:transparent;cursor:default}.day.today{outline:2px solid var(--green);outline-offset:-2px}.day.selected{border-color:var(--green);background:#f1f6ef}.day.future{opacity:.48}.day .num{font-size:12px;color:var(--muted)}.day .chars{font-size:12px;font-weight:750;overflow-wrap:anywhere}.day .activity{height:4px;border-radius:5px;background:#e5e3da;margin-top:5px}.day .activity.active{background:#719777}.day .activity.high{background:#365e40}.legend{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:13px;font-size:11px;color:var(--muted)}.legend-scale{display:flex;align-items:center;gap:4px}.sq{width:12px;height:12px;border-radius:3px;background:#e5e3da}.sq.s1{background:#cbdcc7}.sq.s2{background:#8fb18f}.sq.s3{background:#365e40}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.achievement-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.achievement{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfaf6}.achievement.locked{opacity:.52;filter:grayscale(.7)}.achievement-icon{font-size:23px;line-height:1.2}.achievement strong{display:block;font-size:13px}.achievement p{font-size:11px;color:var(--muted);margin:3px 0 0}.backup-notice{display:none;margin:0 0 18px;padding:16px 18px;border:1px solid #e6c9a8;border-radius:15px;background:#fff6e9}.backup-notice.show{display:flex;justify-content:space-between;align-items:center;gap:14px}.backup-notice strong{display:block;font-size:14px}.backup-notice p{font-size:12px;color:var(--muted);margin:4px 0 0}.toast{position:fixed;right:20px;bottom:20px;max-width:340px;background:#2e4935;color:#fff;padding:15px 18px;border-radius:14px;box-shadow:var(--shadow);z-index:10;display:none}.toast.show{display:block}.toast strong{display:block;margin-bottom:3px}.backup-actions{display:flex;gap:8px;flex-wrap:wrap}.tip{font-family:Georgia,serif;font-size:20px;line-height:1.35;margin:5px 0 0}.history-list{display:flex;flex-direction:column;gap:10px}.history-item{display:flex;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--line);font-size:13px}.history-item:last-child{border-bottom:0;padding-bottom:0}.history-item strong{white-space:nowrap}.footer{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:11px}.link-btn{border:0;background:none;padding:0;color:var(--green);text-decoration:underline;cursor:pointer;font:inherit}
+
+
+.owner-name{margin:0 0 8px;color:var(--green);font-size:14px;font-weight:650}
+.social-card{margin-bottom:18px}
+.social-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.social-list{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.social-person{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.social-person-name{font-weight:700;font-size:13px;overflow-wrap:anywhere}
+.social-person-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.social-empty{font-size:13px;color:var(--muted);padding:10px 0}
+.social-search-row{display:flex;gap:8px;align-items:flex-end}
+.social-search-row .field{flex:1;min-width:0;margin-bottom:0}
+.privacy-setting{display:flex;align-items:flex-start;gap:9px;margin:0 0 12px;font-size:12px;color:var(--muted)}.privacy-setting input{width:auto;margin-top:3px}
+.author-stats{margin-top:9px;padding:10px;border-radius:10px;background:#f8f7f1;font-size:12px;color:var(--ink)}.author-stats .stat-line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)}.author-stats .stat-line:last-child{border-bottom:0}.community-count{display:flex;align-items:center;gap:12px;margin-bottom:18px}.community-count-number{font-size:27px;font-weight:800;letter-spacing:-.04em;color:var(--green)}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.like-row{display:flex;align-items:center;gap:7px;margin-top:8px}.like-btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 10px;cursor:pointer;font:inherit;font-size:12px}.like-btn.liked{background:#fbe9e7;border-color:#e6b9b3;color:#a43f38}.setting-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+@media(max-width:650px){.social-grid{grid-template-columns:1fr}.social-search-row{align-items:stretch;flex-direction:column}.social-search-row .btn{width:100%}.settings-grid{grid-template-columns:1fr}}
+
+.section-nav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px;padding:7px;background:#eae8df;border-radius:15px;position:sticky;top:8px;z-index:5;box-shadow:0 4px 18px rgba(40,44,35,.06)}
+.section-tab{flex:1;min-width:130px;border:0;border-radius:10px;padding:12px 15px;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:750;cursor:pointer}
+.section-tab.active{background:var(--paper);color:var(--green);box-shadow:0 2px 8px rgba(40,44,35,.07)}
+.app-section{display:none}.app-section.active{display:block}
+#communitySection .social-area{margin:0}#communitySection .social-card{margin-bottom:18px}
+@media(max-width:520px){.section-nav{position:static;gap:5px}.section-tab{min-width:0;padding:10px 8px;font-size:12px}}
+
+.auth-hidden{display:none!important}
+
+.diary-locked .backup-notice,
+.diary-locked .social-card,
+.diary-locked main.grid,
+.diary-locked .bottom-grid,
+.diary-locked footer {
+  display: none !important;
+}
+
+.auth-panel{margin-bottom:18px}
+.auth-message{font-size:13px;margin:12px 0 0;min-height:1em}
+.auth-message.success{color:var(--green)}
+.auth-message.error{color:var(--red)}
+details summary{user-select:none}
+
+@media(max-width:800px){.grid{grid-template-columns:1fr}.calendar-card{grid-column:auto}.bottom-grid{grid-template-columns:1fr}.top{flex-direction:column}.date-chip{display:none}.day{min-height:62px;padding:6px}.day .chars{font-size:10px}.card{padding:17px}.stats{gap:7px}.stat{padding:10px}.stat .value{font-size:21px}}
+@media(max-width:420px){.wrap{padding:22px 12px 32px}.calendar{gap:4px}.day{min-height:56px}.day .num{font-size:10px}.day .chars{font-size:9px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.form-row{grid-template-columns:1fr}}
+</style>
+  <link rel="stylesheet" href="design/theme-preview.css">
+</head>
+<body class="diary-locked">
+<div class="wrap">
+  <header class="top">
+    <div><div class="eyebrow">Writers HQ · Личный кабинет</div><h1>Штаб писателя</h1><div class="owner-name auth-hidden" id="ownerNameLine">Личный кабинет · <strong id="ownerName">Павел Прокудин</strong></div><div class="sub">Не жди вдохновения. Замечай работу, которую уже сделал, и двигайся к своей книге по одному дню за раз.</div></div>
+    <div class="date-chip" id="todayChip"></div>
+  </header>
+
+  <section class="card auth-panel">
+    <div class="card-head">
+      <h2>Аккаунт</h2>
+      <span class="status" id="authBadge"><span class="dot"></span><span id="authBadgeText">Не выполнен вход</span></span>
+    </div>
+    <p class="small" id="authStatus" style="margin:0 0 14px">Войди в аккаунт, чтобы открыть личный дневник и синхронизировать записи.</p>
+
+    <div id="authForms">
+      <form id="signInForm">
+        <div class="form-row">
+          <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" required autocomplete="email"></div>
+          <div class="field"><label for="loginPassword">Пароль</label><input id="loginPassword" type="password" required autocomplete="current-password"></div>
+        </div>
+        <div class="btn-row"><button id="signInBtn" type="submit" class="btn primary">Войти</button></div>
+      </form>
+      <details style="margin-top:16px">
+        <summary style="cursor:pointer;font-size:13px;font-weight:700;color:var(--green)">Нет аккаунта? Зарегистрироваться</summary>
+        <form id="signUpForm" style="margin-top:14px">
+          <div class="form-row">
+            <div class="field"><label for="displayName">Имя</label><input id="displayName" type="text" required minlength="2" maxlength="60" autocomplete="nickname"></div>
+            <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email"></div>
+          </div>
+          <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required autocomplete="new-password"></div>
+          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать мою статистику и достижения авторам, на которых они подписаны</strong><br>Эту настройку можно будет изменить в профиле. Другому автору достаточно подписаться на тебя — взаимная подписка не нужна.</span></label>
+          <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
+        </form>
+      </details>
+    </div>
+
+    <div id="signedInPanel" class="auth-hidden">
+      <p class="small" style="margin:0 0 12px">Вы вошли как: <strong id="signedInEmail"></strong></p>
+      <p class="small" style="margin:0 0 12px">Разрешение на показ статистики и достижений можно изменить в настройках профиля ниже.</p>
+      <button id="signOutBtn" class="btn secondary" type="button">Выйти</button>
+    </div>
+
+    <p id="authMessage" class="auth-message"></p>
+  </section>
+
+  <nav class="section-nav auth-hidden" id="sectionNav" aria-label="Разделы Штаба писателя">
+    <button type="button" class="section-tab active" data-section="diarySection" aria-pressed="true">Мой дневник</button>
+    <button type="button" class="section-tab" data-section="communitySection" aria-pressed="false">Сообщество</button>
+    <button type="button" class="section-tab" data-section="settingsSection" aria-pressed="false">Настройки профиля</button>
+  </nav>
+  <section class="app-section active" id="diarySection" aria-label="Мой дневник">
+  <div class="backup-notice" id="backupNotice">
+    <div><strong>🛟 Пора сохранить резервную копию</strong><p>Прошло 7 дней с последней копии (или с начала работы). Скачай файл, чтобы не потерять записи.</p></div>
+    <div class="backup-actions"><button class="btn primary" id="backupNow">Скачать копию</button><button class="btn secondary" id="backupLater">Напомнить позже</button></div>
+  </div>
+  <main class="grid">
+    <section class="card">
+      <div class="card-head"><h2>Моя работа сегодня</h2><span class="small" id="selectedDateLabel"></span></div>
+      <div class="stats">
+        <div class="stat"><div class="label">Сегодня</div><div class="value" id="todayTotal">0 <span class="unit">симв.</span></div></div>
+        <div class="stat"><div class="label">Всего написано</div><div class="value" id="allTotal">0 <span class="unit">симв.</span></div></div>
+        <div class="stat"><div class="label">Активных дней</div><div class="value" id="activeDays">0 <span class="unit">дней</span></div></div>
+      </div>
+      <div class="field"><label for="entryDate">Дата записи</label><input id="entryDate" type="date"></div>
+      <div class="field"><label for="entryChars">Сколько символов написал(а) за этот день?</label><input id="entryChars" type="number" min="0" step="1" placeholder="Например, 2500"></div>
+      <div class="btn-row"><button class="btn primary" id="saveEntry">Сохранить результат</button><button class="btn secondary" id="clearEntry">Обнулить этот день</button></div>
+      <div class="entry-note">Записывай итог за день. Если вернёшься к прошлой дате, можно добавить или исправить результат.</div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Цель на книгу</h2><button class="btn secondary" id="editGoalBtn">Изменить</button></div>
+      <div id="goalView">
+        <div class="goal-top"><div><div class="small">Мой проект</div><div class="goal-title" id="goalNameView">Мой роман</div><div class="small" id="goalDeadlineView">Срок не задан</div></div><span class="status" id="goalStatus"><span class="dot"></span><span id="goalStatusText">Задай цель</span></span></div>
+        <div class="bar"><div class="bar-fill" id="goalBar"></div></div>
+        <div class="goal-top"><div><div class="small">Прогресс</div><div class="progress-num" id="goalProgress">0%</div></div><div style="text-align:right"><div class="small">Написано из цели</div><div style="font-weight:750" id="goalWritten">0 / 320 000</div></div></div>
+        <div class="goal-meta"><div class="meta-box"><div class="small">Нужно в среднем в день</div><div class="big" id="dailyNeed">—</div><div class="small">символов до дедлайна</div></div><div class="meta-box"><div class="small">Текущий темп</div><div class="big" id="currentPace">—</div><div class="small">символов в день</div></div><div class="meta-box"><div class="small">Ожидаемый финиш</div><div class="big" id="finishDate">—</div></div><div class="meta-box"><div class="small">Осталось</div><div class="big" id="remaining">320 000</div><div class="small">символов</div></div></div>
+      </div>
+      <div id="goalForm" hidden>
+        <div class="field"><label for="goalName">Название проекта</label><input id="goalName" value="Мой роман" maxlength="80"></div>
+        <div class="field"><label for="goalSheets">Цель в авторских листах</label><input id="goalSheets" type="number" min="0.1" step="0.1" value="8"></div>
+        <div class="field"><label for="sheetSize">Символов в одном авторском листе</label><input id="sheetSize" type="number" min="1000" step="1000" value="40000"></div>
+        <div class="field"><label for="goalDeadline">Дедлайн</label><input id="goalDeadline" type="date"></div>
+        <div class="btn-row"><button class="btn primary" id="saveGoal">Сохранить цель</button><button class="btn secondary" id="cancelGoal">Отмена</button></div>
+        <p class="small">По умолчанию 1 авторский лист = 40 000 знаков с пробелами. Размер листа можно изменить.</p>
+      </div>
+    </section>
+    <section class="card calendar-card">
+      <div class="card-head"><div><h2>Календарь активности</h2><div class="small" style="margin-top:4px">Нажми на день, чтобы посмотреть или изменить запись.</div></div><div class="calendar-nav"><button class="icon-btn" id="prevMonth" aria-label="Предыдущий месяц">‹</button><div class="month-label" id="monthLabel"></div><button class="icon-btn" id="nextMonth" aria-label="Следующий месяц">›</button></div></div>
+      <div class="calendar" id="calendar"></div>
+      <div class="legend"><span>Меньше → больше</span><div class="legend-scale"><span class="sq"></span><span class="sq s1"></span><span class="sq s2"></span><span class="sq s3"></span><span>символов</span></div></div>
+    </section>
+  </main>
+  <div class="bottom-grid">
+    <section class="card"><div class="card-head"><h2>Последние записи</h2><span class="small">10 последних активных дней</span></div><div class="history-list" id="historyList"></div></section>
+    <section class="card"><div class="eyebrow">Главное правило</div><p class="tip" id="tipText">Не обязательно писать много каждый день. Важно видеть свой настоящий темп — и возвращаться к тексту.</p><p class="small" style="margin-top:13px">Дневник и цель сохраняются в облаке и доступны после входа в аккаунт.</p></section>
+    <section class="card" style="grid-column:1/-1"><div class="card-head"><div><h2>Мои достижения</h2><div class="small" style="margin-top:4px">Каждый написанный день и каждый знак приближают тебя к следующей награде.</div></div><span class="small" id="achievementCount">0 получено</span></div><div class="achievement-list" id="achievementList"></div></section>
+  </div>
+  </section>
+  <section class="app-section" id="communitySection" aria-label="Сообщество">
+  <div class="social-area" aria-label="Сообщество">
+    <div class="eyebrow" style="margin:4px 0 10px">Сообщество</div>
+  <section class="card community-count auth-hidden" id="communityCountCard">
+    <div aria-hidden="true" style="font-size:27px">✍️</div>
+    <div><div class="small">Писателей в Штабе</div><div class="community-count-number" id="communityCount">—</div></div>
+    <div class="small">авторов зарегистрировались и ведут свои писательские дневники</div>
+  </section>
+
+  <section class="card received-support-card auth-hidden" id="receivedSupportCard">
+    <div class="card-head">
+      <div><h2>Поддержка сообщества</h2><div class="small" style="margin-top:4px">Авторы, которые поддержали тебя в дневнике или достижениях.</div></div>
+      <button type="button" class="btn secondary" id="receivedSupportToggle" aria-expanded="false">Тебя поддерживают: <span id="receivedSupportCount">0</span></button>
+    </div>
+    <div id="receivedSupportDetails" hidden>
+      <p class="small" id="receivedSupportStatus" aria-live="polite">Нажми на число, чтобы посмотреть авторов.</p>
+      <div class="social-list" id="receivedSupportList"></div>
+      <button type="button" class="btn secondary" id="refreshReceivedSupport" style="margin-top:10px">Обновить список</button>
+    </div>
+  </section>
+  <section class="card social-card auth-hidden" id="socialCard">
+    <div class="card-head"><div><h2>Авторы</h2><div class="small" style="margin-top:4px">Находи знакомых писателей и подписывайся на них.</div></div><span class="small" id="followingCount">0 подписок</span></div>
+    <div class="social-grid">
+      <div>
+        <h3 style="font-size:14px;margin:0 0 10px">Найти автора</h3>
+        <div class="social-search-row">
+          <div class="field"><label for="authorSearch">Имя или часть имени</label><input id="authorSearch" type="search" maxlength="60" placeholder="Например, Анна"></div>
+          <button id="searchAuthorsBtn" class="btn primary" type="button">Искать</button>
+        </div>
+        <p class="small" id="authorSearchStatus" aria-live="polite" style="margin:10px 0 0">Введи хотя бы 2 символа.</p>
+        <div class="social-list" id="authorSearchResults"></div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;margin:0 0 10px">Мои подписки</h3>
+        <p class="small" id="followingStatus" style="margin:0">Загружаем список…</p>
+        <div class="social-list" id="followingList"></div>
+      </div>
+    </div>
+  </section>
+
+  </div>
+  </section>
+  <section class="app-section" id="settingsSection" aria-label="Настройки профиля">
+  <section class="card social-card auth-hidden" id="profileSettingsCard">
+    <div class="card-head"><div><h2>Настройки профиля</h2><div class="small" style="margin-top:4px">Управляй именем, паролем и видимостью своих данных.</div></div></div>
+    <div class="settings-grid">
+      <div>
+        <div class="field"><label for="profileDisplayName">Имя автора</label><input id="profileDisplayName" type="text" minlength="2" maxlength="60" autocomplete="nickname"></div>
+        <button id="saveProfileNameBtn" class="btn primary" type="button">Сохранить имя</button>
+      </div>
+      <div>
+        <div class="field"><label for="newPassword">Новый пароль</label><input id="newPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Не менее 6 символов"></div>
+        <button id="changePasswordBtn" class="btn secondary" type="button">Изменить пароль</button>
+      </div>
+    </div>
+    <div class="setting-section">
+      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Разрешить подписчикам видеть мою статистику и достижения</strong><br>Достаточно односторонней подписки. Если отключить настройку, доступ к данным пропадёт.</span></label>
+      <button id="saveVisibilityBtn" class="btn primary" type="button">Сохранить видимость</button>
+    </div>
+    <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
+  </section>
+  </section>
+  <footer class="footer"><span>Штаб писателя · первая версия</span><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const keyDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
+const fmtDate=s=>s?parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}):'—';
+const monthFmt=d=>d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+const defaultState={entries:{},goal:{name:'Мой роман',sheets:8,sheetSize:40000,deadline:''},achievements:[],lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
+
+let state;
+
+const LOCAL_KEY = 'writersHQ_v1';
+const PRE_CLOUD_BACKUP_KEY = 'writersHQ_precloud_backup_v1';
+
+try {
+  const rawLocalState = localStorage.getItem(LOCAL_KEY);
+
+  if (
+    rawLocalState &&
+    !localStorage.getItem(PRE_CLOUD_BACKUP_KEY)
+  ) {
+    localStorage.setItem(PRE_CLOUD_BACKUP_KEY, rawLocalState);
+  }
+
+  state = JSON.parse(rawLocalState) || defaultState;
+} catch (e) {
+  state = defaultState;
+}
+
+state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
+let selectedDate=todayKey(), viewDate=parseDate(todayKey());
+function persist(){localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
+const achievementDefs=[
+{id:'first_day',icon:'🌱',title:'Первый шаг',desc:'Записал первый день работы',check:()=>activeEntries().length>=1},
+{id:'streak7',icon:'🔥',title:'Неделя без пропусков',desc:'Писал 7 дней подряд',check:()=>longestStreak()>=7},
+{id:'streak30',icon:'📅',title:'Целый месяц',desc:'Писал 30 дней подряд',check:()=>longestStreak()>=30},
+{id:'chars40000',icon:'🎯',title:'40 000 знаков',desc:'Написал 40 тысяч знаков суммарно',check:()=>total()>=40000},
+{id:'chars100000',icon:'✍️',title:'Шесть знаков нулей',desc:'Написал 100 000 знаков суммарно',check:()=>total()>=100000},
+{id:'chars250000',icon:'📚',title:'Большая дистанция',desc:'Написал 250 000 знаков суммарно',check:()=>total()>=250000},
+{id:'days10',icon:'🌿',title:'Вошёл в ритм',desc:'Писал в 10 разных дней',check:()=>activeEntries().length>=10},
+{id:'days30',icon:'🏆',title:'Писательская привычка',desc:'Писал в 30 разных дней',check:()=>activeEntries().length>=30}
+];
+// Делаем каталог достижений доступным социальному блоку во втором скрипте.
+window.writersHQAchievementDefs = achievementDefs;
+// Совместимость с прежними версиями социального блока, где использовалось старое имя.
+window.achievementDefs = achievementDefs;
+function longestStreak(){
+ const dates=activeEntries().map(([d])=>d).sort();
+ let best=0,run=0,prev=null;
+ for(const d of dates){if(prev&&dayDiff(prev,d)===1)run++;else run=1;best=Math.max(best,run);prev=d}
+ return best;
+}
+async function checkAchievements(){
+ const earned=[];
+ achievementDefs.forEach(a=>{if(!state.achievements.includes(a.id)&&a.check()){state.achievements.push(a.id);earned.push(a)}});
+ if(earned.length){
+   persist();
+   try {
+     await window.writersHQDiary.saveSettings();
+     showToast(earned.length===1?`🎉 Достижение получено: ${earned[0].title}`:`🎉 Новые достижения: ${earned.map(a=>a.title).join(', ')}`);
+   } catch (error) {
+     showToast('Достижение получено, но не удалось сохранить его в облаке. Проверь соединение.');
+   }
+ }
+}
+function renderAchievements(){
+ $('achievementCount').textContent=`${state.achievements.length} из ${achievementDefs.length} получено`;
+ $('achievementList').innerHTML=achievementDefs.map(a=>{const got=state.achievements.includes(a.id);return `<div class="achievement ${got?'':'locked'}"><div class="achievement-icon">${got?a.icon:'🔒'}</div><div><strong>${a.title}${got?' ✓':''}</strong><p>${a.desc}</p></div></div>`}).join('');
+}
+function showToast(message){const el=$('toast');el.innerHTML=`<strong>${message}</strong>`;el.classList.add('show');clearTimeout(window.__writersToastTimer);window.__writersToastTimer=setTimeout(()=>el.classList.remove('show'),5000)}
+function backupDue(){
+ const baseline=state.lastBackupAt||state.startedAt;
+ return Date.now()-Number(baseline)>=7*24*60*60*1000 && !(state.backupSnoozedUntil&&Date.now()<state.backupSnoozedUntil);
+}
+function renderBackupNotice(){$('backupNotice').classList.toggle('show',backupDue())}
+function exportBackup(){
+ state.lastBackupAt=Date.now();state.backupSnoozedUntil=null;persist();
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='writers-hq-backup.json';a.click();URL.revokeObjectURL(url);
+ renderBackupNotice();
+}
+function total(){return Object.values(state.entries).reduce((a,b)=>a+Math.max(0,Number(b)||0),0)}
+function activeEntries(){return Object.entries(state.entries).filter(([k,v])=>Number(v)>0).sort((a,b)=>b[0].localeCompare(a[0]))}
+function dayDiff(a,b){return Math.ceil((parseDate(b)-parseDate(a))/86400000)}
+function goalTarget(){return Math.round(Number(state.goal.sheets||0)*Number(state.goal.sheetSize||40000))}
+function renderTop(){
+$('todayChip').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+$('entryDate').value=selectedDate;$('selectedDateLabel').textContent=fmtDate(selectedDate);
+$('entryChars').value=state.entries[selectedDate]??'';
+$('todayTotal').innerHTML=`${fmt(state.entries[todayKey()]||0)} <span class="unit">симв.</span>`;
+$('allTotal').innerHTML=`${fmt(total())} <span class="unit">симв.</span>`;
+$('activeDays').innerHTML=`${fmt(activeEntries().length)} <span class="unit">дней</span>`;
+}
+function renderGoal(){
+const g=state.goal,target=goalTarget(),written=total(),remaining=Math.max(0,target-written),pct=target?Math.min(100,written/target*100):0;
+$('goalNameView').textContent=g.name||'Мой роман';$('goalDeadlineView').textContent=g.deadline?`Дедлайн: ${fmtDate(g.deadline)}`:'Дедлайн не задан';
+$('goalProgress').textContent=`${Math.round(pct)}%`;$('goalWritten').textContent=`${fmt(written)} / ${fmt(target)}`;$('goalBar').style.width=pct+'%';$('remaining').textContent=fmt(remaining);
+const today=todayKey(), first=activeEntries().length?activeEntries()[activeEntries().length-1][0]:today;
+const elapsed=Math.max(1,dayDiff(first,today)+1),pace=written/elapsed;
+$('currentPace').textContent=fmt(pace);
+let need='—',finish='—',status='Задай цель',cls='';
+if(target>0&&g.deadline){
+ const daysLeft=dayDiff(today,g.deadline);
+ need=daysLeft>=0?fmt(remaining/Math.max(1,daysLeft+1)):'срок прошёл';
+ if(remaining===0){status='Цель выполнена';cls='good';finish='Готово!'}
+ else if(daysLeft<0){status='Дедлайн прошёл';cls='bad';finish='Позже срока'}
+ else{
+   const estimatedDays=pace>0?Math.ceil(remaining/pace):null;
+   if(estimatedDays!==null){const end=new Date();end.setDate(end.getDate()+estimatedDays);finish=end.toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'})}
+   else finish='Пока нет данных';
+   if(pace>=remaining/Math.max(1,daysLeft+1)){status='Идёшь по плану';cls='good'}
+   else {status='Нужно ускориться';cls='bad'}
+ }
+}else if(target>0){need='—';status='Укажи дедлайн'}
+$('dailyNeed').textContent=need;$('finishDate').textContent=finish;
+$('goalStatus').className='status '+cls;$('goalStatusText').textContent=status;
+}
+function renderCalendar(){
+const y=viewDate.getFullYear(),m=viewDate.getMonth();$('monthLabel').textContent=monthFmt(viewDate);
+const first=new Date(y,m,1),last=new Date(y,m+1,0),offset=(first.getDay()+6)%7;
+const values=Object.values(state.entries).map(Number).filter(n=>n>0),max=Math.max(1,...values);
+let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(w=>`<div class="weekday">${w}</div>`).join('');
+for(let i=0;i<offset;i++)html+='<div class="day empty"></div>';
+for(let d=1;d<=last.getDate();d++){
+ const date=new Date(y,m,d),key=keyDate(date),n=Number(state.entries[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===selectedDate;
+ const level=n<=0?'':n<max*.25?'active':n<max*.65?'active':'high';
+ html+=`<button class="day ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity ${level}"></span></button>`;
+}
+$('calendar').innerHTML=html;
+$('calendar').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{selectedDate=el.dataset.date;render()}));
+}
+function renderHistory(){
+const items=activeEntries().slice(0,10);
+$('historyList').innerHTML=items.length?items.map(([date,n])=>`<div class="history-item"><span>${fmtDate(date)}</span><strong>${fmt(n)} симв.</strong></div>`).join(''):'<div class="muted" style="font-size:13px">Пока нет записей. Добавь первый результат — он появится здесь.</div>';
+}
+function render(){renderTop();renderGoal();renderCalendar();renderHistory();renderAchievements();renderBackupNotice()}
+
+window.writersHQDiary = {
+  lock() {
+    document.body.classList.add('diary-locked');
+  },
+
+  async loadCloud(userId) {
+    this.lock();
+
+    const client = window.writersHQClient;
+
+    if (!client || !userId) {
+      throw new Error('Не удалось определить авторизованного пользователя.');
+    }
+
+    const rawLocalState = localStorage.getItem(LOCAL_KEY);
+
+    if (
+      rawLocalState &&
+      !localStorage.getItem(PRE_CLOUD_BACKUP_KEY)
+    ) {
+      localStorage.setItem(PRE_CLOUD_BACKUP_KEY, rawLocalState);
+    }
+
+    // Загружаем прогресс и настройки параллельно, чтобы не ждать два запроса по очереди.
+    const [progressResult, settingsResult] = await Promise.all([
+      client
+        .from('daily_progress')
+        .select('progress_date, chars_written')
+        .eq('user_id', userId)
+        .is('project_id', null)
+        .is('club_id', null)
+        .order('progress_date', { ascending: true }),
+      client
+        .from('writer_settings')
+        .select('diary_goal, diary_achievements')
+        .eq('user_id', userId)
+        .maybeSingle()
+    ]);
+
+    if (progressResult.error) throw progressResult.error;
+    if (settingsResult.error) throw settingsResult.error;
+
+    const cloudEntries = {};
+    for (const row of progressResult.data || []) {
+      cloudEntries[row.progress_date] = Number(row.chars_written) || 0;
+    }
+
+    // Если пользователь сменился во время запроса,
+    // не применяем данные предыдущего аккаунта.
+    if (window.writersHQUserId !== userId) {
+      return;
+    }
+
+    state.entries = cloudEntries;
+
+    const settings = settingsResult.data;
+    // Цель и достижения берутся из облака. Если это новый аккаунт без настроек,
+    // используем безопасные значения по умолчанию, не копируя данные другого аккаунта.
+    state.goal = settings && settings.diary_goal && typeof settings.diary_goal === 'object'
+      ? { ...defaultState.goal, ...settings.diary_goal }
+      : { ...defaultState.goal };
+    state.achievements = settings && Array.isArray(settings.diary_achievements)
+      ? settings.diary_achievements
+      : [];
+
+    persist();
+    render();
+  },
+
+  async saveSettings() {
+    const client = window.writersHQClient;
+    const userId = window.writersHQUserId;
+
+    if (!client || !userId || document.body.classList.contains('diary-locked')) {
+      throw new Error('Войди в аккаунт, чтобы сохранять настройки.');
+    }
+
+    const { error } = await client
+      .from('writer_settings')
+      .upsert({
+        user_id: userId,
+        diary_goal: state.goal,
+        diary_achievements: state.achievements
+      }, { onConflict: 'user_id' });
+
+    if (error) throw error;
+    persist();
+  },
+
+  async refreshAchievements() {
+    let changed = false;
+
+    achievementDefs.forEach(a => {
+      if (!state.achievements.includes(a.id) && a.check()) {
+        state.achievements.push(a.id);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      persist();
+      try {
+        await this.saveSettings();
+      } catch (error) {
+        showToast('Достижения рассчитаны, но не удалось сохранить их в облаке.');
+      }
+    }
+
+    renderAchievements();
+  },
+
+  async saveEntry(date, chars) {
+    const client = window.writersHQClient;
+    const userId = window.writersHQUserId;
+
+    if (!client || !userId || document.body.classList.contains('diary-locked')) {
+      throw new Error('Войди в аккаунт, чтобы сохранять записи.');
+    }
+
+    const { error } = await client.rpc('save_personal_daily_progress', {
+      p_progress_date: date,
+      p_chars_written: chars
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    state.entries[date] = chars;
+    persist();
+  },
+
+  async clearEntry(date) {
+    const client = window.writersHQClient;
+    const userId = window.writersHQUserId;
+
+    if (!client || !userId || document.body.classList.contains('diary-locked')) {
+      throw new Error('Войди в аккаунт, чтобы изменять записи.');
+    }
+
+    const { error } = await client
+      .from('daily_progress')
+      .delete()
+      .eq('user_id', userId)
+      .eq('progress_date', date)
+      .is('project_id', null)
+      .is('club_id', null);
+
+    if (error) {
+      throw error;
+    }
+
+    delete state.entries[date];
+    persist();
+  }
+};
+
+$('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
+$('saveEntry').addEventListener('click', async () => {
+  const val = Number($('entryChars').value);
+
+  if (
+    $('entryChars').value.trim() === '' ||
+    !Number.isFinite(val) ||
+    val < 0
+  ) {
+    alert('Введи число символов: 0 или больше.');
+    return;
+  }
+
+  const button = $('saveEntry');
+  button.disabled = true;
+
+  try {
+    await window.writersHQDiary.saveEntry(
+      selectedDate,
+      Math.round(val)
+    );
+
+    await checkAchievements();
+    render();
+    showToast('Результат сохранён в облаке.');
+  } catch (error) {
+    alert(
+      'Не удалось сохранить запись в облаке. ' +
+      'Проверь подключение и попробуй ещё раз.\n\n' +
+      (error.message || '')
+    );
+  } finally {
+    button.disabled = false;
+  }
+});
+$('clearEntry').addEventListener('click', async () => {
+  if (!confirm('Удалить запись за ' + fmtDate(selectedDate) + '?')) {
+    return;
+  }
+
+  const button = $('clearEntry');
+  button.disabled = true;
+
+  try {
+    await window.writersHQDiary.clearEntry(selectedDate);
+    render();
+    showToast('Запись удалена.');
+  } catch (error) {
+    alert(
+      'Не удалось удалить запись из облака.\n\n' +
+      (error.message || '')
+    );
+  } finally {
+    button.disabled = false;
+  }
+});
+function showGoalForm(){ $('goalForm').hidden=false;$('goalView').hidden=true;$('goalName').value=state.goal.name;$('goalSheets').value=state.goal.sheets;$('sheetSize').value=state.goal.sheetSize;$('goalDeadline').value=state.goal.deadline||''}
+function hideGoalForm(){$('goalForm').hidden=true;$('goalView').hidden=false}
+$('editGoalBtn').addEventListener('click',showGoalForm);$('cancelGoal').addEventListener('click',hideGoalForm);
+$('saveGoal').addEventListener('click', async () => {
+  const sheets = Number($('goalSheets').value);
+  const size = Number($('sheetSize').value);
+
+  if (!sheets || sheets < 0 || !size || size < 1000) {
+    alert('Проверь количество авторских листов и размер одного листа.');
+    return;
+  }
+
+  const button = $('saveGoal');
+  const previousGoal = { ...state.goal };
+  button.disabled = true;
+
+  state.goal = {
+    name: $('goalName').value.trim() || 'Мой роман',
+    sheets,
+    sheetSize: size,
+    deadline: $('goalDeadline').value
+  };
+
+  try {
+    await window.writersHQDiary.saveSettings();
+    hideGoalForm();
+    render();
+    showToast('Цель сохранена в облаке.');
+  } catch (error) {
+    state.goal = previousGoal;
+    render();
+    alert('Не удалось сохранить цель в облаке. Проверь подключение и попробуй ещё раз.\n\n' + (error.message || ''));
+  } finally {
+    button.disabled = false;
+  }
+});
+$('prevMonth').addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);renderCalendar()});
+$('nextMonth').addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);renderCalendar()});
+$('exportBtn').addEventListener('click',exportBackup);
+$('backupNow').addEventListener('click',exportBackup);
+$('backupLater').addEventListener('click',()=>{state.backupSnoozedUntil=Date.now()+24*60*60*1000;persist();renderBackupNotice()});
+$('backupNotice').classList.toggle('show',backupDue());
+render();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const SUPABASE_URL = 'https://ucwooqhasjwosbupfqqw.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_wZLmnpwl2iA8frlTEB6SBg_ybaBJT7j';
+
+  const $ = id => document.getElementById(id);
+
+  const message = $('authMessage');
+  const authStatus = $('authStatus');
+  const badge = $('authBadge');
+  const badgeText = $('authBadgeText');
+  const forms = $('authForms');
+  const signedInPanel = $('signedInPanel');
+
+  let client;
+  let activeUserId = null;
+  let syncVersion = 0;
+
+  function showMessage(text, kind = '') {
+    message.textContent = text || '';
+    message.className = 'auth-message' + (kind ? ' ' + kind : '');
+  }
+
+  function setBusy(busy) {
+    ['signInBtn', 'signUpBtn', 'signOutBtn'].forEach(id => {
+      const el = $(id);
+      if (el) el.disabled = busy;
+    });
+  }
+
+  let currentProfileName = '';
+  let followedIds = new Set();
+
+  function setOwnerName(name) {
+    const clean = String(name || '').trim() || 'Павел Прокудин';
+    currentProfileName = clean;
+    $('ownerName').textContent = clean;
+    $('ownerNameLine').classList.remove('auth-hidden');
+  }
+
+  async function renderLikeButton(container, targetUserId, itemType, achievementId = null) {
+    const filteredQuery = achievementId
+      ? client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+      : client.from('writer_likes').select('id, liker_id').eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+    const { data, error } = await filteredQuery;
+    if (error) throw error;
+    const likes = data || [];
+    const liked = likes.some(item => item.liker_id === activeUserId);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'like-btn' + (liked ? ' liked' : '');
+    button.textContent = `${liked ? '♥' : '♡'} Поддержать · ${likes.length}`;
+    button.setAttribute('aria-pressed', String(liked));
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const query = achievementId
+          ? client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).eq('achievement_id', achievementId)
+          : client.from('writer_likes').delete().eq('liker_id', activeUserId).eq('target_user_id', targetUserId).eq('item_type', itemType).is('achievement_id', null);
+        if (liked) {
+          const { error: deleteError } = await query;
+          if (deleteError) throw deleteError;
+        } else {
+          const { error: insertError } = await client.from('writer_likes').insert({
+            liker_id: activeUserId,
+            target_user_id: targetUserId,
+            item_type: itemType,
+            achievement_id: achievementId
+          });
+          if (insertError) throw insertError;
+        }
+        await renderLikeButton(container, targetUserId, itemType, achievementId);
+      } catch (error) {
+        const detail = error && error.message ? error.message : 'неизвестная ошибка';
+        const hint = detail.toLowerCase().includes('row-level security')
+          ? ' Нужно применить SQL-исправление политики writer_likes.'
+          : '';
+        showMessage('Не удалось изменить лайк: ' + detail + hint, 'error');
+        button.textContent = 'Не удалось поддержать';
+        button.title = detail + hint;
+      } finally {
+        button.disabled = false;
+      }
+    });
+    container.replaceChildren(button);
+  }
+
+  function makePersonRow(profile, isFollowing, mode) {
+    const row = document.createElement('div');
+    row.className = 'social-person';
+    const info = document.createElement('div');
+    const name = document.createElement('div');
+    name.className = 'social-person-name';
+    name.textContent = profile.display_name || 'Автор без имени';
+    const meta = document.createElement('div');
+    meta.className = 'social-person-meta';
+    meta.textContent = mode === 'following' ? 'Вы подписаны' : (isFollowing ? 'Уже в твоих подписках' : 'Автор «Штаба писателя»');
+    info.append(name, meta);
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.flexDirection = 'column';
+    actions.style.alignItems = 'flex-end';
+    actions.style.gap = '6px';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn ' + (isFollowing ? 'secondary' : 'primary');
+    button.textContent = isFollowing ? 'Отписаться' : 'Подписаться';
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        if (isFollowing) {
+          const { error } = await client.from('writer_follows').delete()
+            .eq('follower_id', activeUserId).eq('followed_id', profile.id);
+          if (error) throw error;
+          followedIds.delete(profile.id);
+          showMessage('Ты отписался от автора.', 'success');
+        } else {
+          const { error } = await client.from('writer_follows').insert({ follower_id: activeUserId, followed_id: profile.id });
+          if (error) throw error;
+          followedIds.add(profile.id);
+          showMessage('Подписка оформлена.', 'success');
+        }
+        await loadFollowing();
+        if ($('authorSearch').value.trim().length >= 2) await searchAuthors();
+      } catch (error) {
+        showMessage('Не удалось изменить подписку: ' + (error.message || 'ошибка'), 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
+    actions.append(button);
+    const statsButton = document.createElement('button');
+    statsButton.type = 'button';
+    statsButton.className = 'btn secondary';
+    statsButton.textContent = 'Статистика и достижения';
+    statsButton.hidden = !isFollowing;
+    const statsPanel = document.createElement('div');
+    statsPanel.className = 'author-stats';
+    statsPanel.hidden = true;
+    statsButton.addEventListener('click', async () => {
+      if (!statsPanel.hidden) { statsPanel.hidden = true; statsButton.textContent = 'Статистика и достижения'; return; }
+      statsPanel.hidden = false;
+      statsPanel.textContent = 'Загружаем статистику…';
+      statsButton.disabled = true;
+      try {
+        const { data, error } = await client.rpc('get_writer_stats', { p_target_user_id: profile.id });
+        if (error) throw error;
+        const record = Array.isArray(data) ? data[0] : data;
+        const { data: earnedIds, error: achievementsError } = await client.rpc('get_writer_achievements', { p_target_user_id: profile.id });
+        if (achievementsError) throw achievementsError;
+        statsPanel.replaceChildren();
+        if (!record || typeof record !== 'object' || !Object.keys(record).length) {
+          const unavailable = document.createElement('p');
+          unavailable.textContent = 'Статистика пока недоступна.';
+          statsPanel.append(unavailable);
+        } else {
+          const labels = {
+            month_chars: 'Написано в этом месяце', monthly_chars: 'Написано в этом месяце', monthly_written: 'Написано в этом месяце',
+            lifetime_chars: 'Написано за всё время', all_time_chars: 'Написано за всё время', total_chars: 'Написано за всё время',
+            chars_written: 'Написано за всё время', total_written: 'Написано за всё время',
+            active_days: 'Активных дней', active_days_count: 'Активных дней',
+            current_streak: 'Текущая серия', longest_streak: 'Лучшая серия', today_chars: 'Сегодня',
+            monthly_rating: 'Место в рейтинге за месяц', all_time_rating: 'Место в рейтинге за всё время'
+          };
+          Object.entries(record).forEach(([key, value]) => {
+            if (key === 'writer_id' || key === 'display_name' || value === null || value === undefined || typeof value === 'object') return;
+            const line = document.createElement('div');
+            line.className = 'stat-line';
+            const label = document.createElement('span');
+            label.textContent = labels[key] || key.replace(/_/g, ' ');
+            const val = document.createElement('strong');
+            val.textContent = typeof value === 'number' ? new Intl.NumberFormat('ru-RU').format(value) : String(value);
+            line.append(label, val);
+            statsPanel.append(line);
+          });
+          if (!statsPanel.children.length) statsPanel.textContent = 'Статистика пока недоступна.';
+        }
+        const earned = Array.isArray(earnedIds) ? earnedIds : [];
+        const achievementHeading = document.createElement('h4');
+        achievementHeading.textContent = 'Достижения';
+        achievementHeading.style.margin = '14px 0 8px';
+        statsPanel.append(achievementHeading);
+        const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
+        if (!earned.length) {
+          const none = document.createElement('p');
+          none.className = 'small';
+          none.textContent = 'Пока нет полученных достижений.';
+          statsPanel.append(none);
+        } else {
+          for (const id of earned) {
+            const definition = defs.find(item => item.id === id);
+            const line = document.createElement('div');
+            line.className = 'stat-line';
+            const label = document.createElement('span');
+            label.textContent = definition ? `${definition.icon} ${definition.title}` : String(id);
+            const val = document.createElement('strong');
+            val.textContent = 'Получено';
+            line.append(label, val);
+            statsPanel.append(line);
+            const achievementLikeRow = document.createElement('div');
+            achievementLikeRow.className = 'like-row';
+            const achievementLikeControl = document.createElement('span');
+            achievementLikeRow.append(achievementLikeControl);
+            statsPanel.append(achievementLikeRow);
+            await renderLikeButton(achievementLikeControl, profile.id, 'achievement', id);
+          }
+        }
+        const statsLikeRow = document.createElement('div');
+        statsLikeRow.className = 'like-row';
+        const statsLikeLabel = document.createElement('span');
+        statsLikeLabel.className = 'small';
+        statsLikeLabel.textContent = 'Поддержать статистику автора:';
+        const statsLikeControl = document.createElement('span');
+        statsLikeRow.append(statsLikeLabel, statsLikeControl);
+        statsPanel.append(statsLikeRow);
+        await renderLikeButton(statsLikeControl, profile.id, 'stats');
+
+        statsButton.textContent = 'Скрыть статистику и достижения';
+      } catch (error) {
+        statsPanel.textContent = 'Не удалось загрузить данные: ' + (error.message || 'неизвестная ошибка') + '. Проверь настройку видимости автора и SQL-функции в Supabase.';
+        showMessage('Ошибка загрузки статистики: ' + (error.message || 'неизвестная ошибка'), 'error');
+        statsButton.textContent = 'Скрыть сообщение';
+      } finally {
+        statsButton.disabled = false;
+      }
+    });
+    actions.append(statsButton);
+    row.append(info, actions);
+    // Stats panel sits beneath the person row contents without exposing private diary entries.
+    row.style.flexWrap = 'wrap';
+    statsPanel.style.width = '100%';
+    row.append(statsPanel);
+    return row;
+  }
+
+  async function loadOwnProfile(user) {
+    const { data, error } = await client.from('profiles')
+      .select('id, display_name').eq('id', user.id).maybeSingle();
+    if (error) throw error;
+    const metadataName = user.user_metadata && user.user_metadata.display_name;
+    let name = (data && data.display_name || metadataName || '').trim();
+    if (!name || name.toLowerCase() === (user.email || '').split('@')[0].toLowerCase()) {
+      name = (metadataName || 'Автор').trim();
+    }
+    if (!data || data.display_name !== name) {
+      const { error: saveError } = await client.from('profiles').upsert({ id: user.id, display_name: name }, { onConflict: 'id' });
+      if (saveError) throw saveError;
+    }
+    setOwnerName(name);
+  }
+
+  async function loadStatsPreference(user) {
+    const { data, error } = await client.from('writer_settings')
+      .select('show_stats_to_mutuals').eq('user_id', activeUserId).maybeSingle();
+    if (error) throw error;
+    let allowed;
+    if (data && typeof data.show_stats_to_mutuals === 'boolean') {
+      allowed = data.show_stats_to_mutuals;
+    } else {
+      allowed = !!(user.user_metadata && user.user_metadata.share_stats_on_follow);
+      const { error: saveError } = await client.from('writer_settings').upsert({
+        user_id: activeUserId,
+        show_stats_to_mutuals: allowed
+      }, { onConflict: 'user_id' });
+      if (saveError) throw saveError;
+    }
+    $('allowStatsVisibility').checked = allowed;
+  }
+
+  async function loadReceivedSupport(showNames = false) {
+    if (!activeUserId) return;
+    const countEl = $('receivedSupportCount');
+    const details = $('receivedSupportDetails');
+    const status = $('receivedSupportStatus');
+    const list = $('receivedSupportList');
+    const { data, error } = await client.rpc('get_writer_supporters');
+    if (error) throw error;
+    const supporters = Array.isArray(data) ? data : [];
+    const supporterIds = supporters.map(item => item.liker_id).filter(id => id && id !== activeUserId);
+    countEl.textContent = new Intl.NumberFormat('ru-RU').format(supporterIds.length);
+
+    if (!showNames && details.hidden) return;
+    details.hidden = false;
+    $('receivedSupportToggle').setAttribute('aria-expanded', 'true');
+    list.replaceChildren();
+    if (!supporterIds.length) {
+      status.textContent = 'Пока тебя никто не поддержал. Когда авторы поставят тебе лайк, они появятся здесь.';
+      return;
+    }
+    status.textContent = 'Тебя поддерживают:';
+    const { data: profiles, error: profilesError } = await client.from('profiles')
+      .select('id, display_name').in('id', supporterIds).order('display_name', { ascending: true });
+    if (profilesError) throw profilesError;
+    const byId = new Map((profiles || []).map(profile => [profile.id, profile]));
+    supporterIds.forEach(id => {
+      const profile = byId.get(id) || { id, display_name: 'Автор' };
+      const row = document.createElement('div');
+      row.className = 'social-person';
+      const info = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'social-person-name';
+      name.textContent = profile.display_name || 'Автор без имени';
+      const meta = document.createElement('div');
+      meta.className = 'social-person-meta';
+      meta.textContent = 'Поддерживает твой дневник или достижения';
+      info.append(name, meta);
+      row.append(info);
+      list.append(row);
+    });
+  }
+
+  $('receivedSupportToggle').addEventListener('click', async () => {
+    const details = $('receivedSupportDetails');
+    const willOpen = details.hidden;
+    details.hidden = !willOpen;
+    $('receivedSupportToggle').setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) {
+      $('receivedSupportStatus').textContent = 'Загружаем список авторов…';
+      try { await loadReceivedSupport(true); }
+      catch (error) { $('receivedSupportStatus').textContent = 'Не удалось загрузить поддержку: ' + (error.message || 'неизвестная ошибка'); }
+    }
+  });
+
+  $('refreshReceivedSupport').addEventListener('click', async () => {
+    $('receivedSupportStatus').textContent = 'Обновляем список…';
+    try { await loadReceivedSupport(true); }
+    catch (error) { $('receivedSupportStatus').textContent = 'Не удалось обновить поддержку: ' + (error.message || 'неизвестная ошибка'); }
+  });
+
+  async function loadCommunityCount() {
+    const { data, error } = await client.rpc('get_registered_writer_count');
+    if (error) throw error;
+    $('communityCount').textContent = new Intl.NumberFormat('ru-RU').format(Number(data) || 0);
+  }
+
+  async function loadFollowing() {
+    if (!activeUserId) return;
+    $('followingStatus').textContent = 'Загружаем подписки…';
+    const { data: follows, error } = await client.from('writer_follows')
+      .select('followed_id').eq('follower_id', activeUserId).order('created_at', { ascending: false });
+    if (error) throw error;
+    const ids = (follows || []).map(item => item.followed_id);
+    followedIds = new Set(ids);
+    $('followingCount').textContent = `${ids.length} подписок`;
+    const list = $('followingList');
+    list.replaceChildren();
+    if (!ids.length) {
+      $('followingStatus').textContent = 'Пока ни на кого не подписан.';
+      return;
+    }
+    const { data: profiles, error: profileError } = await client.from('profiles')
+      .select('id, display_name').in('id', ids).order('display_name', { ascending: true });
+    if (profileError) throw profileError;
+    $('followingStatus').textContent = 'Авторы, на которых ты подписан.';
+    (profiles || []).forEach(profile => list.append(makePersonRow(profile, true, 'following')));
+  }
+
+  async function searchAuthors() {
+    const query = $('authorSearch').value.trim();
+    const status = $('authorSearchStatus');
+    const list = $('authorSearchResults');
+    list.replaceChildren();
+    if (query.length < 2) {
+      status.textContent = 'Введи хотя бы 2 символа.';
+      return;
+    }
+    status.textContent = 'Ищем авторов…';
+    const { data, error } = await client.from('profiles')
+      .select('id, display_name').ilike('display_name', `%${query.replace(/[%_,]/g, ' ')}%`)
+      .neq('id', activeUserId).order('display_name', { ascending: true }).limit(20);
+    if (error) {
+      status.textContent = 'Не удалось выполнить поиск.';
+      throw error;
+    }
+    if (!data || !data.length) {
+      status.textContent = 'Никого не нашли. Проверь написание имени.';
+      return;
+    }
+    status.textContent = `Найдено авторов: ${data.length}.`;
+    data.forEach(profile => list.append(makePersonRow(profile, followedIds.has(profile.id), 'search')));
+  }
+
+  document.querySelectorAll('.section-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.dataset.section;
+      document.querySelectorAll('.section-tab').forEach(item => {
+        const active = item === tab;
+        item.classList.toggle('active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      document.querySelectorAll('.app-section').forEach(section => {
+        section.classList.toggle('active', section.id === targetId);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  $('searchAuthorsBtn').addEventListener('click', () => searchAuthors().catch(error => showMessage(error.message || 'Ошибка поиска.', 'error')));
+  $('authorSearch').addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); searchAuthors().catch(error => showMessage(error.message || 'Ошибка поиска.', 'error')); }
+  });
+
+  function renderSession(session) {
+    const user = session && session.user;
+
+    forms.classList.toggle('auth-hidden', !!user);
+    signedInPanel.classList.toggle('auth-hidden', !user);
+    $('sectionNav').classList.toggle('auth-hidden', !user);
+    if (!user) {
+      document.querySelectorAll('.section-tab').forEach(tab => {
+        const active = tab.dataset.section === 'diarySection';
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-pressed', String(active));
+      });
+      document.querySelectorAll('.app-section').forEach(section => {
+        section.classList.toggle('active', section.id === 'diarySection');
+      });
+    }
+    $('socialCard').classList.toggle('auth-hidden', !user);
+    $('communityCountCard').classList.toggle('auth-hidden', !user);
+    $('profileSettingsCard').classList.toggle('auth-hidden', !user);
+    $('receivedSupportCard').classList.toggle('auth-hidden', !user);
+    if (!user) $('ownerNameLine').classList.add('auth-hidden');
+
+    if (user) {
+      badge.className = 'status good';
+      badgeText.textContent = 'Вход выполнен';
+      $('signedInEmail').textContent = user.email || 'Аккаунт активен';
+      authStatus.textContent =
+        'Аккаунт авторизован. Загружаем личные записи из облака.';
+    } else {
+      badge.className = 'status';
+      badgeText.textContent = 'Не выполнен вход';
+      $('signedInEmail').textContent = '';
+      authStatus.textContent =
+        'Войди в аккаунт, чтобы открыть личный дневник и синхронизировать записи.';
+    }
+  }
+
+  async function syncSession(session) {
+    const version = ++syncVersion;
+    const user = session && session.user;
+
+    if (!user) {
+      activeUserId = null;
+      window.writersHQUserId = null;
+      window.writersHQDiary.lock();
+      followedIds = new Set();
+      $('ownerNameLine').classList.add('auth-hidden');
+      $('authorSearchResults').replaceChildren();
+      $('followingList').replaceChildren();
+      $('followingCount').textContent = '0 подписок';
+      $('receivedSupportCount').textContent = '0';
+      $('receivedSupportList').replaceChildren();
+      $('receivedSupportDetails').hidden = true;
+      $('receivedSupportToggle').setAttribute('aria-expanded', 'false');
+      renderSession(null);
+      return;
+    }
+
+    activeUserId = user.id;
+    window.writersHQUserId = user.id;
+    renderSession(session);
+    window.writersHQDiary.lock();
+
+    authStatus.textContent = 'Загружаем записи из облака…';
+
+    try {
+      await window.writersHQDiary.loadCloud(user.id);
+
+      // Если во время загрузки стартовал более новый syncSession,
+      // не трогаем блокировку — финальное состояние выставит он.
+      if (version !== syncVersion) {
+        return;
+      }
+
+      if (activeUserId !== user.id) {
+        window.writersHQDiary.lock();
+        return;
+      }
+
+      await loadOwnProfile(user);
+      await loadStatsPreference(user);
+      await loadFollowing();
+      await loadCommunityCount();
+      await loadReceivedSupport(false);
+      if (version !== syncVersion || activeUserId !== user.id) return;
+
+      document.body.classList.remove('diary-locked');
+
+      // Восстанавливаем достижения, которые уже заслужены по облачному прогрессу.
+      await window.writersHQDiary.refreshAchievements();
+
+      authStatus.textContent =
+        'Дневник синхронизирован с облаком. Записи доступны в этом аккаунте.';
+      showMessage('Облачный дневник загружен.', 'success');
+    } catch (error) {
+      if (version !== syncVersion || activeUserId !== user.id) {
+        return;
+      }
+
+      window.writersHQDiary.lock();
+      authStatus.textContent =
+        'Не удалось загрузить дневник. Данные не показаны, чтобы избежать смешивания аккаунтов.';
+      showMessage(
+        'Ошибка загрузки дневника: ' +
+        (error.message || 'неизвестная ошибка'),
+        'error'
+      );
+    }
+  }
+
+  if (!window.supabase || !window.supabase.createClient) {
+    showMessage(
+      'Не удалось загрузить библиотеку Supabase. Проверь интернет-соединение и обнови страницу.',
+      'error'
+    );
+    window.writersHQDiary.lock();
+    return;
+  }
+
+  client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+  window.writersHQClient = client;
+
+  $('saveProfileNameBtn').addEventListener('click', async () => {
+    const name = $('profileDisplayName').value.trim();
+    if (name.length < 2) {
+      $('settingsMessage').textContent = 'Имя должно содержать минимум 2 символа.';
+      $('settingsMessage').className = 'auth-message error';
+      return;
+    }
+    const button = $('saveProfileNameBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.from('profiles').update({ display_name: name }).eq('id', activeUserId);
+      if (error) throw error;
+      const { error: authError } = await client.auth.updateUser({ data: { display_name: name } });
+      if (authError) throw authError;
+      setOwnerName(name);
+      $('settingsMessage').textContent = 'Имя сохранено.';
+      $('settingsMessage').className = 'auth-message success';
+      await loadFollowing();
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось сохранить имя: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('changePasswordBtn').addEventListener('click', async () => {
+    const password = $('newPassword').value;
+    if (password.length < 6) {
+      $('settingsMessage').textContent = 'Новый пароль должен содержать минимум 6 символов.';
+      $('settingsMessage').className = 'auth-message error';
+      return;
+    }
+    const button = $('changePasswordBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.auth.updateUser({ password });
+      if (error) throw error;
+      $('newPassword').value = '';
+      $('settingsMessage').textContent = 'Пароль изменён.';
+      $('settingsMessage').className = 'auth-message success';
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось изменить пароль: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('saveVisibilityBtn').addEventListener('click', async () => {
+    const allowed = $('allowStatsVisibility').checked;
+    const button = $('saveVisibilityBtn');
+    button.disabled = true;
+    try {
+      const { error } = await client.from('writer_settings').upsert({
+        user_id: activeUserId,
+        show_stats_to_mutuals: allowed
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
+      $('settingsMessage').textContent = allowed
+        ? 'Статистика и достижения теперь видны твоим подписчикам.'
+        : 'Показ статистики и достижений отключён.';
+      $('settingsMessage').className = 'auth-message success';
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось сохранить настройку: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  $('signUpForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    showMessage('Создаём аккаунт…');
+    setBusy(true);
+
+    try {
+      const email = $('signupEmail').value.trim();
+      const password = $('signupPassword').value;
+      const displayName = $('displayName').value.trim();
+
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+            share_stats_on_follow: $('shareStatsOnFollow').checked
+          },
+          emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.session) {
+        // Сессия установлена; загрузку данных выполнит onAuthStateChange.
+        showMessage('Аккаунт создан. Подготавливаем дневник…', 'success');
+      } else {
+        showMessage(
+          'Регистрация принята. Подтверди электронную почту по ссылке из письма, затем вернись на сайт и войди.',
+          'success'
+        );
+      }
+    } catch (error) {
+      showMessage(error.message || 'Не удалось создать аккаунт.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  $('signInForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    showMessage('Выполняем вход…');
+    setBusy(true);
+
+    try {
+      const { error } = await client.auth.signInWithPassword({
+        email: $('loginEmail').value.trim(),
+        password: $('loginPassword').value
+      });
+
+      if (error) throw error;
+
+      // Сессия установлена; загрузку данных выполнит onAuthStateChange.
+    } catch (error) {
+      showMessage(
+        error.message || 'Не удалось войти. Проверь почту и пароль.',
+        'error'
+      );
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  $('signOutBtn').addEventListener('click', async () => {
+    showMessage('Выходим из аккаунта…');
+    setBusy(true);
+
+    try {
+      const { error } = await client.auth.signOut();
+
+      if (error) throw error;
+
+      activeUserId = null;
+      window.writersHQUserId = null;
+      syncVersion++;
+      window.writersHQDiary.lock();
+
+      showMessage('Ты вышел из аккаунта.', 'success');
+    } catch (error) {
+      showMessage(error.message || 'Не удалось выйти из аккаунта.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  // INITIAL_SESSION восстанавливает сохранённый вход при запуске страницы.
+  // SIGNED_IN / SIGNED_OUT обновляют интерфейс после действий пользователя.
+  // TOKEN_REFRESHED не требует повторной загрузки всего дневника.
+  client.auth.onAuthStateChange((event, session) => {
+    if (!['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT'].includes(event)) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      syncSession(session);
+    }, 0);
+  });
+})();
+</script>
+</body>
+</html>
