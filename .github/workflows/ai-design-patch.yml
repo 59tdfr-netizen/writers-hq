@@ -21,7 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate design proposal
+      - name: Generate CSS proposal
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
@@ -50,13 +50,19 @@ jobs:
           html = html_path.read_text(encoding="utf-8")
 
           css_parts = []
+
           for path in sorted(Path(".").rglob("*.css")):
-              if any(part in {".git", "node_modules", ".venv"}
-                     for part in path.parts):
+              if any(
+                  part in {".git", "node_modules", ".venv"}
+                  for part in path.parts
+              ):
                   continue
               css_parts.append(
                   f"\n/* {path.as_posix()} */\n"
-                  + path.read_text(encoding="utf-8", errors="replace")
+                  + path.read_text(
+                      encoding="utf-8",
+                      errors="replace"
+                  )
               )
 
           inline_css = re.findall(
@@ -64,110 +70,81 @@ jobs:
               html,
               flags=re.I | re.S
           )
+
           for i, content in enumerate(inline_css, start=1):
               css_parts.append(f"\n/* Inline CSS {i} */\n{content}")
 
-          css = "\n".join(css_parts)
-          if not css.strip():
-              sys.exit("ERROR: No CSS found in the repository.")
+          current_css = "\n".join(css_parts)
+
+          if not current_css.strip():
+              sys.exit("ERROR: No existing CSS found.")
 
           headings = re.findall(
               r"<(h1|h2|h3)\b[^>]*>(.*?)</\1\s*>",
               html,
               flags=re.I | re.S
           )
-          headings = [
-              {
-                  "tag": tag.lower(),
-                  "text": re.sub(
-                      r"\s+", " ",
-                      re.sub(r"<[^>]+>", " ", content)
-                  ).strip()[:80]
-              }
-              for tag, content in headings[:15]
-          ]
+
+          heading_text = []
+          for tag, content in headings[:12]:
+              text = re.sub(r"<[^>]+>", " ", content)
+              text = re.sub(r"\s+", " ", text).strip()
+              if text:
+                  heading_text.append(f"{tag}: {text[:70]}")
 
           classes = sorted(set(
               cls
               for value in re.findall(
-                  r'class=["\']([^"\']+)["\']', html
+                  r'class=["\']([^"\']+)["\']',
+                  html
               )
               for cls in value.split()
           ))
 
-          ids = sorted(set(re.findall(
-              r'\bid=["\']([^"\']+)["\']', html
-          )))
-
           context = {
-              "headings": headings,
-              "classes": classes[:100],
-              "ids": ids[:80],
-              "html_excerpt": html[:2500],
-              "css_excerpt": css[:6500]
+              "page_headings": heading_text,
+              "existing_classes": classes[:90],
+              "existing_css": current_css[:6500],
+              "html_excerpt": html[:1800]
           }
 
           system_prompt = """
-          Ты опытный UX/UI-дизайнер приложения «Штаб писателя».
-          Отвечай по-русски и верни только корректный JSON без Markdown.
+          Ты профессиональный UX/UI-дизайнер приложения «Штаб писателя».
 
-          ЗАДАЧА:
-          Предложи конкретный, небольшой CSS-патч для дизайна
-          «Контрастная мастерская». Нужны реальные визуальные улучшения,
-          а не повторение описания существующего интерфейса.
+          Верни ТОЛЬКО CSS-код. Никакого JSON, Markdown, вступления,
+          пояснений или заключения. Не используй блоки ```.
 
-          НАПРАВЛЕНИЕ:
-          - Умеренная эстетика Возрождения.
-          - Угольный, бордовый, терракотовый, старый пергамент,
-            приглушённое золото.
-          - Светлая рабочая область и светлые карточки.
-          - Выразительные заголовки и удобочитаемый интерфейс.
-          - Аккуратные границы, отступы, состояния наведения и фокуса.
+          Задача: предложить конкретное улучшение существующего дизайна.
 
-          ПРАВИЛА:
-          1. Сначала изучи переданные HTML и CSS.
-          2. Предложи 2–5 конкретных CSS-правил, меняющих внешний вид.
-          3. Используй только существующие и подтверждённые селекторы.
-          4. Приоритет — верхняя зона, карточки, заголовки, кнопки,
-             поля ввода и адаптивность, если соответствующие элементы
-             действительно присутствуют в коде.
-          5. Не превращай весь интерфейс в тёмную тему.
-          6. Не меняй сетку, структуру страниц, функции, JavaScript,
-             данные, авторизацию и навигацию.
-          7. Не скрывай и не удаляй элементы.
-          8. Не меняй глобальные переменные без анализа их применения.
-          9. Не используй внешние шрифты, URL, импорты или платные сервисы.
-          10. Не утверждай, что проверял сайт в браузере.
-          11. Не выдавай предположения за обнаруженные дефекты.
-          12. Если безопасное изменение невозможно обосновать,
-              объясни это в implementation_stages. Не выдумывай селекторы.
+          Направление «Контрастная мастерская»:
+          - эстетика Возрождения без декоративной перегруженности;
+          - угольный, бордовый, терракотовый и приглушённое золото;
+          - светлая рабочая область и светлые карточки;
+          - выразительные заголовки и удобочитаемый интерфейс;
+          - аккуратные границы, состояния наведения и фокуса.
 
-          CSS_PATCH:
-          - Это должен быть настоящий CSS, а не описание словами.
-          - Патч должен содержать хотя бы одно CSS-правило.
-          - Не более 1800 символов.
-          - Используй только селекторы, подтверждённые входными данными.
-          - Не добавляй HTML или JavaScript в CSS.
+          Требования:
+          1. Изучи существующие HTML и CSS.
+          2. Выбери 2–4 действительно полезных изменения.
+          3. Используй только подтверждённые классы, элементы и переменные.
+          4. Не добавляй селекторы классов, которых нет во входных данных.
+          5. Не делай весь интерфейс тёмным.
+          6. Не меняй структуру сетки и расположение крупных блоков.
+          7. Не скрывай элементы и не меняй функциональность.
+          8. Не добавляй HTML, JavaScript, @import или URL.
+          9. Не переписывай без необходимости уже существующие правила.
+          10. Не выдумывай новые переменные CSS.
+          11. Патч должен быть компактным: максимум 1200 символов.
+          12. Верни только законченные CSS-правила с закрытыми скобками.
+          13. Не утверждай, что проверял сайт в браузере.
 
-          Верни объект со всеми перечисленными ключами:
-          {
-            "css_patch": "CSS-код",
-            "confirmed_findings": ["наблюдения по коду"],
-            "needs_verification": ["что проверить вручную"],
-            "accessibility_responsiveness": ["доступность и адаптивность"],
-            "functional_roadmap": ["задачи вне CSS"],
-            "html_candidates": ["кандидаты на отдельное согласование"],
-            "implementation_stages": ["следующие шаги"]
-          }
-
-          Не более двух коротких пунктов в каждом списке.
-          В отчёте отделяй подтверждённые факты от предположений.
+          Если не удаётся обосновать изменение, выбери самое безопасное
+          улучшение существующих карточек, кнопок или заголовков.
           """
 
-          prompt = (
-              "Изучи код и подготовь CSS-патч по заданным требованиям. "
-              "Не повторяй общие рекомендации вместо CSS. "
-              "Не изменяй исходные файлы.\n\n"
+          user_prompt = (
+              "Создай компактный CSS-патч. "
+              "Верни только CSS, не JSON.\n\n"
               + json.dumps(context, ensure_ascii=False)
           )
 
@@ -179,10 +156,16 @@ jobs:
 
           payload = {
               "messages": [
-                  {"role": "system", "content": system_prompt},
-                  {"role": "user", "content": prompt}
+                  {
+                      "role": "system",
+                      "content": system_prompt
+                  },
+                  {
+                      "role": "user",
+                      "content": user_prompt
+                  }
               ],
-              "max_tokens": 2600,
+              "max_tokens": 1800,
               "temperature": 0.1,
               "chat_template_kwargs": {
                   "enable_thinking": False
@@ -199,12 +182,14 @@ jobs:
               method="POST"
           )
 
-          print("Requesting CSS design proposal.")
-          print("Thinking mode disabled.")
+          print("Requesting CSS-only proposal.")
           print("Website source files will not be modified.")
 
           try:
-              with urllib.request.urlopen(request, timeout=180) as response:
+              with urllib.request.urlopen(
+                  request,
+                  timeout=180
+              ) as response:
                   data = json.loads(
                       response.read().decode("utf-8")
                   )
@@ -216,99 +201,77 @@ jobs:
 
           if not data.get("success"):
               print(json.dumps(
-                  data.get("errors", []), ensure_ascii=False
-              )[:1500])
+                  data.get("errors", []),
+                  ensure_ascii=False
+              )[:1200])
               sys.exit("ERROR: Cloudflare returned an unsuccessful response.")
 
           result = data.get("result") or {}
           choices = result.get("choices") or []
-          answer = ""
-          finish = None
 
-          if choices:
-              choice = choices[0] or {}
-              message = choice.get("message") or {}
-              finish = choice.get("finish_reason")
-              content = message.get("content")
+          if not choices:
+              sys.exit("ERROR: The model returned no choices.")
 
-              if isinstance(content, str):
-                  answer = content.strip()
-              elif isinstance(content, list):
-                  answer = "\n".join(
-                      item["text"]
-                      for item in content
-                      if isinstance(item, dict)
-                      and isinstance(item.get("text"), str)
-                  ).strip()
+          choice = choices[0] or {}
+          finish = choice.get("finish_reason")
+          message = choice.get("message") or {}
+          answer = message.get("content")
 
-          if not answer and isinstance(result.get("response"), str):
-              answer = result["response"].strip()
+          if not isinstance(answer, str) or not answer.strip():
+              if isinstance(result.get("response"), str):
+                  answer = result["response"]
+              else:
+                  sys.exit("ERROR: The model returned no CSS text.")
 
-          print("Extracted response characters:", len(answer))
           print("Finish reason:", finish)
+          print("Response characters:", len(answer))
           print("Usage:", json.dumps(
-              result.get("usage", {}), ensure_ascii=False
-          )[:500])
+              result.get("usage", {}),
+              ensure_ascii=False
+          )[:400])
 
-          if not answer:
+          if finish == "length":
               sys.exit(
-                  "ERROR: The model returned no readable text. "
+                  "ERROR: Model output was truncated. "
                   "No proposal was accepted."
               )
 
-          cleaned = re.sub(
-              r"^```(?:json)?\s*", "", answer, flags=re.I
+          patch = answer.strip()
+
+          patch = re.sub(
+              r"^```(?:css)?\s*",
+              "",
+              patch,
+              flags=re.I
           )
-          cleaned = re.sub(r"\s*```$", "", cleaned).strip()
-
-          try:
-              report = json.loads(cleaned)
-          except json.JSONDecodeError as exc:
-              print("Response preview:", cleaned[:1200])
-              sys.exit(f"ERROR: Model returned invalid JSON: {exc}")
-
-          required = [
-              "css_patch",
-              "confirmed_findings",
-              "needs_verification",
-              "accessibility_responsiveness",
-              "functional_roadmap",
-              "html_candidates",
-              "implementation_stages"
-          ]
-
-          missing = [key for key in required if key not in report]
-          if missing:
-              sys.exit("ERROR: Missing report fields: " + ", ".join(missing))
-
-          patch = report["css_patch"]
-          if not isinstance(patch, str):
-              sys.exit("ERROR: css_patch must be a string.")
-
-          patch = patch.strip()
+          patch = re.sub(r"\s*```$", "", patch).strip()
 
           if not patch:
-              sys.exit(
-                  "ERROR: The model returned an empty CSS patch. "
-                  "The workflow will not mark this as successful. "
-                  "Inspect the model response and revise the proposal."
-              )
+              sys.exit("ERROR: The CSS proposal is empty.")
 
-          if len(patch) > 2200:
-              sys.exit("ERROR: CSS patch exceeds the permitted length.")
+          if len(patch) > 1800:
+              sys.exit("ERROR: CSS proposal exceeds the size limit.")
 
           if not re.search(r"[^{}]+\{[^{}]+\}", patch):
-              sys.exit("ERROR: The response contains no recognizable CSS rule.")
+              sys.exit("ERROR: No complete CSS rule was found.")
+
+          if patch.count("{") != patch.count("}"):
+              sys.exit("ERROR: CSS braces are unbalanced.")
 
           if re.search(
-              r"<\s*/?\s*(?:script|html|body|iframe)\b|javascript\s*:",
+              r"<\s*/?\s*(?:script|html|body|iframe)\b"
+              r"|javascript\s*:|expression\s*\(",
               patch,
               flags=re.I
           ):
-              sys.exit("ERROR: Unexpected markup found in CSS.")
+              sys.exit("ERROR: Unsafe or unexpected content in CSS.")
 
-          if re.search(r"@import\b|url\s*\(", patch, flags=re.I):
-              sys.exit("ERROR: CSS imports and URLs are not allowed.")
+          if re.search(
+              r"@import\b|url\s*\(|behavior\s*:",
+              patch,
+              flags=re.I
+          ):
+              sys.exit("ERROR: Imports and external URLs are not allowed.")
 
           Path("design-proposal.css").write_text(
               "/* AI proposal only. Not applied to the website. */\n\n"
@@ -316,45 +279,36 @@ jobs:
               encoding="utf-8"
           )
 
-          titles = {
-              "confirmed_findings": "Подтверждённые наблюдения",
-              "needs_verification": "Что проверить вручную",
-              "accessibility_responsiveness": "Доступность и адаптивность",
-              "functional_roadmap": "Функциональные задачи вне CSS",
-              "html_candidates": "Кандидаты на изменение HTML",
-              "implementation_stages": "Следующие шаги"
-          }
+          report = """# Предложение по дизайну «Штаба писателя»
 
-          lines = [
-              "# Предложение по дизайну «Штаба писателя»",
-              "",
-              "> Предложение не применено к сайту.",
-              "> Проверка в браузере не выполнялась.",
-              "> Исходные файлы сайта не изменялись.",
-              "",
-              "## CSS",
-              "",
-              "Патч создан и сохранён отдельно для ручной проверки.",
-              ""
-          ]
+          > Предложение не применено к сайту.
+          > Проверка в браузере не выполнялась.
+          > Исходные файлы сайта не изменялись.
 
-          for key, title in titles.items():
-              lines.extend(["## " + title, ""])
-              items = report.get(key, [])
+          ## Результат
 
-              if not isinstance(items, list) or not items:
-                  lines.extend(["- Нет записей.", ""])
-                  continue
+          Получен CSS-патч от модели Cloudflare AI.
+          Проверены наличие CSS-правил, баланс фигурных скобок
+          и отсутствие некоторых небезопасных конструкций.
 
-              for item in items[:2]:
-                  lines.append("- " + str(item))
-              lines.append("")
+          ## Важно
+
+          Автоматическая проверка не подтверждает визуальную
+          корректность, доступность или адаптивность патча.
+          Перед применением необходимо проверить каждый селектор
+          и оценить результат в браузере.
+
+          ## CSS
+
+          Полный патч находится в файле design-proposal.css.
+          """
 
           Path("design-review-report.md").write_text(
-              "\n".join(lines), encoding="utf-8"
+              report,
+              encoding="utf-8"
           )
 
-          print("CSS proposal generated and validated.")
+          print("CSS proposal generated and basic checks passed.")
           print("Website source files were not modified.")
           PY
 
