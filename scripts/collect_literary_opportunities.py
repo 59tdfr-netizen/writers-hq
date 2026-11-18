@@ -220,7 +220,7 @@ def supabase_request(method: str, path: str, payload=None):
         "apikey": key,
         "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
-        "Prefer": "return=representation",
+        "Prefer": "resolution=ignore-duplicates,return=representation" if method == "POST" else "return=representation",
     }
     request = Request(base + "/rest/v1/" + path, data=data, headers=headers, method=method)
     try:
@@ -285,7 +285,7 @@ def main():
             continue
         try:
             code, result = supabase_request("POST", "writer_opportunities?on_conflict=dedupe_url_key", record)
-            if code == 409 or (isinstance(result, str) and "duplicate key" in result.lower()):
+            if code == 409 or (isinstance(result, str) and "duplicate key" in result.lower()) or (isinstance(result, list) and not result):
                 print(f"SKIP database duplicate: {record['title']}")
                 skipped += 1
                 continue
