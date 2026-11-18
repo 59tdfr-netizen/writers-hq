@@ -36,6 +36,12 @@ DEADLINE_CONTEXT = re.compile(
     re.I,
 )
 EXPIRED_MARKER = re.compile(r"конкурс\s+прош[её]л|при[её]м\s+(?:заявок|работ)\s+заверш[её]н|архив", re.I)
+ROUNDUP_TITLE = re.compile(
+    r"^(?:(?:подборка|список)\s+)?конкурсы\s+"
+    r"(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря|месяца|недели|года)"
+    r"(?:\s+20\d{2})?$",
+    re.I,
+)
 
 
 def fetch(url: str) -> str:
@@ -53,6 +59,12 @@ def canonical_url(url: str) -> str:
     if path == "":
         path = "/"
     return urlunparse((parsed.scheme.lower() or "https", host, path, "", "", ""))
+
+
+def is_roundup_title(title: str) -> bool:
+    """Return True for monthly/periodic roundup articles, not individual opportunities."""
+    normalized = clean_text(title).strip(" .:—–-")
+    return bool(ROUNDUP_TITLE.fullmatch(normalized) or re.match(r"^(?:подборка|список)\s+конкурсов\b", normalized, re.I))
 
 
 def normalize_title(title: str) -> str:
@@ -117,6 +129,10 @@ def collect_links(soup: BeautifulSoup) -> list[tuple[str, str, str]]:
         if anchor is None:
             continue
         title = clean_text(anchor.get_text(" ", strip=True))
+        # Roundup articles contain deadlines for many unrelated opportunities and must not
+        # be treated as a single contest (their first date is not their own deadline).
+        if is_roundup_title(title):
+            continue
         url = canonical_url(urljoin(BASE, anchor.get("href", "")))
         parsed = urlparse(url)
         if parsed.hostname not in ("vsekonkursy.ru", "www.vsekonkursy.ru") or url.rstrip("/") == LIST_URL.rstrip("/"):
