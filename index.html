@@ -2186,13 +2186,13 @@ function makePersonRow(profile, isFollowing, mode) {
     try{
       const normalizeOpportunityTitle = value => String(value || '')
         .toLocaleLowerCase('ru-RU')
-        .replace(/[\\s\\p{P}\\p{S}]+/gu, '');
+        .replace(/[\s\p{P}\p{S}]+/gu, '');
       const normalizeOpportunityUrl = value => {
         try {
           const url = new URL(value);
           url.hash = '';
           url.search = '';
-          return url.toString().replace(/\\/+$/, '').toLocaleLowerCase('ru-RU');
+          return url.toString().replace(/\/+$/, '').toLocaleLowerCase('ru-RU');
         } catch {
           return String(value || '').trim().toLocaleLowerCase('ru-RU');
         }
