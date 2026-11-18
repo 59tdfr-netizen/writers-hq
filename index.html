@@ -2184,8 +2184,52 @@ function makePersonRow(profile, isFollowing, mode) {
     };
     button.disabled=true;button.textContent='Сохраняем…';
     try{
+      const normalizeOpportunityTitle = value => String(value || '')
+        .toLocaleLowerCase('ru-RU')
+        .replace(/[\\s\\p{P}\\p{S}]+/gu, '');
+      const normalizeOpportunityUrl = value => {
+        try {
+          const url = new URL(value);
+          url.hash = '';
+          url.search = '';
+          return url.toString().replace(/\\/+$/, '').toLocaleLowerCase('ru-RU');
+        } catch {
+          return String(value || '').trim().toLocaleLowerCase('ru-RU');
+        }
+      };
+
+      // Предварительная проверка защищает от случайного повторного ручного добавления.
+      // Уникальные индексы в БД дополнительно закрывают гонку между одновременными вставками.
+      const {data:existingOpportunities,error:existingError} = await client
+        .from('writer_opportunities')
+        .select('id,title,source_url,deadline,status');
+      if(existingError)throw existingError;
+
+      const incomingUrl = normalizeOpportunityUrl(payload.source_url);
+      const incomingTitle = normalizeOpportunityTitle(payload.title);
+      const duplicate = (existingOpportunities || []).find(item => {
+        const sameUrl = incomingUrl && normalizeOpportunityUrl(item.source_url) === incomingUrl;
+        const sameTitleAndDeadline =
+          incomingTitle &&
+          normalizeOpportunityTitle(item.title) === incomingTitle &&
+          (item.deadline || '') === (payload.deadline || '');
+        return sameUrl || sameTitleAndDeadline;
+      });
+
+      if(duplicate){
+        const duplicateTitle = duplicate.title || 'этот конкурс';
+        alert('Похоже, конкурс «' + duplicateTitle + '» уже есть в каталоге. Открой существующую карточку — второй раз добавлять его не нужно.');
+        return;
+      }
+
       const {data,error}=await client.from('writer_opportunities').insert(payload).select('*').single();
-      if(error)throw error;
+      if(error){
+        if(error.code === '23505'){
+          alert('Этот конкурс уже есть в каталоге. Проверь существующую карточку, чтобы не создавать дубликат.');
+          return;
+        }
+        throw error;
+      }
       opportunityData=[...opportunityData,data].sort((a,b)=>(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31'));
       $('manualOpportunityForm').reset();$('manualOpportunityFormWrap').hidden=true;$('toggleManualOpportunityForm').setAttribute('aria-expanded','false');
       selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();showToast('Конкурс добавлен.');
@@ -2257,8 +2301,8 @@ function makePersonRow(profile, isFollowing, mode) {
       const heroImage=document.getElementById('frescoBannerImage');
       if(heroImage){
         if(targetId==='projectsSection'){
-          heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Antonello%20da%20Messina%20-%20St%20Jerome%20in%20his%20study.jpg?width=1200';
-          heroImage.alt='Антонелло да Мессина, «Святой Иероним в келье», около 1475 года — ренессансная картина об учёном и его библиотеке';
+          heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Pieter_Bruegel_the_Elder_-_Children%E2%80%99s_Games_-_Google_Art_Project.jpg?width=1400';
+          heroImage.alt='Питер Брейгель Старший, «Детские игры», 1560 год';
           heroImage.classList.add('project-hero-image');
         }else{
           heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400';
@@ -2726,9 +2770,9 @@ function makePersonRow(profile, isFollowing, mode) {
       position: 'center 48%'
     },
     projectsSection: {
-      src: 'assets/renaissance-studio.svg',
-      alt: 'Ренессансная мастерская: открытая книга, перо, Флоренция и мраморный бюст',
-      position: 'center 50%'
+      src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pieter_Bruegel_the_Elder_-_Children%E2%80%99s_Games_-_Google_Art_Project.jpg?width=1400',
+      alt: 'Питер Брейгель Старший, «Детские игры», 1560 год',
+      position: 'center 48%'
     }
   };
 
