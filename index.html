@@ -706,6 +706,29 @@ textarea { resize: vertical; }
 .submission-status.submitted{background:#e5e8dc;color:#36543b}
 @media(max-width:800px){.project-detail-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.project-hub-head{align-items:flex-start}.op-calendar-day{min-height:48px;padding:5px}.project-detail-top{display:block}.project-detail-controls{margin-top:12px}}
 @media(max-width:520px){.project-hub-head{flex-direction:column;align-items:stretch}.project-hub-head .btn{width:100%}.project-hub-tabs{position:sticky;top:6px;z-index:4;background:var(--bg);padding:8px 0;overflow-x:auto}.project-hub-tab{white-space:nowrap;padding:9px 13px}.project-detail-stats{gap:7px}.project-detail-stat{padding:10px}.project-swipe-card{flex-basis:84vw}.op-calendar-weekday{font-size:10px}.op-calendar-day{min-height:44px}.opportunity-item,.submission-plan-item{padding:13px}.submission-plan-item{display:block}.submission-plan-item .plan-actions{margin-top:12px}.opportunity-plan-row button{width:100%}}
+
+.opportunity-item .project-status-chip{white-space:normal;overflow-wrap:anywhere;word-break:normal;max-width:100%;line-height:1.3}
+.opportunity-item .project-card-top{align-items:flex-start;min-width:0;flex-wrap:wrap}
+.opportunity-item .project-card-top>.small{white-space:normal;text-align:right;overflow-wrap:anywhere}
+.expandable-copy{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.expandable-copy.clamped{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+.expand-copy-btn{display:inline-block;margin-top:4px;border:0;padding:2px 0;background:transparent;color:var(--wine);font:inherit;font-size:12px;font-weight:700;text-decoration:underline;cursor:pointer;touch-action:manipulation}
+.op-calendar-legend{flex-wrap:wrap;align-items:flex-start}
+.op-calendar-legend .small{flex:1 1 100%;line-height:1.4}
+.opportunity-item h3,.submission-plan-item h3,.opportunity-item p,.submission-plan-item p,.opportunity-item a,.project-detail-title,.project-swipe-card h3{min-width:0;overflow-wrap:anywhere;word-break:normal}
+@media(max-width:520px){
+ .opportunity-item h3,.submission-plan-item h3{font-size:21px;line-height:1.2}
+ .opportunity-item .project-card-top{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+ .opportunity-item .project-card-top>.small{text-align:left}
+ .opportunity-meta span{max-width:100%;white-space:normal;overflow-wrap:anywhere;border-radius:9px}
+ .opportunity-plan-row select{flex-basis:100%;width:100%}
+ .op-calendar-legend{font-size:11px}
+ .op-calendar-legend .small{font-size:11px}
+ .submission-plan-item .plan-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%;margin-top:12px}
+ .submission-plan-item .plan-actions .btn{width:100%;white-space:normal;overflow-wrap:anywhere}
+ .submission-status{white-space:normal;max-width:100%;overflow-wrap:anywhere}
+ .expand-copy-btn{min-height:32px}
+}
 </style>
 </head>
 <body class="diary-locked">
@@ -745,7 +768,7 @@ textarea { resize: vertical; }
             <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email"></div>
           </div>
           <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required autocomplete="new-password"></div>
-          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать статистику и достижения авторам, на которых я подписан(а)</strong><br>Эту настройку можно будет изменить в профиле. Другому автору достаточно подписаться на тебя — взаимная подписка не нужна.</span></label>
+          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать статистику и достижения авторам, на которых я подписан(а)</strong><br>Эту настройку можно будет изменить в профиле. Достаточно, чтобы человек подписался на тебя — взаимная подписка не нужна.</span></label>
           <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
         </form>
       </details>
@@ -845,7 +868,7 @@ textarea { resize: vertical; }
           <div class="calendar-nav"><button type="button" class="icon-btn" id="opMonthPrev" aria-label="Предыдущий месяц">‹</button><span class="month-label" id="opMonthLabel"></span><button type="button" class="icon-btn" id="opMonthNext" aria-label="Следующий месяц">›</button></div>
         </div>
         <div class="opportunity-calendar" id="opportunityCalendar"></div>
-        <div class="op-calendar-legend"><span class="op-date-dot"></span> Дедлайн подачи <button type="button" class="text-button" id="showAllOpportunities">Показать все</button></div>
+        <div class="op-calendar-legend"><span class="op-date-dot"></span><span>Дедлайн подачи</span><span class="small">Нажми на дату с точкой, чтобы отфильтровать конкурсы. Нажми ещё раз, чтобы сбросить фильтр.</span></div>
       </div>
       <div class="card">
         <div class="card-head"><h2 id="opportunityListTitle">Открытые возможности</h2><div class="project-detail-controls"><span class="small" id="opportunityCount"></span><button type="button" class="btn secondary" id="toggleManualOpportunityForm" aria-expanded="false">+ Добавить конкурс</button></div></div>
@@ -1199,8 +1222,8 @@ function renderOpportunityList(){
   const tags=(o.genres||[]).slice(0,4).map(g=>'<span>'+escapeHubText(g)+'</span>').join('');
   const select=(state.projects||[]).map(p=>'<option value="'+p.id+'">'+escapeHubText(p.name)+'</option>').join('')+'<option value="__create_project__">＋ Создать проект…</option>';
   const already=submissionPlans.some(p=>p.opportunity_id===o.id&&p.status!=='withdrawn');
-  return '<article class="opportunity-item"><div class="project-card-top"><span class="project-status-chip">'+escapeHubText(o.organizer||'Опен-колл')+'</span><span class="small">'+escapeHubText(deadline)+'</span></div><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(o.summary)+'</p><div class="opportunity-meta">'+tags+(formats?'<span>Формат: '+escapeHubText(formats)+'</span>':'')+'</div><p class="opportunity-eligibility">'+escapeHubText(o.eligibility||'Проверьте условия на сайте организатора')+'</p><p class="small">'+escapeHubText(o.fee_info||'')+(o.results_date?' · Результаты: '+escapeHubText(fmtDate(o.results_date)):'')+'</p><p><a href="'+escapeHubText(o.source_url)+'" target="_blank" rel="noopener noreferrer">Официальные условия ↗</a></p>'+(already?'<div class="submission-status">Уже добавлено в заявки</div>':'<div class="opportunity-plan-row"><select aria-label="Выбрать проект для подачи" data-op-project="'+o.id+'">'+select+'</select><button type="button" class="btn primary" data-plan-op="'+o.id+'" '+(state.projects.length?'':'disabled')+'>Планирую подать</button></div>')+'</article>';
- }).join('')||(selectedOpportunityDate?'<p class="small">На эту дату дедлайнов нет. <button class="text-button" id="showAllInline">Показать все возможности</button></p>':'<p class="small">Сейчас нет открытых возможностей с известным сроком подачи.</p>');
+  return '<article class="opportunity-item"><div class="project-card-top"><span class="project-status-chip">'+escapeHubText(o.organizer||'Опен-колл')+'</span><span class="small">'+escapeHubText(deadline)+'</span></div><h3>'+escapeHubText(o.title)+'</h3><p class="expandable-copy clamped" data-copy-text="summary">'+escapeHubText(o.summary)+'</p><button type="button" class="expand-copy-btn" data-expand-copy aria-expanded="false">Показать целиком</button><div class="opportunity-meta">'+tags+(formats?'<span>Формат: '+escapeHubText(formats)+'</span>':'')+'</div><p class="opportunity-eligibility expandable-copy clamped" data-copy-text="eligibility">'+escapeHubText(o.eligibility||'Проверьте условия на сайте организатора')+'</p><button type="button" class="expand-copy-btn" data-expand-copy aria-expanded="false">Показать целиком</button><p class="small">'+escapeHubText(o.fee_info||'')+(o.results_date?' · Результаты: '+escapeHubText(fmtDate(o.results_date)):'')+'</p><p><a href="'+escapeHubText(o.source_url)+'" target="_blank" rel="noopener noreferrer">Официальные условия ↗</a></p>'+(already?'<div class="submission-status">Уже добавлено в заявки</div>':'<div class="opportunity-plan-row"><select aria-label="Выбрать проект для подачи" data-op-project="'+o.id+'">'+select+'</select><button type="button" class="btn primary" data-plan-op="'+o.id+'" '+(state.projects.length?'':'disabled')+'>Планирую подать</button></div>')+'</article>';
+ }).join('')||(selectedOpportunityDate?'<p class="small">На эту дату дедлайнов нет. Нажми на выбранную дату в календаре ещё раз, чтобы увидеть все конкурсы.</p>':'<p class="small">Сейчас нет открытых возможностей с известным сроком подачи.</p>');
  const undated=opportunityData.filter(o=>o.status==='open'&&!o.deadline);
  $('noDeadlineList').innerHTML=!selectedOpportunityDate&&undated.length?'<h3 class="small">Срок нужно уточнить</h3>'+undated.map(o=>'<article class="opportunity-item"><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(o.summary)+'</p><a href="'+escapeHubText(o.source_url)+'" target="_blank" rel="noopener noreferrer">Проверить срок у организатора ↗</a><div class="opportunity-plan-row"><select aria-label="Выбрать проект для подачи" data-op-project="'+o.id+'">'+(state.projects||[]).map(p=>'<option value="'+p.id+'">'+escapeHubText(p.name)+'</option>').join('')+'<option value="__create_project__">＋ Создать проект…</option></select><button type="button" class="btn secondary" data-plan-op="'+o.id+'">Добавить в планы</button></div></article>').join(''):'';
 }
@@ -1211,7 +1234,7 @@ function renderSubmissionPlans(){
   const o=opportunityData.find(x=>x.id===plan.opportunity_id),project=state.projects.find(x=>x.id===plan.project_id);
   if(!o)return '';
   const submitted=plan.status!=='planned';
-  return '<article class="submission-plan-item"><div class="plan-content"><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(project?.name||'Проект')+' · '+(o.deadline?'дедлайн '+escapeHubText(fmtDate(o.deadline)):'срок уточняется')+'</p>'+(o.results_date?'<p class="small">Ожидаемая дата результатов: '+escapeHubText(fmtDate(o.results_date))+'</p>':'<p class="small">Дата результатов не опубликована организатором.</p>')+'<span class="submission-status '+(submitted?'submitted':'')+'">'+(plan.status==='planned'?'Планирую подать':plan.status==='submitted'?'Подано':plan.status==='accepted'?'Принято':plan.status==='rejected'?'Не прошло':'Снято')+'</span></div><div class="plan-actions">'+(!submitted?'<button type="button" class="btn primary" data-mark-submitted="'+plan.id+'">Подал</button>':'')+'<button type="button" class="btn secondary" data-remove-plan="'+plan.id+'">Убрать</button></div></article>';
+  return '<article class="submission-plan-item"><div class="plan-content"><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(project?.name||'Проект')+' · '+(o.deadline?'дедлайн '+escapeHubText(fmtDate(o.deadline)):'срок уточняется')+'</p>'+(o.results_date?'<p class="small">Ожидаемая дата результатов: '+escapeHubText(fmtDate(o.results_date))+'</p>':'<p class="small">Дата результатов не опубликована организатором.</p>')+'<span class="submission-status '+(submitted?'submitted':'')+'">'+(plan.status==='planned'?'Планирую подать':plan.status==='submitted'?'Рукопись подана':plan.status==='accepted'?'Принято':plan.status==='rejected'?'Не прошло':'Снято')+'</span></div><div class="plan-actions">'+(!submitted?'<button type="button" class="btn primary" data-mark-submitted="'+plan.id+'">Рукопись подана</button>':'')+'<button type="button" class="btn secondary" data-remove-plan="'+plan.id+'">Убрать</button></div></article>';
  }).join('')||'<p class="small">Активных заявок пока нет.</p>';
 }
 function renderSubmissionReminder(){
@@ -1767,7 +1790,7 @@ function makePersonRow(profile, isFollowing, mode) {
             .eq('follower_id', activeUserId).eq('followed_id', profile.id);
           if (error) throw error;
           followedIds.delete(profile.id);
-          showMessage('Ты отписался от автора.', 'success');
+          showMessage('Подписка отменена.', 'success');
         } else {
           const { error } = await client.from('writer_follows').insert({ follower_id: activeUserId, followed_id: profile.id });
           if (error) throw error;
@@ -2176,7 +2199,7 @@ function makePersonRow(profile, isFollowing, mode) {
     selectedOpportunityDate=selectedOpportunityDate===day.dataset.opDate?'':day.dataset.opDate;
     renderOpportunityCalendar();renderOpportunityList();
   });
-  $('showAllOpportunities').addEventListener('click',event=>{event.preventDefault();event.stopPropagation();selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();});
+  
   async function createProjectForOpportunity(opportunityId, selectElement){
     const name=prompt('Название проекта:');if(!name||!name.trim()){if(selectElement)selectElement.value=state.projects[0]?.id||'';return}
     try{
@@ -2190,7 +2213,7 @@ function makePersonRow(profile, isFollowing, mode) {
   $('opportunityList').addEventListener('change',event=>{const select=event.target.closest('[data-op-project]');if(!select||select.value!=='__create_project__')return;const opportunityId=select.dataset.opProject;createProjectForOpportunity(opportunityId,select)});
   $('noDeadlineList').addEventListener('change',event=>{const select=event.target.closest('[data-op-project]');if(!select||select.value!=='__create_project__')return;const opportunityId=select.dataset.opProject;createProjectForOpportunity(opportunityId,select)});
   $('opportunityList').addEventListener('click',async event=>{
-    if(event.target.closest('#showAllInline')){selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();return}
+    const expand=event.target.closest('[data-expand-copy]');if(expand){const copy=expand.previousElementSibling;if(copy){const expanded=expand.getAttribute('aria-expanded')==='true';copy.classList.toggle('clamped',expanded);expand.setAttribute('aria-expanded',String(!expanded));expand.textContent=expanded?'Показать целиком':'Свернуть';}return;}
     const button=event.target.closest('[data-plan-op]');if(!button)return;
     const opportunityId=button.dataset.planOp,select=$('opportunityList').querySelector('[data-op-project="'+opportunityId+'"]')||$('noDeadlineList').querySelector('[data-op-project="'+opportunityId+'"]');
     const projectId=select?.value;if(!projectId){alert('Сначала создай проект, чтобы привязать к нему заявку.');return}
@@ -2651,7 +2674,7 @@ function makePersonRow(profile, isFollowing, mode) {
       syncVersion++;
       window.writersHQDiary.lock();
 
-      showMessage('Ты вышел из аккаунта.', 'success');
+      showMessage('Выход из аккаунта выполнен.', 'success');
     } catch (error) {
       showMessage(error.message || 'Не удалось выйти из аккаунта.', 'error');
     } finally {
