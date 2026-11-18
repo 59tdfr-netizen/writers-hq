@@ -822,7 +822,7 @@ textarea { resize: vertical; }
       <button type="button" class="project-hub-tab active" data-hub-view="projects" aria-pressed="true">Проекты</button>
       <button type="button" class="project-hub-tab" data-hub-view="submissions" aria-pressed="false">Календарь подач</button>
     </div>
-    <div id="projectHubLoading" class="card project-hub-empty">Загружаем проекты и опен-коллы…</div>
+    <div id="projectHubLoading" hidden aria-hidden="true"></div>
     <div id="projectHubProjects" class="project-hub-view">
       <div class="project-carousel-wrap">
         
@@ -840,7 +840,32 @@ textarea { resize: vertical; }
         <div class="op-calendar-legend"><span class="op-date-dot"></span> Дедлайн подачи <button type="button" class="text-button" id="showAllOpportunities">Показать все</button></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2 id="opportunityListTitle">Открытые возможности</h2><span class="small" id="opportunityCount"></span></div>
+        <div class="card-head"><h2 id="opportunityListTitle">Открытые возможности</h2><div class="project-detail-controls"><span class="small" id="opportunityCount"></span><button type="button" class="btn secondary" id="toggleManualOpportunityForm" aria-expanded="false">+ Добавить конкурс</button></div></div>
+        <div id="manualOpportunityFormWrap" hidden>
+          <form id="manualOpportunityForm" class="manual-opportunity-form">
+            <div class="field"><label for="manualOppTitle">Название конкурса *</label><input id="manualOppTitle" required maxlength="180"></div>
+            <div class="form-row">
+              <div class="field"><label for="manualOppOrganizer">Организатор *</label><input id="manualOppOrganizer" required maxlength="180"></div>
+              <div class="field"><label for="manualOppDeadline">Дедлайн подачи</label><input id="manualOppDeadline" type="date"></div>
+            </div>
+            <div class="field"><label for="manualOppSummary">Краткое описание *</label><textarea id="manualOppSummary" required maxlength="1200" rows="3"></textarea></div>
+            <div class="form-row">
+              <div class="field"><label for="manualOppGenres">Жанры (через запятую)</label><input id="manualOppGenres" placeholder="Проза, драматургия"></div>
+              <div class="field"><label for="manualOppFormats">Форматы (через запятую)</label><input id="manualOppFormats" placeholder="Рассказ, пьеса, роман"></div>
+            </div>
+            <div class="field"><label for="manualOppEligibility">Кто может участвовать</label><input id="manualOppEligibility" maxlength="500" placeholder="Например, авторы старше 18 лет"></div>
+            <div class="form-row">
+              <div class="field"><label for="manualOppFee">Взнос / условия оплаты</label><input id="manualOppFee" maxlength="300" placeholder="Бесплатно / условия на сайте"></div>
+              <div class="field"><label for="manualOppResults">Дата результатов</label><input id="manualOppResults" type="date"></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label for="manualOppSource">Страница с условиями *</label><input id="manualOppSource" type="url" required placeholder="https://..."></div>
+              <div class="field"><label for="manualOppSubmission">Ссылка на подачу</label><input id="manualOppSubmission" type="url" placeholder="https://..."></div>
+            </div>
+            <div class="project-detail-actions"><button type="submit" class="btn primary" id="saveManualOpportunity">Сохранить конкурс</button><button type="button" class="btn secondary" id="cancelManualOpportunity">Отмена</button></div>
+            <p class="small">Добавленный конкурс сохранится в базе и будет виден другим вошедшим авторам. Перед подачей проверь условия у организатора.</p>
+          </form>
+        </div>
         <div id="opportunityList" class="opportunity-list"></div>
         <div id="noDeadlineList" class="no-deadline-list"></div>
       </div>
@@ -862,7 +887,7 @@ textarea { resize: vertical; }
 
   <section class="card received-support-card auth-hidden" id="receivedSupportCard">
     <div class="card-head">
-      <div><h2>Поддержка сообщества</h2><div class="small" style="margin-top:4px">Авторы, которые поддержали тебя в дневнике или достижениях.</div></div>
+      <div><h2>Поддержка сообщества</h2><div class="small" style="margin-top:4px">Авторы, которые поддержали тебя.</div></div>
       <button type="button" class="btn secondary" id="receivedSupportToggle" aria-expanded="false">Тебя поддерживают: <span id="receivedSupportCount">0</span></button>
     </div>
     <div id="receivedSupportDetails" hidden>
@@ -1040,6 +1065,13 @@ function exportBackup(){
  renderBackupNotice();
 }
 function sessionEntries(mode=state.workMode, projectId=state.selectedProjectId){return (state.projectSessions&&state.projectSessions[projectId]&&state.projectSessions[projectId][mode])||{}}
+function aggregateActivityEntries(){
+ const totals={};
+ Object.values(state.projectSessions||{}).forEach(modes=>{
+  ['writing','editing'].forEach(mode=>Object.entries(modes?.[mode]||{}).forEach(([date,value])=>{totals[date]=(totals[date]||0)+Math.max(0,Number(value)||0)}));
+ });
+ return totals;
+}
 function writingEntries(projectId=state.selectedProjectId){return sessionEntries('writing',projectId)}
 function total(){return Object.values(writingEntries()).reduce((a,b)=>a+Math.max(0,Number(b)||0),0)}
 function editedTotal(projectId=state.selectedProjectId){return Object.values(sessionEntries('editing',projectId)).reduce((a,b)=>a+Math.max(0,Number(b)||0),0)}
@@ -1088,12 +1120,13 @@ $('goalStatus').className='status '+cls;$('goalStatusText').textContent=status;
 function renderCalendar(){
 const y=viewDate.getFullYear(),m=viewDate.getMonth();$('monthLabel').textContent=monthFmt(viewDate);
 const first=new Date(y,m,1),last=new Date(y,m+1,0),offset=(first.getDay()+6)%7;
-const monthValues=Array.from({length:last.getDate()},(_,i)=>Number(state.entries[keyDate(new Date(y,m,i+1))]||0)).filter(n=>n>0);
+const activityTotals=aggregateActivityEntries();
+const monthValues=Array.from({length:last.getDate()},(_,i)=>Number(activityTotals[keyDate(new Date(y,m,i+1))]||0)).filter(n=>n>0);
 const max=Math.max(1,...monthValues);
 let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(w=>`<div class="weekday">${w}</div>`).join('');
 for(let i=0;i<offset;i++)html+='<div class="day empty"></div>';
 for(let d=1;d<=last.getDate();d++){
- const date=new Date(y,m,d),key=keyDate(date),n=Number(state.entries[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===selectedDate;
+ const date=new Date(y,m,d),key=keyDate(date),n=Number(activityTotals[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===selectedDate;
  const level=n<=0?'':n<=max*.25?'level-1':n<=max*.5?'level-2':n<=max*.75?'level-3':'level-4';
  html+=`<button class="day ${level} ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity"></span></button>`;
 }
@@ -1108,7 +1141,7 @@ function render(){renderTop();renderGoal();renderCalendar();renderHistory();rend
 
 function escapeHubText(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 let opportunityData=[], submissionPlans=[], opportunityMonth=new Date(), selectedOpportunityDate='', projectHubView='projects', projectHubLoadedUserId='', projectHubRequestId=0;
-const RENAISSANCE_STUDIO_IMAGE='data:image/webp;base64,'+"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";
+const RENAISSANCE_STUDIO_IMAGE='assets/renaissance-studio.svg';
 function projectLabelStatus(status){return ({in_progress:'В работе',editing:'Редактура',completed:'Завершён',paused:'На паузе'})[status]||'В работе'}
 function projectMetrics(project){
  const writing=Object.values(sessionEntries('writing',project.id)).reduce((a,b)=>a+Math.max(0,Number(b)||0),0);
@@ -1135,7 +1168,7 @@ function renderProjectDetail(){
  const p=currentProject(),el=$('projectDetailCard');
  if(!p){el.innerHTML='<h2>Нет проектов</h2><p class="small">Добавь первую рукопись, чтобы отслеживать прогресс.</p>';return}
  const m=projectMetrics(p);
- el.innerHTML='<div class="project-detail-top"><div><div class="eyebrow">ПРОЕКТ</div><h2 class="project-detail-title">'+escapeHubText(p.name)+'</h2><p class="small">'+escapeHubText(projectLabelStatus(p.status))+(p.deadline?' · Дедлайн: '+escapeHubText(fmtDate(p.deadline)):' · Дедлайн не задан')+'</p></div><div class="project-detail-controls"><label class="small" for="projectStatusSelect">Статус</label><select id="projectStatusSelect" data-project-status="'+p.id+'"><option value="in_progress" '+(p.status==='in_progress'?'selected':'')+'>В работе</option><option value="editing" '+(p.status==='editing'?'selected':'')+'>Редактура</option><option value="completed" '+(p.status==='completed'?'selected':'')+'>Завершён</option><option value="paused" '+(p.status==='paused'?'selected':'')+'>На паузе</option></select></div></div><div class="project-detail-progress"><div class="goal-top"><div><span class="small">Прогресс написания</span><div class="progress-num">'+Math.round(m.pct)+'%</div></div><div style="text-align:right"><span class="small">Написано из цели</span><strong>'+fmt(m.writing)+' / '+fmt(m.target)+'</strong></div></div><div class="bar"><div class="bar-fill" style="width:'+m.pct+'%"></div></div></div><div class="project-detail-stats"><div class="project-detail-stat"><span class="small">Написано</span><strong>'+fmt(m.writing)+'</strong><span class="small">знаков</span></div><div class="project-detail-stat"><span class="small">Отредактировано</span><strong>'+fmt(m.editing)+'</strong><span class="small">знаков</span></div><div class="project-detail-stat"><span class="small">Осталось написать</span><strong>'+fmt(m.remaining)+'</strong><span class="small">знаков до цели</span></div><div class="project-detail-stat"><span class="small">Активных дней</span><strong>'+fmt(m.activeDays)+'</strong><span class="small">дней работы</span></div></div><div class="project-detail-actions"><button type="button" class="btn primary" id="hubOpenDiaryBtn">Открыть дневник проекта</button><button type="button" class="btn secondary" id="hubEditProjectBtn">Изменить название и цель</button></div>';
+ el.innerHTML='<div class="project-detail-top"><div><div class="eyebrow">ПРОЕКТ</div><h2 class="project-detail-title">'+escapeHubText(p.name)+'</h2><p class="small">'+escapeHubText(projectLabelStatus(p.status))+(p.deadline?' · Дедлайн: '+escapeHubText(fmtDate(p.deadline)):' · Дедлайн не задан')+'</p></div><div class="project-detail-controls"><label class="small" for="projectStatusSelect">Статус</label><select id="projectStatusSelect" data-project-status="'+p.id+'"><option value="in_progress" '+(p.status==='in_progress'?'selected':'')+'>В работе</option><option value="editing" '+(p.status==='editing'?'selected':'')+'>Редактура</option><option value="completed" '+(p.status==='completed'?'selected':'')+'>Завершён</option><option value="paused" '+(p.status==='paused'?'selected':'')+'>На паузе</option></select></div></div><div class="project-detail-progress"><div class="goal-top"><div><span class="small">Прогресс написания</span><div class="progress-num">'+Math.round(m.pct)+'%</div></div><div style="text-align:right"><span class="small">Написано из цели</span><strong>'+fmt(m.writing)+' / '+fmt(m.target)+'</strong></div></div><div class="bar"><div class="bar-fill" style="width:'+m.pct+'%"></div></div></div><div class="project-detail-stats"><div class="project-detail-stat"><span class="small">Написано</span><strong>'+fmt(m.writing)+'</strong><span class="small">знаков</span></div><div class="project-detail-stat"><span class="small">Отредактировано</span><strong>'+fmt(m.editing)+'</strong><span class="small">знаков</span></div><div class="project-detail-stat"><span class="small">Осталось написать</span><strong>'+fmt(m.remaining)+'</strong><span class="small">знаков до цели</span></div><div class="project-detail-stat"><span class="small">Активных дней</span><strong>'+fmt(m.activeDays)+'</strong><span class="small">дней работы</span></div></div><div class="project-detail-actions"><button type="button" class="btn primary" id="hubOpenDiaryBtn">Открыть дневник проекта</button><button type="button" class="btn secondary" id="hubEditProjectBtn">Изменить название и цель</button><button type="button" class="btn secondary danger-outline" id="hubDeleteProjectBtn">Удалить проект</button></div>';
 }
 function renderOpportunityCalendar(){
  const y=opportunityMonth.getFullYear(),m=opportunityMonth.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),offset=(first.getDay()+6)%7;
@@ -1190,12 +1223,10 @@ async function loadProjectHub(){
  const requestId=++projectHubRequestId;
  const userId=window.writersHQUserId,client=window.writersHQClient;
  if(!userId||!client){
-  $('projectHubLoading').hidden=false;
-  $('projectHubLoading').textContent='Подключаем аккаунт… После завершения синхронизации данные появятся здесь.';
+  $('projectHubLoading').hidden=true;
   return;
  }
- $('projectHubLoading').hidden=false;
- $('projectHubLoading').textContent='Загружаем проекты и календарь подач…';
+ $('projectHubLoading').hidden=true;
  $('projectHubProjects').hidden=projectHubView!=='projects';$('projectHubSubmissions').hidden=projectHubView!=='submissions';
  try{
   // Каждый раз читаем проекты и дневник из облака: карточки не зависят от локального состояния
@@ -1235,8 +1266,9 @@ async function loadProjectHub(){
   if(requestId!==projectHubRequestId)return;
   projectHubLoadedUserId='';
   if(window.writersHQUserId!==userId)return;
-  $('projectHubLoading').hidden=false;
-  $('projectHubLoading').textContent='Не удалось загрузить проекты: '+(error.message||'проверь подключение и права доступа')+'. Попробуй переключиться в другой раздел и вернуться.';
+  $('projectHubLoading').hidden=true;
+  $('projectCarousel').innerHTML='<p class="small">Не удалось загрузить проекты: '+escapeHubText(error.message||'проверь подключение и права доступа')+'. Обнови раздел позже.</p>';
+  $('opportunityList').innerHTML='<p class="small">Не удалось загрузить опен-коллы: '+escapeHubText(error.message||'проверь подключение и права доступа')+'.</p>';
  }
 }
 function openDiaryForProject(){
@@ -2041,6 +2073,23 @@ function makePersonRow(profile, isFollowing, mode) {
   });
   $('projectDetailCard').addEventListener('click',async event=>{
     if(event.target.closest('#hubOpenDiaryBtn')){openDiaryForProject();return}
+    if(event.target.closest('#hubDeleteProjectBtn')){
+      const p=currentProject();if(!p)return;
+      if((state.projects||[]).length<=1){alert('Нельзя удалить последний проект. Сначала создай другой проект.');return}
+      if(!confirm('Удалить проект «'+p.name+'»? Вместе с ним будут удалены все записи написания и редактуры по этому проекту, а также связанные планы подачи. Это действие нельзя отменить.'))return;
+      const deleteButton=event.target.closest('#hubDeleteProjectBtn');deleteButton.disabled=true;
+      try{
+        const {error}=await window.writersHQClient.from('writer_projects').delete().eq('id',p.id).eq('user_id',window.writersHQUserId);
+        if(error)throw error;
+        state.projects=state.projects.filter(item=>item.id!==p.id);
+        if(state.projectSessions)delete state.projectSessions[p.id];
+        state.selectedProjectId=state.projects[0]?.id||null;
+        const next=currentProject();if(next)state.goal={name:next.name,sheets:Number(next.goal_sheets)||8,sheetSize:Number(next.sheet_size)||40000,deadline:next.deadline||''};
+        state.entries=sessionEntries();
+        persist();renderProjectControls();render();renderProjectCards();renderProjectDetail();await window.writersHQProjectHub.load();showToast('Проект удалён.');
+      }catch(error){alert('Не удалось удалить проект. '+(error.message||''));deleteButton.disabled=false}
+      return;
+    }
     if(event.target.closest('#hubEditProjectBtn')){
       const p=currentProject();if(!p)return;
       const name=prompt('Название проекта:',p.name);if(name===null||!name.trim())return;
@@ -2054,6 +2103,54 @@ function makePersonRow(profile, isFollowing, mode) {
         if(error)throw error;Object.assign(p,data);selectProjectData(p.id);renderProjectControls();render();renderProjectCards();renderProjectDetail();showToast('Проект обновлён.');
       }catch(error){alert('Не удалось обновить проект. '+(error.message||''))}
     }
+  });
+  $('toggleManualOpportunityForm').addEventListener('click',()=>{
+    const wrap=$('manualOpportunityFormWrap'),open=wrap.hidden;
+    wrap.hidden=!open;$('toggleManualOpportunityForm').setAttribute('aria-expanded',String(open));
+    if(open)$('manualOppTitle').focus();
+  });
+  $('cancelManualOpportunity').addEventListener('click',()=>{
+    $('manualOpportunityForm').reset();$('manualOpportunityFormWrap').hidden=true;$('toggleManualOpportunityForm').setAttribute('aria-expanded','false');
+  });
+  $('manualOpportunityForm').addEventListener('submit',async event=>{
+    event.preventDefault();
+    const button=$('saveManualOpportunity');
+    if(button.disabled)return;
+    const userId=window.writersHQUserId,client=window.writersHQClient;
+    if(!userId||!client){alert('Войди в аккаунт, чтобы сохранить конкурс.');return}
+    const urlValue=id=>$(id).value.trim();
+    const validUrl=value=>{try{const u=new URL(value);return u.protocol==='https:'||u.protocol==='http:'}catch{return false}};
+    const sourceUrl=urlValue('manualOppSource'),submissionUrl=urlValue('manualOppSubmission');
+    if(!validUrl(sourceUrl)){alert('Укажи корректную ссылку на страницу конкурса.');return}
+    if(submissionUrl&&!validUrl(submissionUrl)){alert('Ссылка на подачу должна начинаться с http:// или https://.');return}
+    const deadline=urlValue('manualOppDeadline'),resultsDate=urlValue('manualOppResults');
+    if(deadline&&resultsDate&&resultsDate<deadline){alert('Дата результатов не может быть раньше дедлайна подачи.');return}
+    const splitList=id=>urlValue(id).split(',').map(v=>v.trim()).filter(Boolean).slice(0,12);
+    const payload={
+      title:urlValue('manualOppTitle').slice(0,180),
+      organizer:urlValue('manualOppOrganizer').slice(0,180),
+      summary:urlValue('manualOppSummary').slice(0,1200),
+      genres:splitList('manualOppGenres'),
+      eligible_formats:splitList('manualOppFormats'),
+      eligibility:(urlValue('manualOppEligibility')||'Условия уточняются у организатора').slice(0,500),
+      fee_info:(urlValue('manualOppFee')||'Условия оплаты уточняются').slice(0,300),
+      deadline:deadline||null,
+      results_date:resultsDate||null,
+      source_url:sourceUrl,
+      submission_url:submissionUrl||null,
+      status:'open',
+      verified_at:new Date().toISOString().slice(0,10),
+      created_by:userId
+    };
+    button.disabled=true;button.textContent='Сохраняем…';
+    try{
+      const {data,error}=await client.from('writer_opportunities').insert(payload).select('*').single();
+      if(error)throw error;
+      opportunityData=[...opportunityData,data].sort((a,b)=>(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31'));
+      $('manualOpportunityForm').reset();$('manualOpportunityFormWrap').hidden=true;$('toggleManualOpportunityForm').setAttribute('aria-expanded','false');
+      selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();showToast('Конкурс добавлен.');
+    }catch(error){alert('Не удалось сохранить конкурс. '+(error.message||'Проверь права доступа к writer_opportunities.'))}
+    finally{button.disabled=false;button.textContent='Сохранить конкурс'}
   });
   $('opMonthPrev').addEventListener('click',()=>{opportunityMonth=new Date(opportunityMonth.getFullYear(),opportunityMonth.getMonth()-1,1);renderOpportunityCalendar()});
   $('opMonthNext').addEventListener('click',()=>{opportunityMonth=new Date(opportunityMonth.getFullYear(),opportunityMonth.getMonth()+1,1);renderOpportunityCalendar()});
@@ -2222,7 +2319,7 @@ function makePersonRow(profile, isFollowing, mode) {
 
       authStatus.textContent =
         'Дневник синхронизирован с облаком. Записи доступны в этом аккаунте.';
-      showMessage('Облачный дневник загружен.', 'success');
+      // Успешный вход не дублируем всплывающим сообщением: состояние видно в шапке.
 
       // Если раздел «Проекты» открыли до завершения авторизации/синхронизации,
       // повторяем загрузку теперь, когда пользователь и клиент Supabase готовы.
