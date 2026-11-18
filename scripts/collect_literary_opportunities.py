@@ -155,9 +155,14 @@ def extract_detail(url: str, list_text: str) -> dict | None:
     soup = BeautifulSoup(raw, "html.parser")
     page_text = clean_text(soup.get_text(" ", strip=True))
     if EXPIRED_MARKER.search(page_text[:5000]):
+        print(f"SKIP expired/archived page: {url}")
         return None
     deadline = find_deadline(page_text, list_text)
-    if not deadline or deadline < date.today():
+    if not deadline:
+        print(f"SKIP no reliable deadline found: {url}")
+        return None
+    if deadline < date.today():
+        print(f"SKIP deadline passed ({deadline.isoformat()}): {url}")
         return None
 
     title_el = soup.select_one("h1.entry-title, h1.post-title, article h1, main h1, h1")
@@ -166,6 +171,7 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         title = clean_text(soup.title.get_text(" ", strip=True)) if soup.title else ""
         title = re.sub(r"\s*[|–—-]\s*Все конкурсы.*$", "", title, flags=re.I)
     if len(title) < 8:
+        print(f"SKIP could not extract a usable title: {url}")
         return None
 
     organizer = ""
