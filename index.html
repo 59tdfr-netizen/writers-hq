@@ -709,7 +709,7 @@ textarea { resize: vertical; }
       <div class="date-chip" id="todayChip"></div>
     </div>
     <div class="renaissance-fresco">
-      <img id="frescoBannerImage" src="https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400" alt="Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы" loading="eager" decoding="async">
+      <img id="frescoBannerImage" src="https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400" alt="Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы" loading="eager" decoding="async" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='assets/renaissance-studio.svg';this.alt='Ренессансная мастерская писателя';}">
       <span class="fresco-ornament" aria-hidden="true">❦</span>
     </div>
   </section>
@@ -1107,7 +1107,7 @@ $('historyList').innerHTML=items.length?items.map(([date,n])=>`<div class="histo
 function render(){renderTop();renderGoal();renderCalendar();renderHistory();renderAchievements();renderBackupNotice()}
 
 function escapeHubText(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-let opportunityData=[], submissionPlans=[], opportunityMonth=new Date(), selectedOpportunityDate='', projectHubView='projects', projectHubLoadedUserId='';
+let opportunityData=[], submissionPlans=[], opportunityMonth=new Date(), selectedOpportunityDate='', projectHubView='projects', projectHubLoadedUserId='', projectHubRequestId=0;
 function projectLabelStatus(status){return ({in_progress:'В работе',editing:'Редактура',completed:'Завершён',paused:'На паузе'})[status]||'В работе'}
 function projectMetrics(project){
  const writing=Object.values(sessionEntries('writing',project.id)).reduce((a,b)=>a+Math.max(0,Number(b)||0),0);
@@ -1181,9 +1181,15 @@ function renderSubmissionReminder(){
  el.innerHTML='<strong>Напоминания о подаче</strong><div style="margin-top:6px">'+soon.map(x=>'• '+escapeHubText(x.opp.title)+' — '+(x.days<0?'дедлайн прошёл':x.days===0?'дедлайн сегодня':x.days===1?'остался 1 день':'осталось '+x.days+' дн.')+'.').join('<br>')+'</div>';
 }
 async function loadProjectHub(){
+ const requestId=++projectHubRequestId;
  const userId=window.writersHQUserId,client=window.writersHQClient;
- if(!userId||!client){$('projectHubLoading').hidden=false;$('projectHubLoading').textContent='Войди в аккаунт, чтобы открыть проекты и календарь подач.';return}
- $('projectHubLoading').hidden=!!(state.projects&&state.projects.length);$('projectHubLoading').textContent='Загружаем проекты…';
+ if(!userId||!client){
+  $('projectHubLoading').hidden=false;
+  $('projectHubLoading').textContent='Подключаем аккаунт… После завершения синхронизации данные появятся здесь.';
+  return;
+ }
+ $('projectHubLoading').hidden=false;
+ $('projectHubLoading').textContent='Загружаем проекты и календарь подач…';
  $('projectHubProjects').hidden=projectHubView!=='projects';$('projectHubSubmissions').hidden=projectHubView!=='submissions';
  try{
   // Каждый раз читаем проекты и дневник из облака: карточки не зависят от локального состояния
@@ -1193,7 +1199,7 @@ async function loadProjectHub(){
    client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count').eq('user_id',userId).order('work_date',{ascending:true})
   ]);
   if(projectRows.error)throw projectRows.error;if(sessionRows.error)throw sessionRows.error;
-  if(window.writersHQUserId!==userId)return;
+  if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
   const projects=projectRows.data||[],projectSessions={};
   projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
   (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;projectSessions[row.project_id][row.activity_type==='editing'?'editing':'writing'][row.work_date]=Number(row.chars_count)||0});
@@ -1209,7 +1215,7 @@ async function loadProjectHub(){
    client.from('writer_opportunities').select('*').eq('status','open').order('deadline',{ascending:true,nullsFirst:false}),
    client.from('writer_submission_plans').select('*').eq('user_id',userId).order('created_at',{ascending:false})
   ]);
-  if(window.writersHQUserId!==userId)return;
+  if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
   if(opps.error||plans.error){
    projectHubLoadedUserId='';
    const error=opps.error||plans.error;
@@ -1220,9 +1226,11 @@ async function loadProjectHub(){
   opportunityData=opps.data||[];submissionPlans=plans.data||[];projectHubLoadedUserId=userId;
   renderProjectCards();renderProjectDetail();renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();renderSubmissionReminder();
  }catch(error){
+  if(requestId!==projectHubRequestId)return;
   projectHubLoadedUserId='';
   if(window.writersHQUserId!==userId)return;
-  $('projectHubLoading').hidden=false;$('projectHubLoading').innerHTML='Не удалось загрузить проекты. '+escapeHubText(error.message||'Проверь подключение и права доступа.');
+  $('projectHubLoading').hidden=false;
+  $('projectHubLoading').textContent='Не удалось загрузить проекты: '+(error.message||'проверь подключение и права доступа')+'. Попробуй переключиться в другой раздел и вернуться.';
  }
 }
 function openDiaryForProject(){
@@ -2058,8 +2066,8 @@ function makePersonRow(profile, isFollowing, mode) {
       const heroImage=document.getElementById('frescoBannerImage');
       if(heroImage){
         if(targetId==='projectsSection'){
-          heroImage.src='https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Colantonio%2C_San_Girolamo_nello_studio%2C_1444%2C_01.JPG/2048px-Colantonio%2C_San_Girolamo_nello_studio%2C_1444%2C_01.JPG';
-          heroImage.alt='Колантонио, «Святой Иероним в своей мастерской», ренессансная фреска';
+          heroImage.src='assets/renaissance-studio.svg';
+          heroImage.alt='Ренессансная мастерская писателя: книга, перо, Флоренция и мраморный бюст';
           heroImage.classList.add('project-hero-image');
         }else{
           heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400';
@@ -2171,6 +2179,12 @@ function makePersonRow(profile, isFollowing, mode) {
       authStatus.textContent =
         'Дневник синхронизирован с облаком. Записи доступны в этом аккаунте.';
       showMessage('Облачный дневник загружен.', 'success');
+
+      // Если раздел «Проекты» открыли до завершения авторизации/синхронизации,
+      // повторяем загрузку теперь, когда пользователь и клиент Supabase готовы.
+      if (document.getElementById('projectsSection')?.classList.contains('active')) {
+        loadProjectHub();
+      }
     } catch (error) {
       if (version !== syncVersion || activeUserId !== user.id) {
         return;
