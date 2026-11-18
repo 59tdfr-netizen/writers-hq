@@ -217,8 +217,9 @@ def supabase_request(method: str, path: str, payload=None):
     key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
     headers = {
+        # New Supabase sb_secret_* keys are opaque API keys, not JWTs.
+        # Send them via apikey only; do not put them in Authorization: Bearer.
         "apikey": key,
-        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
         "Prefer": "resolution=ignore-duplicates,return=representation" if method == "POST" else "return=representation",
     }
