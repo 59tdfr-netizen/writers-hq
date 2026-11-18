@@ -1183,7 +1183,7 @@ function renderSubmissionReminder(){
 async function loadProjectHub(){
  const userId=window.writersHQUserId,client=window.writersHQClient;
  if(!userId||!client){$('projectHubLoading').hidden=false;$('projectHubLoading').textContent='Войди в аккаунт, чтобы открыть проекты и календарь подач.';return}
- $('projectHubLoading').hidden=false;$('projectHubLoading').textContent='Загружаем проекты…';
+ $('projectHubLoading').hidden=!!(state.projects&&state.projects.length);$('projectHubLoading').textContent='Загружаем проекты…';
  $('projectHubProjects').hidden=projectHubView!=='projects';$('projectHubSubmissions').hidden=projectHubView!=='submissions';
  try{
   // Каждый раз читаем проекты и дневник из облака: карточки не зависят от локального состояния
@@ -1968,7 +1968,7 @@ function makePersonRow(profile, isFollowing, mode) {
   }
 
 
-  document.querySelectorAll('[data-hub-view]').forEach(button=>button.addEventListener('click',()=>{setProjectHubView(button.dataset.hubView);if(projectHubLoadedUserId!==window.writersHQUserId){loadProjectHub();return}if(projectHubView==='submissions'){renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();renderSubmissionReminder()}else{renderProjectCards();renderProjectDetail()}}));
+  document.querySelectorAll('[data-hub-view]').forEach(button=>button.addEventListener('click',()=>{setProjectHubView(button.dataset.hubView);if(projectHubView==='submissions'){renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();renderSubmissionReminder()}else{renderProjectCards();renderProjectDetail()}}));
   $('hubAddProjectBtn').addEventListener('click',async()=>{
     const name=prompt('Название проекта:');if(!name||!name.trim())return;
     const button=$('hubAddProjectBtn');button.disabled=true;
