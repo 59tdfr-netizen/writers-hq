@@ -1391,7 +1391,7 @@ window.writersHQDiary = {
 
 $('projectSelect').addEventListener('change',()=>{selectProjectData($('projectSelect').value);renderProjectControls();render()});
 $('workModeSelect').addEventListener('change',()=>{state.workMode=$('workModeSelect').value==='editing'?'editing':'writing';state.entries=sessionEntries();persist();render()});
-$('addProjectBtn').addEventListener('click',async()=>{const name=prompt('Название нового проекта:');if(!name||!name.trim())return;const button=$('addProjectBtn');button.disabled=true;try{const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();if(error)throw error;state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();showToast('Проект добавлен.')}catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false}});
+$('addProjectBtn').addEventListener('click',async()=>{if(window.__writersHQCreatingProject)return;const name=prompt('Название нового проекта:');if(!name||!name.trim())return;window.__writersHQCreatingProject=true;const button=$('addProjectBtn');button.disabled=true;try{const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();if(error)throw error;state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();showToast('Проект добавлен.')}catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false;window.__writersHQCreatingProject=false}});
 $('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
 $('saveEntry').addEventListener('click', async () => {
   const val = Number($('entryChars').value);
@@ -1490,6 +1490,20 @@ $('exportBtn').addEventListener('click',exportBackup);
 $('backupNow').addEventListener('click',exportBackup);
 $('backupLater').addEventListener('click',()=>{state.backupSnoozedUntil=Date.now()+24*60*60*1000;persist();renderBackupNotice()});
 $('backupNotice').classList.toggle('show',backupDue());
+window.writersHQProjectHub = {
+  load: loadProjectHub,
+  showView(view) {
+    setProjectHubView(view);
+    if (projectHubView === 'submissions') {
+      renderOpportunityCalendar(); renderOpportunityList(); renderSubmissionPlans(); renderSubmissionReminder();
+    } else { renderProjectCards(); renderProjectDetail(); }
+  },
+  refreshView() {
+    if (projectHubView === 'submissions') {
+      renderOpportunityCalendar(); renderOpportunityList(); renderSubmissionPlans(); renderSubmissionReminder();
+    } else { renderProjectCards(); renderProjectDetail(); }
+  }
+};
 render();
 })();
 </script>
@@ -1982,15 +1996,17 @@ function makePersonRow(profile, isFollowing, mode) {
   }
 
 
-  document.querySelectorAll('[data-hub-view]').forEach(button=>button.addEventListener('click',()=>{setProjectHubView(button.dataset.hubView);if(projectHubView==='submissions'){renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();renderSubmissionReminder()}else{renderProjectCards();renderProjectDetail()}}));
+  document.querySelectorAll('[data-hub-view]').forEach(button=>button.addEventListener('click',()=>{window.writersHQProjectHub.showView(button.dataset.hubView)}));
   $('hubAddProjectBtn').addEventListener('click',async()=>{
+    if(window.__writersHQCreatingProject)return;
     const name=prompt('Название проекта:');if(!name||!name.trim())return;
+    window.__writersHQCreatingProject=true;
     const button=$('hubAddProjectBtn');button.disabled=true;
     try{
       const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').single();
       if(error)throw error;
-      state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();await loadProjectHub();showToast('Проект добавлен.');
-    }catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false}
+      state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();await window.writersHQProjectHub.load();showToast('Проект добавлен.');
+    }catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false;window.__writersHQCreatingProject=false}
   });
   $('projectCarousel').addEventListener('click',event=>{
     const button=event.target.closest('[data-open-project]');if(!button)return;
@@ -2069,6 +2085,8 @@ function makePersonRow(profile, isFollowing, mode) {
       document.querySelectorAll('.app-section').forEach(section => {
         section.classList.toggle('active', section.id === targetId);
       });
+      const accountPanel = document.querySelector('.auth-panel');
+      if (accountPanel) accountPanel.hidden = targetId !== 'diarySection';
       const heroImage=document.getElementById('frescoBannerImage');
       if(heroImage){
         if(targetId==='projectsSection'){
@@ -2081,7 +2099,7 @@ function makePersonRow(profile, isFollowing, mode) {
           heroImage.classList.remove('project-hero-image');
         }
       }
-      if (targetId === 'projectsSection') loadProjectHub();
+      if (targetId === 'projectsSection') window.writersHQProjectHub.load();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
@@ -2111,6 +2129,8 @@ function makePersonRow(profile, isFollowing, mode) {
     $('communityCountCard').classList.toggle('auth-hidden', !user);
     $('profileSettingsCard').classList.toggle('auth-hidden', !user);
     $('receivedSupportCard').classList.toggle('auth-hidden', !user);
+    const accountPanel = document.querySelector('.auth-panel');
+    if (accountPanel) accountPanel.hidden = !document.getElementById('diarySection')?.classList.contains('active');
     if (!user) $('ownerNameLine').classList.add('auth-hidden');
 
     if (user) {
@@ -2189,7 +2209,7 @@ function makePersonRow(profile, isFollowing, mode) {
       // Если раздел «Проекты» открыли до завершения авторизации/синхронизации,
       // повторяем загрузку теперь, когда пользователь и клиент Supabase готовы.
       if (document.getElementById('projectsSection')?.classList.contains('active')) {
-        loadProjectHub();
+        window.writersHQProjectHub.load();
       }
     } catch (error) {
       if (version !== syncVersion || activeUserId !== user.id) {
@@ -2537,6 +2557,11 @@ function makePersonRow(profile, isFollowing, mode) {
       src: 'https://commons.wikimedia.org/wiki/Special:FilePath/Botticelli%20Venus.jpg?width=1400',
       alt: 'Сандро Боттичелли, «Рождение Венеры», горизонтальная живописная композиция эпохи Возрождения',
       position: 'center 48%'
+    },
+    projectsSection: {
+      src: 'assets/renaissance-studio.svg',
+      alt: 'Ренессансная мастерская: открытая книга, перо, Флоренция и мраморный бюст',
+      position: 'center 50%'
     }
   };
 
