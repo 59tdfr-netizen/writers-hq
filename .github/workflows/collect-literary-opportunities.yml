@@ -47,5 +47,5 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SCRAPER_MAX_PAGES: ${{ inputs.max_pages || '1' }}
-          SCRAPER_DRY_RUN: ${{ inputs.dry_run == false && 'false' || 'true' }}
+          SCRAPER_DRY_RUN: ${{ inputs.dry_run }}
         run: python scripts/collect_literary_opportunities.py
