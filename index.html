@@ -730,6 +730,49 @@ textarea { resize: vertical; }
  .expand-copy-btn{min-height:32px}
 }
 </style>
+
+
+<style id="subtle-motion-and-mobile-cover">
+/* Спокойная обратная связь для интерактивных элементов, включая мобильные устройства. */
+:where(button, a, input, select, textarea, .card, .project-card, .opportunity-item, .social-person, .achievement-item, .stat, .stat-line, .section-tab, .like-btn) {
+  transition:
+    color .18s ease,
+    background-color .18s ease,
+    border-color .18s ease,
+    box-shadow .22s ease,
+    opacity .2s ease,
+    transform .22s cubic-bezier(.2,.75,.25,1);
+}
+:where(button, .section-tab, .like-btn, .project-card, .opportunity-item):active {
+  transform: scale(.988);
+}
+@media (hover: hover) and (pointer: fine) {
+  :where(.card, .project-card, .opportunity-item, .social-person, .achievement-item):hover {
+    box-shadow: 0 9px 24px rgba(70,42,31,.075);
+  }
+  :where(button, .section-tab, .like-btn):hover { filter: brightness(1.025); }
+}
+/* В разделе «Проекты» картина заполняет область целиком: небольшая обрезка лучше чёрных полей. */
+.renaissance-fresco img.project-hero-image {
+  object-fit: cover !important;
+  object-position: center 48% !important;
+  background: transparent !important;
+  transform: scale(1.045);
+}
+@media (max-width: 700px) {
+  .renaissance-fresco { min-height: 250px; }
+  .renaissance-fresco img.project-hero-image {
+    transform: scale(1.12);
+    object-position: center 48% !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(button, a, input, select, textarea, .card, .project-card, .opportunity-item, .social-person, .achievement-item, .stat, .stat-line, .section-tab, .like-btn) {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+</style>
 </head>
 <body class="diary-locked">
 <div class="wrap">
