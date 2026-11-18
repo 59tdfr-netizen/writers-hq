@@ -295,7 +295,7 @@ body:not(.diary-locked) #sectionNav {
 .renaissance-fresco img {
   transition: opacity .28s ease, filter .35s ease;
 }
-.renaissance-fresco img.project-hero-image { object-position: center 40%; filter: sepia(.35) saturate(.68) contrast(.95) brightness(.96); }
+.renaissance-fresco img.project-hero-image { object-fit: contain; object-position: center center; background: #2b1c16; filter: sepia(.22) saturate(.78) contrast(.96) brightness(.98); }
 .renaissance-fresco img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
   filter: sepia(.19) saturate(.78) contrast(.94) brightness(.97);
@@ -687,7 +687,7 @@ textarea { resize: vertical; }
 .op-calendar-day .op-date-dot{width:7px;height:7px;border-radius:50%;background:var(--wine);display:block}
 .op-calendar-legend{display:flex;align-items:center;gap:7px;margin-top:12px;font-size:12px;color:var(--muted)}
 .op-calendar-legend .op-date-dot{width:8px;height:8px;border-radius:50%;background:var(--wine)}
-.text-button{margin-left:auto;border:0;background:transparent;color:var(--wine);text-decoration:underline;cursor:pointer;font:inherit;font-size:12px}
+.text-button{position:relative;z-index:2;pointer-events:auto;flex-shrink:0;margin-left:auto;border:1px solid var(--wine);border-radius:7px;padding:7px 10px;background:var(--paper);color:var(--wine);text-decoration:underline;cursor:pointer;font:inherit;font-size:12px;touch-action:manipulation}
 .opportunity-list,.submission-plans-list,.no-deadline-list{display:grid;gap:12px}
 .opportunity-item,.submission-plan-item{border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0;background:#fffaf2}
 .opportunity-item h3,.submission-plan-item h3{font:600 23px/1.12 "Cormorant Garamond",Georgia,serif;margin:0 0 6px;overflow-wrap:anywhere}
@@ -824,7 +824,7 @@ textarea { resize: vertical; }
   <section class="app-section" id="projectsSection" aria-label="Проекты и календарь подач">
     <div class="project-hub-head">
       <div><div class="eyebrow">МАСТЕРСКАЯ</div><h1>Проекты</h1><p class="small">Прогресс, цели и сроки подачи в одном месте.</p><span class="small" id="hubProjectCount" aria-live="polite"></span></div>
-      <button type="button" class="btn primary" id="hubAddProjectBtn">+ Новый проект</button>
+      <button type="button" class="btn primary" id="hubAddProjectBtn" hidden aria-hidden="true" tabindex="-1">+ Новый проект</button>
     </div>
     <div class="project-hub-tabs" role="tablist" aria-label="Раздел проектов">
       <button type="button" class="project-hub-tab active" data-hub-view="projects" aria-pressed="true">Проекты</button>
@@ -1197,12 +1197,12 @@ function renderOpportunityList(){
   const deadline=o.deadline?fmtDate(o.deadline):'Точный срок не указан';
   const formats=(o.eligible_formats||[]).join(' · ');
   const tags=(o.genres||[]).slice(0,4).map(g=>'<span>'+escapeHubText(g)+'</span>').join('');
-  const select=(state.projects||[]).map(p=>'<option value="'+p.id+'">'+escapeHubText(p.name)+'</option>').join('');
+  const select=(state.projects||[]).map(p=>'<option value="'+p.id+'">'+escapeHubText(p.name)+'</option>').join('')+'<option value="__create_project__">＋ Создать проект…</option>';
   const already=submissionPlans.some(p=>p.opportunity_id===o.id&&p.status!=='withdrawn');
   return '<article class="opportunity-item"><div class="project-card-top"><span class="project-status-chip">'+escapeHubText(o.organizer||'Опен-колл')+'</span><span class="small">'+escapeHubText(deadline)+'</span></div><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(o.summary)+'</p><div class="opportunity-meta">'+tags+(formats?'<span>Формат: '+escapeHubText(formats)+'</span>':'')+'</div><p class="opportunity-eligibility">'+escapeHubText(o.eligibility||'Проверьте условия на сайте организатора')+'</p><p class="small">'+escapeHubText(o.fee_info||'')+(o.results_date?' · Результаты: '+escapeHubText(fmtDate(o.results_date)):'')+'</p><p><a href="'+escapeHubText(o.source_url)+'" target="_blank" rel="noopener noreferrer">Официальные условия ↗</a></p>'+(already?'<div class="submission-status">Уже добавлено в заявки</div>':'<div class="opportunity-plan-row"><select aria-label="Выбрать проект для подачи" data-op-project="'+o.id+'">'+select+'</select><button type="button" class="btn primary" data-plan-op="'+o.id+'" '+(state.projects.length?'':'disabled')+'>Планирую подать</button></div>')+'</article>';
  }).join('')||(selectedOpportunityDate?'<p class="small">На эту дату дедлайнов нет. <button class="text-button" id="showAllInline">Показать все возможности</button></p>':'<p class="small">Сейчас нет открытых возможностей с известным сроком подачи.</p>');
  const undated=opportunityData.filter(o=>o.status==='open'&&!o.deadline);
- $('noDeadlineList').innerHTML=!selectedOpportunityDate&&undated.length?'<h3 class="small">Срок нужно уточнить</h3>'+undated.map(o=>'<article class="opportunity-item"><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(o.summary)+'</p><a href="'+escapeHubText(o.source_url)+'" target="_blank" rel="noopener noreferrer">Проверить срок у организатора ↗</a><div class="opportunity-plan-row"><select aria-label="Выбрать проект для подачи" data-op-project="'+o.id+'">'+(state.projects||[]).map(p=>'<option value="'+p.id+'">'+escapeHubText(p.name)+'</option>').join('')+'</select><button type="button" class="btn secondary" data-plan-op="'+o.id+'">Добавить в планы</button></div></article>').join(''):'';
+ $('noDeadlineList').innerHTML=!selectedOpportunityDate&&undated.length?'<h3 class="small">Срок нужно уточнить</h3>'+undated.map(o=>'<article class="opportunity-item"><h3>'+escapeHubText(o.title)+'</h3><p>'+escapeHubText(o.summary)+'</p><a href="'+escapeHubText(o.source_url)+'" target="_blank" rel="noopener noreferrer">Проверить срок у организатора ↗</a><div class="opportunity-plan-row"><select aria-label="Выбрать проект для подачи" data-op-project="'+o.id+'">'+(state.projects||[]).map(p=>'<option value="'+p.id+'">'+escapeHubText(p.name)+'</option>').join('')+'<option value="__create_project__">＋ Создать проект…</option></select><button type="button" class="btn secondary" data-plan-op="'+o.id+'">Добавить в планы</button></div></article>').join(''):'';
 }
 function renderSubmissionPlans(){
  const el=$('submissionPlansList');
@@ -2176,7 +2176,19 @@ function makePersonRow(profile, isFollowing, mode) {
     selectedOpportunityDate=selectedOpportunityDate===day.dataset.opDate?'':day.dataset.opDate;
     renderOpportunityCalendar();renderOpportunityList();
   });
-  document.addEventListener('click',event=>{if(event.target.closest('#showAllOpportunities')){event.preventDefault();selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();}});
+  $('showAllOpportunities').addEventListener('click',event=>{event.preventDefault();event.stopPropagation();selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();});
+  async function createProjectForOpportunity(opportunityId, selectElement){
+    const name=prompt('Название проекта:');if(!name||!name.trim()){if(selectElement)selectElement.value=state.projects[0]?.id||'';return}
+    try{
+      const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').single();
+      if(error)throw error;
+      await window.writersHQProjectHub.load();
+      const refreshed=document.querySelector('[data-op-project="'+opportunityId+'"]');if(refreshed)refreshed.value=data.id;
+      showToast('Проект создан. Теперь можно запланировать подачу.');
+    }catch(error){alert('Не удалось создать проект. '+(error.message||''));if(selectElement)selectElement.value=state.projects[0]?.id||''}
+  }
+  $('opportunityList').addEventListener('change',event=>{const select=event.target.closest('[data-op-project]');if(!select||select.value!=='__create_project__')return;const opportunityId=select.dataset.opProject;createProjectForOpportunity(opportunityId,select)});
+  $('noDeadlineList').addEventListener('change',event=>{const select=event.target.closest('[data-op-project]');if(!select||select.value!=='__create_project__')return;const opportunityId=select.dataset.opProject;createProjectForOpportunity(opportunityId,select)});
   $('opportunityList').addEventListener('click',async event=>{
     if(event.target.closest('#showAllInline')){selectedOpportunityDate='';renderOpportunityCalendar();renderOpportunityList();return}
     const button=event.target.closest('[data-plan-op]');if(!button)return;
@@ -2222,8 +2234,8 @@ function makePersonRow(profile, isFollowing, mode) {
       const heroImage=document.getElementById('frescoBannerImage');
       if(heroImage){
         if(targetId==='projectsSection'){
-          heroImage.src=RENAISSANCE_STUDIO_IMAGE;
-          heroImage.alt='Ренессансная мастерская писателя: книга, перо, Флоренция и мраморный бюст';
+          heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Antonello%20da%20Messina%20-%20St%20Jerome%20in%20his%20study.jpg?width=1200';
+          heroImage.alt='Антонелло да Мессина, «Святой Иероним в келье», около 1475 года — ренессансная картина об учёном и его библиотеке';
           heroImage.classList.add('project-hero-image');
         }else{
           heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400';
