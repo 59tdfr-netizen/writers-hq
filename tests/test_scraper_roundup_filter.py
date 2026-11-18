@@ -8,7 +8,7 @@ class RoundupTitleTests(unittest.TestCase):
         self.assertTrue(is_roundup_title("Конкурсы ноября"))
         self.assertTrue(is_roundup_title("Конкурсы ноября 2026"))
         self.assertTrue(is_roundup_title("Подборка конкурсов декабря"))
-        self.assertTrue(is_roundup_title("Список конкурсов на марта"))
+        self.assertTrue(is_roundup_title("Список конкурсов ноября"))
 
     def test_individual_opportunities_are_not_rejected(self):
         self.assertFalse(is_roundup_title("Литературный конкурс «Есть только музыка одна»"))
