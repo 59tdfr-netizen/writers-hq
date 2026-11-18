@@ -271,7 +271,10 @@ def main():
         if row.get("title"):
             existing_title_deadlines.add(normalize_title(row["title"]) + "|" + (row.get("deadline") or "no-deadline"))
 
-    dry_run = os.getenv("SCRAPER_DRY_RUN", "true").strip().lower() in ("1", "true", "yes", "on")
+    # Safe by default: unset/empty values (including scheduled workflow inputs) must never enable writes.
+    # Live mode requires an explicit false-like value such as "false", "0", "no", or "off".
+    dry_run_setting = os.getenv("SCRAPER_DRY_RUN", "").strip().lower()
+    dry_run = dry_run_setting not in ("0", "false", "no", "off")
     print("Mode: DRY RUN — no database writes" if dry_run else "Mode: LIVE — database writes enabled")
     inserted = skipped = failed = 0
     would_insert = 0
