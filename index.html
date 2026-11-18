@@ -1180,6 +1180,11 @@ function renderSubmissionReminder(){
  el.hidden=false;
  el.innerHTML='<strong>Напоминания о подаче</strong><div style="margin-top:6px">'+soon.map(x=>'• '+escapeHubText(x.opp.title)+' — '+(x.days<0?'дедлайн прошёл':x.days===0?'дедлайн сегодня':x.days===1?'остался 1 день':'осталось '+x.days+' дн.')+'.').join('<br>')+'</div>';
 }
+function withProjectHubTimeout(promise, milliseconds=12000){
+ let timer;
+ const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Сервер не ответил за 12 секунд. Проверь соединение и повтори загрузку.')),milliseconds)});
+ return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer));
+}
 async function loadProjectHub(){
  const requestId=++projectHubRequestId;
  const userId=window.writersHQUserId,client=window.writersHQClient;
@@ -1194,10 +1199,10 @@ async function loadProjectHub(){
  try{
   // Каждый раз читаем проекты и дневник из облака: карточки не зависят от локального состояния
   // и показывают тот же прогресс, что и дневник.
-  const [projectRows,sessionRows]=await Promise.all([
+  const [projectRows,sessionRows]=await withProjectHubTimeout(Promise.all([
    client.from('writer_projects').select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
    client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count').eq('user_id',userId).order('work_date',{ascending:true})
-  ]);
+  ]));
   if(projectRows.error)throw projectRows.error;if(sessionRows.error)throw sessionRows.error;
   if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
   const projects=projectRows.data||[],projectSessions={};
@@ -1211,10 +1216,10 @@ async function loadProjectHub(){
   renderProjectControls();render();
   renderProjectCards();renderProjectDetail();
   $('projectHubLoading').hidden=true;$('projectHubProjects').hidden=projectHubView!=='projects';$('projectHubSubmissions').hidden=projectHubView!=='submissions';
-  const [opps,plans]=await Promise.all([
+  const [opps,plans]=await withProjectHubTimeout(Promise.all([
    client.from('writer_opportunities').select('*').eq('status','open').order('deadline',{ascending:true,nullsFirst:false}),
    client.from('writer_submission_plans').select('*').eq('user_id',userId).order('created_at',{ascending:false})
-  ]);
+  ]));
   if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
   if(opps.error||plans.error){
    projectHubLoadedUserId='';
