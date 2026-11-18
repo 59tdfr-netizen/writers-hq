@@ -874,12 +874,27 @@ const achievementDefs=[
 {id:'chars100000',icon:'✍️',title:'Шесть знаков нулей',desc:'Написал 100 000 знаков суммарно',check:()=>total()>=100000},
 {id:'chars250000',icon:'📚',title:'Большая дистанция',desc:'Написал 250 000 знаков суммарно',check:()=>total()>=250000},
 {id:'days10',icon:'🌿',title:'Вошёл в ритм',desc:'Писал в 10 разных дней',check:()=>activeEntries().length>=10},
-{id:'days30',icon:'🏆',title:'Писательская привычка',desc:'Писал в 30 разных дней',check:()=>activeEntries().length>=30}
+{id:'days30',icon:'🏆',title:'Писательская привычка',desc:'Писал в 30 разных дней',check:()=>activeEntries().length>=30},
+{id:'edit_first_day',icon:'🪶',title:'Свежий взгляд',desc:'Записал первый день редактуры',check:()=>editingActiveEntries().length>=1},
+{id:'edit_days5',icon:'📝',title:'Редакторский ритм',desc:'Редактировал в 5 разных дней',check:()=>editingActiveEntries().length>=5},
+{id:'edit_streak7',icon:'🗓️',title:'Неделя шлифовки',desc:'Редактировал 7 дней подряд',check:()=>longestEditingStreak()>=7},
+{id:'edit_chars10000',icon:'🔎',title:'Первый проход',desc:'Отредактировал 10 000 знаков',check:()=>editedTotal()>=10000},
+{id:'edit_chars40000',icon:'✨',title:'Тонкая настройка',desc:'Отредактировал 40 000 знаков',check:()=>editedTotal()>=40000},
+{id:'edit_chars100000',icon:'🏅',title:'Мастерская редактора',desc:'Отредактировал 100 000 знаков',check:()=>editedTotal()>=100000}
 ];
 // Делаем каталог достижений доступным социальному блоку во втором скрипте.
 window.writersHQAchievementDefs = achievementDefs;
 // Совместимость с прежними версиями социального блока, где использовалось старое имя.
 window.achievementDefs = achievementDefs;
+function editingActiveEntries(){
+ return Object.entries(sessionEntries('editing')).filter(([date,value])=>Number(value)>0).sort((a,b)=>b[0].localeCompare(a[0]));
+}
+function longestEditingStreak(){
+ const dates=editingActiveEntries().map(([date])=>date).sort();
+ let best=0,run=0,prev=null;
+ for(const date of dates){if(prev&&dayDiff(prev,date)===1)run++;else run=1;best=Math.max(best,run);prev=date}
+ return best;
+}
 function longestStreak(){
  const dates=activeEntries().map(([d])=>d).sort();
  let best=0,run=0,prev=null;
