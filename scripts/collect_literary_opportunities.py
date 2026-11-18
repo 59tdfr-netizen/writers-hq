@@ -298,8 +298,10 @@ def main():
             continue
         links = collect_links(soup)
         if not links and page > 1:
-            print(f"INFO no more cards at page {page}; stopping")
-            break
+            # Do not assume the first empty page is the end of pagination: archive
+            # markers or a source markup change can hide cards on one page while
+            # later pages still contain active opportunities.
+            print(f"INFO no usable cards on page {page}; continuing pagination check")
         for title, url, card_text in links:
             candidates[url] = (title, url, card_text)
         time.sleep(0.5)
