@@ -1504,6 +1504,24 @@ window.writersHQProjectHub = {
     } else { renderProjectCards(); renderProjectDetail(); }
   }
 };
+
+// Совместимость обработчиков, расположенных в следующих классических script-блоках.
+// Эти функции и переменные раньше оставались локальными для IIFE, поэтому клики
+// по карточкам, календарю и заявкам тоже завершались ReferenceError.
+Object.assign(window, {
+  state, persist, render, renderProjectControls, selectProjectData, currentProject,
+  renderProjectCards, renderProjectDetail, openDiaryForProject, showToast,
+  renderOpportunityCalendar, renderOpportunityList, renderSubmissionPlans,
+  renderSubmissionReminder, fmtDate, escapeHubText, projectMetrics,
+  projectLabelStatus, setProjectHubView, loadProjectHub
+});
+Object.defineProperties(window, {
+  projectHubView: { configurable: true, get: () => projectHubView, set: value => { projectHubView = value; } },
+  opportunityMonth: { configurable: true, get: () => opportunityMonth, set: value => { opportunityMonth = value; } },
+  selectedOpportunityDate: { configurable: true, get: () => selectedOpportunityDate, set: value => { selectedOpportunityDate = value; } },
+  opportunityData: { configurable: true, get: () => opportunityData, set: value => { opportunityData = value; } },
+  submissionPlans: { configurable: true, get: () => submissionPlans, set: value => { submissionPlans = value; } }
+});
 render();
 })();
 </script>
