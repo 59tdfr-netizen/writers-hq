@@ -213,7 +213,19 @@ def extract_detail(url: str, list_text: str) -> dict | None:
 
 
 def supabase_request(method: str, path: str, payload=None):
-    base = os.environ["SUPABASE_URL"].rstrip("/")
+    raw_base = os.environ["SUPABASE_URL"].strip().rstrip("/")
+    parsed_base = urlparse(raw_base)
+    # Accept either the canonical project URL or a URL that accidentally includes
+    # the REST prefix; append /rest/v1 only once.
+    if parsed_base.path.rstrip("/").endswith("/rest/v1"):
+        clean_path = parsed_base.path.rstrip("/")[:-len("/rest/v1")]
+        raw_base = urlunparse((parsed_base.scheme, parsed_base.netloc, clean_path, "", "", "")).rstrip("/")
+    elif parsed_base.path not in ("", "/"):
+        raise RuntimeError(
+            "Invalid SUPABASE_URL path. Use the Supabase project base URL "
+            "(https://<project-ref>.supabase.co), not a URL containing an API path."
+        )
+    base = raw_base
     key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     data = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
     headers = {
