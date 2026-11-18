@@ -86,6 +86,15 @@ details summary{user-select:none}
 @media(max-width:420px){.wrap{padding:22px 12px 32px}.calendar{gap:4px}.day{min-height:56px}.day .num{font-size:10px}.day .chars{font-size:9px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.form-row{grid-template-columns:1fr}}
 
 .project-switch-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}.project-switch-row select{min-width:0;width:100%}@media(max-width:520px){.project-switch-row{grid-template-columns:minmax(0,1fr)}.project-switch-row .btn{width:100%;white-space:normal}}
+/* Форма ручного добавления конкурсов */
+.manual-opportunity-form{display:grid;gap:12px;margin:4px 0 20px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#f7eddf;min-width:0}
+.manual-opportunity-form .field{min-width:0}
+.manual-opportunity-form input,.manual-opportunity-form textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+.manual-opportunity-form textarea{resize:vertical;overflow-wrap:anywhere}
+.manual-opportunity-form .form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.danger-outline{border-color:#b9786b!important;color:#7c2c25!important}
+.danger-outline:hover{background:#f7e3dd!important}
+@media(max-width:650px){.manual-opportunity-form .form-row{grid-template-columns:minmax(0,1fr)}.manual-opportunity-form{padding:12px}.project-hub-head .project-detail-controls{flex-wrap:wrap;justify-content:flex-end}}
 </style>
 
 <style>
@@ -1253,15 +1262,25 @@ async function loadProjectHub(){
    client.from('writer_submission_plans').select('*').eq('user_id',userId).order('created_at',{ascending:false})
   ]));
   if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
-  if(opps.error||plans.error){
-   projectHubLoadedUserId='';
-   const error=opps.error||plans.error;
-   $('opportunityList').innerHTML='<p class="small">Не удалось загрузить календарь подач: '+escapeHubText(error.message||'проверь подключение и права доступа')+'.</p>';
+  if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
+  if(opps.error){
+   opportunityData=[];
+   $('opportunityList').innerHTML='<p class="small">Не удалось загрузить опен-коллы: '+escapeHubText(opps.error.message||'проверь подключение и права доступа')+'.</p>';
    $('noDeadlineList').innerHTML='';
-   return;
+  }else{
+   opportunityData=opps.data||[];
   }
-  opportunityData=opps.data||[];submissionPlans=plans.data||[];projectHubLoadedUserId=userId;
-  renderProjectCards();renderProjectDetail();renderOpportunityCalendar();renderOpportunityList();renderSubmissionPlans();renderSubmissionReminder();
+  if(plans.error){
+   submissionPlans=[];
+   $('submissionPlansList').innerHTML='<p class="small">Не удалось загрузить заявки: '+escapeHubText(plans.error.message||'проверь подключение и права доступа')+'.</p>';
+  }else{
+   submissionPlans=plans.data||[];
+  }
+  projectHubLoadedUserId=userId;
+  renderProjectCards();renderProjectDetail();renderOpportunityCalendar();
+  if(!opps.error)renderOpportunityList();
+  if(!plans.error)renderSubmissionPlans();
+  renderSubmissionReminder();
  }catch(error){
   if(requestId!==projectHubRequestId)return;
   projectHubLoadedUserId='';
