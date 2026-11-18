@@ -284,6 +284,10 @@ body:not(.diary-locked) #sectionNav {
 .fresco-copy .date-chip { display: inline-flex; margin-top: 20px; padding: 8px 13px; font-size: 11px; }
 .renaissance-fresco { min-height: 310px; background: #a66f55; }
 .renaissance-fresco img {
+  transition: opacity .28s ease, filter .35s ease;
+}
+.renaissance-fresco img.project-hero-image { object-position: center 40%; filter: sepia(.35) saturate(.68) contrast(.95) brightness(.96); }
+.renaissance-fresco img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
   filter: sepia(.19) saturate(.78) contrast(.94) brightness(.97);
   opacity: .94;
@@ -789,7 +793,7 @@ textarea { resize: vertical; }
         <div class="goal-meta"><div class="meta-box"><div class="small">Нужно в среднем в день</div><div class="big" id="dailyNeed">—</div><div class="small">символов до дедлайна</div></div><div class="meta-box"><div class="small">Текущий темп</div><div class="big" id="currentPace">—</div><div class="small">символов в день</div></div><div class="meta-box"><div class="small">Ожидаемый финиш</div><div class="big" id="finishDate">—</div></div><div class="meta-box"><div class="small">Осталось</div><div class="big" id="remaining">320 000</div><div class="small">символов</div></div></div>
       </div>
       <div id="goalForm" hidden>
-        <div class="field"><label for="goalName">Название проекта</label><input id="goalName" value="Мой роман" maxlength="80"></div>
+        <div class="field"><label for="goalName">Название проекта</label><input id="goalName" value="Новая книга" maxlength="80"></div>
         <div class="field"><label for="goalSheets">Цель в авторских листах</label><input id="goalSheets" type="number" min="0.1" step="0.1" value="8"></div>
         <div class="field"><label for="sheetSize">Символов в одном авторском листе</label><input id="sheetSize" type="number" min="1000" step="1000" value="40000"></div>
         <div class="field"><label for="goalDeadline">Дедлайн</label><input id="goalDeadline" type="date"></div>
@@ -946,7 +950,7 @@ const keyDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
 const fmtDate=s=>s?parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}):'—';
 const monthFmt=d=>d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
-const defaultState={entries:{},goal:{name:'Мой роман',sheets:8,sheetSize:40000,deadline:''},achievements:[],lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
+const defaultState={entries:{},goal:{name:'Новая книга',sheets:8,sheetSize:40000,deadline:''},achievements:[],lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
 
 let state;
 
@@ -1058,7 +1062,7 @@ $('activeDays').innerHTML=`${fmt(activeEntries().length)} <span class="unit">д�
 }
 function renderGoal(){
 const g=state.goal,target=goalTarget(),written=total(),remaining=Math.max(0,target-written),pct=target?Math.min(100,written/target*100):0;
-$('goalNameView').textContent=g.name||'Мой роман';$('goalDeadlineView').textContent=g.deadline?`Дедлайн: ${fmtDate(g.deadline)}`:'Дедлайн не задан';
+$('goalNameView').textContent=g.name||'Новая книга';$('goalDeadlineView').textContent=g.deadline?`Дедлайн: ${fmtDate(g.deadline)}`:'Дедлайн не задан';
 $('goalProgress').textContent=`${Math.round(pct)}%`;$('goalWritten').textContent=`${fmt(written)} / ${fmt(target)}`;$('goalBar').style.width=pct+'%';$('remaining').textContent=fmt(remaining);
 const edited=editedTotal();$('goalEdited').textContent=`${fmt(edited)} симв.`;$('goalEditBar').style.width=(target?Math.min(100,edited/target*100):0)+'%';
 const today=todayKey(), first=activeEntries().length?activeEntries()[activeEntries().length-1][0]:today;
@@ -1186,7 +1190,20 @@ async function loadProjectHub(){
   // сначала поднимаем его из облака, не дожидаясь каталога конкурсов.
   if(!state.projects||!state.projects.length){
    $('projectHubLoading').hidden=false;
-   await window.writersHQDiary.loadCloud(userId);
+   const [projectRows,sessionRows]=await Promise.all([
+    client.from('writer_projects').select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
+    client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count').eq('user_id',userId).order('work_date',{ascending:true})
+   ]);
+   if(projectRows.error)throw projectRows.error;if(sessionRows.error)throw sessionRows.error;
+   const projects=projectRows.data||[],projectSessions={};
+   projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
+   (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;projectSessions[row.project_id][row.activity_type==='editing'?'editing':'writing'][row.work_date]=Number(row.chars_count)||0});
+   state.projects=projects;state.projectSessions=projectSessions;
+   if(!state.selectedProjectId||!projects.some(p=>p.id===state.selectedProjectId))state.selectedProjectId=projects[0]?.id||null;
+   state.entries=sessionEntries();
+   const selected=currentProject();
+   if(selected)state.goal={name:selected.name,sheets:Number(selected.goal_sheets)||8,sheetSize:Number(selected.sheet_size)||40000,deadline:selected.deadline||''};
+   renderProjectControls();render();
   }
   if(window.writersHQUserId!==userId)return;
   renderProjectCards();renderProjectDetail();
@@ -1253,7 +1270,7 @@ window.writersHQDiary = {
     if(settingsResult.error)throw settingsResult.error;
     let projects=projectsResult.data||[];
     if(!projects.length){
-      const {data:newProject,error:createError}=await client.from('writer_projects').insert({user_id:userId,name:'Мой роман',goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').single();
+      const {data:newProject,error:createError}=await client.from('writer_projects').insert({user_id:userId,name:'Новая книга',goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').single();
       if(createError)throw createError;projects=[newProject];
     }
     const projectSessions={};projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
@@ -1439,7 +1456,7 @@ $('saveGoal').addEventListener('click', async () => {
   button.disabled = true;
 
   state.goal = {
-    name: $('goalName').value.trim() || 'Мой роман',
+    name: $('goalName').value.trim() || 'Новая книга',
     sheets,
     sheetSize: size,
     deadline: $('goalDeadline').value
@@ -2048,9 +2065,11 @@ function makePersonRow(profile, isFollowing, mode) {
         if(targetId==='projectsSection'){
           heroImage.src='https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Colantonio%2C_San_Girolamo_nello_studio%2C_1444%2C_01.JPG/2048px-Colantonio%2C_San_Girolamo_nello_studio%2C_1444%2C_01.JPG';
           heroImage.alt='Колантонио, «Святой Иероним в своей мастерской», ренессансная фреска';
+          heroImage.classList.add('project-hero-image');
         }else{
           heroImage.src='https://commons.wikimedia.org/wiki/Special:FilePath/Sistine_Chapel_ceiling%2C_Creation_of_Adam.jpg?width=1400';
           heroImage.alt='Микеланджело, «Сотворение Адама», фреска потолка Сикстинской капеллы';
+          heroImage.classList.remove('project-hero-image');
         }
       }
       if (targetId === 'projectsSection') loadProjectHub();
