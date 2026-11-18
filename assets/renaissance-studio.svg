@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 560" role="img" aria-labelledby="title desc">
+<title id="title">Ренессансная мастерская писателя</title>
+<desc id="desc">Тёплая сепийная живописная сцена: раскрытая книга и перо на столе, Флоренция за аркой и мраморный бюст.</desc>
+<defs>
+ <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#211a16"/><stop offset=".48" stop-color="#6d482d"/><stop offset="1" stop-color="#2b2019"/></linearGradient>
+ <linearGradient id="paper" x2="0" y2="1"><stop stop-color="#f0d9ad"/><stop offset="1" stop-color="#b58a56"/></linearGradient>
+ <linearGradient id="stone" x2=".8" y2="1"><stop stop-color="#d6b98a"/><stop offset=".55" stop-color="#94704b"/><stop offset="1" stop-color="#4d3526"/></linearGradient>
+ <radialGradient id="sun"><stop stop-color="#f5d9a1" stop-opacity=".9"/><stop offset="1" stop-color="#d49a5e" stop-opacity="0"/></radialGradient>
+ <pattern id="grain" width="29" height="29" patternUnits="userSpaceOnUse"><path d="M2 7l6-2M18 21l7-3M10 27l2-1" stroke="#f5d9ad" stroke-opacity=".11" stroke-width="1.2"/></pattern>
+ <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+</defs>
+<rect width="1600" height="560" fill="url(#bg)"/>
+<ellipse cx="880" cy="205" rx="410" ry="290" fill="url(#sun)"/>
+<!-- arched window and distant Florence -->
+<path d="M440 560V178A330 330 0 0 1 1100 178V560Z" fill="#1d1713" stroke="#a47a4b" stroke-width="17"/>
+<path d="M475 560V190A295 295 0 0 1 1065 190V560Z" fill="#c8a06a"/>
+<path d="M475 375L560 306 623 337 696 264 758 320 824 246 891 305 963 274 1065 346V560H475Z" fill="#8a6b4b"/>
+<path d="M475 425L550 393 615 415 682 360 745 398 811 348 877 385 943 347 1065 410V560H475Z" fill="#69503a"/>
+<g fill="#b58c5d" stroke="#5e422c" stroke-width="3">
+ <path d="M560 390V319h40v71zM607 390V300h35v90zM650 390V338h49v-39h33v91zM748 390V285h37v105zM800 390V314h48v-56h35v132zM901 390V302h30v88zM951 390V324h39v-57h26v123z"/>
+ <path d="M720 391V236l32-30 31 30v155z" fill="#a77c4d"/><path d="M736 236l16-52 17 52z" fill="#d2ad75"/>
+ <path d="M845 391V202l52-44 54 44v189z" fill="#9a613d"/><path d="M834 205h126l-63-78z" fill="#c18b52"/><path d="M864 202v-46h21v46" fill="#3e2a1e"/>
+</g>
+<!-- curtain -->
+<path d="M0 0H310Q350 155 255 274T290 560H0Z" fill="#241915"/><path d="M40 0Q168 132 88 280T165 560" fill="none" stroke="#795135" stroke-width="22" opacity=".6"/>
+<!-- marble bust -->
+<g transform="translate(1270 40)">
+ <path d="M92 0Q163 1 186 69L199 116Q231 135 228 187L203 234Q197 274 169 302L177 353H65L70 305Q26 285 20 236L2 186Q-5 148 25 122L34 67Q52 16 92 0Z" fill="url(#stone)" stroke="#4a3325" stroke-width="6"/>
+ <path d="M47 65Q77 25 125 44Q157 54 163 96L154 121 130 116 111 93 91 117 54 110Z" fill="#d8bd8e"/>
+ <path d="M54 140Q77 126 96 141M123 142Q144 128 159 143" fill="none" stroke="#4a3325" stroke-width="7" stroke-linecap="round"/>
+ <path d="M105 143L94 184 114 190M72 214Q105 231 139 211" fill="none" stroke="#523a28" stroke-width="6" stroke-linecap="round"/>
+ <path d="M31 72Q-6 25 30 0Q44 22 47 48M64 46Q48 2 79 0Q96 18 90 43M102 42Q96 0 127 8Q144 27 130 51M143 53Q147 15 171 31Q181 52 162 70" fill="#b79668" stroke="#5b3d28" stroke-width="5"/>
+ <path d="M42 300L10 355 190 355 163 300" fill="#8f6a47"/>
+</g>
+<!-- desk and open manuscript -->
+<path d="M0 455Q450 418 800 450T1600 435V560H0Z" fill="#321e14"/>
+<path d="M0 482Q400 454 800 480T1600 462" fill="none" stroke="#a16a3c" stroke-width="8"/>
+<g transform="translate(400 375) rotate(-3)">
+ <path d="M0 67Q130 18 265 67L274 147Q140 112 8 151Z" fill="#7b4c2c" stroke="#3d281b" stroke-width="7"/>
+ <path d="M8 68Q129 22 265 68L262 135Q132 96 11 139Z" fill="url(#paper)" stroke="#d9b982" stroke-width="4"/>
+ <path d="M136 62Q142 100 136 130" fill="none" stroke="#8d6942" stroke-width="3"/>
+ <g fill="none" stroke="#88633d" stroke-width="2" opacity=".8"><path d="M25 82q44-17 91-8M25 96q43-16 90-8M25 110q43-16 90-8M153 81q45-14 91-4M153 95q45-14 91-4M153 109q45-14 91-4"/></g>
+</g>
+<!-- quill -->
+<path d="M1075 433Q1167 278 1288 173Q1270 263 1190 350Q1140 402 1075 433Z" fill="#e2c99b" stroke="#8c6844" stroke-width="4"/>
+<path d="M1080 430Q1160 316 1269 201M1170 331l-29-18M1203 292l-28-20M1235 254l-25-18" fill="none" stroke="#795337" stroke-width="3"/>
+<path d="M1057 441l-30 22 43-5 12-24" fill="#c39a61"/>
+<!-- foreground vignette and texture -->
+<rect width="1600" height="560" fill="url(#grain)"/>
+<rect width="1600" height="560" fill="none" stroke="#b28a55" stroke-opacity=".6" stroke-width="12"/>
+<rect x="20" y="20" width="1560" height="520" fill="none" stroke="#c09a64" stroke-opacity=".35" stroke-width="2"/>
+</svg>
