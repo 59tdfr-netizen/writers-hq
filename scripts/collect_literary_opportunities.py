@@ -271,7 +271,10 @@ def main():
         if row.get("title"):
             existing_title_deadlines.add(normalize_title(row["title"]) + "|" + (row.get("deadline") or "no-deadline"))
 
+    dry_run = os.getenv("SCRAPER_DRY_RUN", "true").strip().lower() in ("1", "true", "yes", "on")
+    print("Mode: DRY RUN — no database writes" if dry_run else "Mode: LIVE — database writes enabled")
     inserted = skipped = failed = 0
+    would_insert = 0
     for _, (listed_title, url, card_text) in candidates.items():
         record = extract_detail(url, card_text)
         time.sleep(0.35)
@@ -283,6 +286,10 @@ def main():
         if url_key in existing_urls or title_deadline in existing_title_deadlines:
             print(f"SKIP duplicate: {record['title']}")
             skipped += 1
+            continue
+        if dry_run:
+            would_insert += 1
+            print(f"WOULD INSERT: {record['title']} — deadline {record['deadline']}")
             continue
         try:
             code, result = supabase_request("POST", "writer_opportunities?on_conflict=dedupe_url_key", record)
@@ -300,7 +307,7 @@ def main():
             failed += 1
             print(f"ERROR insert {record['title']}: {exc}", file=sys.stderr)
 
-    print(f"Done: inserted={inserted}, skipped={skipped}, failed={failed}")
+    print(f"Done: inserted={inserted}, would_insert={would_insert}, skipped={skipped}, failed={failed}")
     if failed:
         raise SystemExit(1)
 
