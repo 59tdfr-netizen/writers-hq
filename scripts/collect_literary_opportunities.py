@@ -236,8 +236,21 @@ def supabase_request(method: str, path: str, payload=None):
 
 
 def main():
-    if not os.getenv("SUPABASE_URL") or not os.getenv("SUPABASE_SERVICE_ROLE_KEY"):
+    supabase_url = os.getenv("SUPABASE_URL", "").strip()
+    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    if not supabase_url or not supabase_key:
         raise SystemExit("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY GitHub Actions secrets")
+
+    # Fail early with a useful message if the GitHub secret contains only a project ref,
+    # a URL without https://, or another value that urllib cannot use as an absolute URL.
+    parsed_supabase_url = urlparse(supabase_url)
+    if parsed_supabase_url.scheme not in ("https", "http") or not parsed_supabase_url.netloc:
+        raise SystemExit(
+            "Invalid SUPABASE_URL GitHub Actions secret: expected the full Supabase Project URL "
+            "including https:// (for example, https://<project-ref>.supabase.co). "
+            "Copy it from Supabase Project Settings → Data API / API. "
+            "Do not print or share the secret value."
+        )
 
     candidates = {}
     for page in range(1, MAX_PAGES + 1):
