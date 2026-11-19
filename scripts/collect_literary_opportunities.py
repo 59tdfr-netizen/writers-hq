@@ -36,6 +36,7 @@ DEADLINE_CONTEXT = re.compile(
     re.I,
 )
 EXPIRED_MARKER = re.compile(r"конкурс\s+прош[её]л|при[её]м\s+(?:заявок|работ)\s+заверш[её]н|архив", re.I)
+GENERIC_ROUNDUP_TITLE = re.compile(r"^(?:все\s+)?конкурсы\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?:\s+\d{4})?$", re.I)
 
 
 def fetch(url: str) -> str:
@@ -117,6 +118,9 @@ def collect_links(soup: BeautifulSoup) -> list[tuple[str, str, str]]:
         if anchor is None:
             continue
         title = clean_text(anchor.get_text(" ", strip=True))
+        if GENERIC_ROUNDUP_TITLE.fullmatch(title):
+            print(f"SKIP roundup page (not an individual opportunity): {title}")
+            continue
         url = canonical_url(urljoin(BASE, anchor.get("href", "")))
         parsed = urlparse(url)
         if parsed.hostname not in ("vsekonkursy.ru", "www.vsekonkursy.ru") or url.rstrip("/") == LIST_URL.rstrip("/"):
@@ -281,9 +285,6 @@ def main():
                 raise
             print(f"WARN list page skipped {page_url}: {exc}", file=sys.stderr)
             consecutive_empty_pages += 1
-            if consecutive_empty_pages >= 3:
-                print("INFO stopping after 3 consecutive inaccessible/empty pages")
-                break
             continue
         card_count = len(soup.select("article, .post, .entry, .type-post"))
         links = collect_links(soup)
@@ -291,9 +292,6 @@ def main():
         if not links and page > 1:
             consecutive_empty_pages += 1
             print(f"INFO no usable cards on page {page}; continuing pagination check")
-            if consecutive_empty_pages >= 3:
-                print("INFO stopping after 3 consecutive pages without usable candidates")
-                break
             time.sleep(0.5)
             continue
         consecutive_empty_pages = 0
