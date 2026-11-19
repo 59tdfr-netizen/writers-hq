@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "scripts/collect_literary_opportunities.py"
+      - "tests/**"
       - ".github/workflows/collect-literary-opportunities.yml"
   schedule:
     - cron: "17 6 * * *"
