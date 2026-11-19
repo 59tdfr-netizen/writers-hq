@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 BASE = "https://vsekonkursy.ru"
 LIST_URL = BASE + "/tvorcheskie-konkursy/literaturnye-konkursy"
 MAX_PAGES = int(os.getenv("SCRAPER_MAX_PAGES", "8"))
-MAX_LIVE_INSERTS = max(1, int(os.getenv("SCRAPER_MAX_LIVE_INSERTS", "3")))
+MAX_LIVE_INSERTS = min(10, max(1, int(os.getenv("SCRAPER_MAX_LIVE_INSERTS", "3"))))
 USER_AGENT = "WritersHQOpportunityCollector/1.0 (+https://github.com/59tdfr-netizen/writers-hq)"
 MONTHS = {
     "января": 1, "февраля": 2, "марта": 3, "апреля": 4, "мая": 5, "июня": 6,
