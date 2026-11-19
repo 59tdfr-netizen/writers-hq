@@ -774,19 +774,14 @@ textarea { resize: vertical; }
   }
 }
 
-.page-loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;background:var(--bg);transition:opacity .45s ease,visibility .45s ease}
+.page-loader{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;background:#f8e9c8;transition:opacity .45s ease,visibility .45s ease}
 .page-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
-.sisyphus-scene{width:min(220px,66vw);height:130px;display:grid;place-items:center}
-.sisyphus-art{width:100%;height:100%;overflow:visible}
-.sisyphus-ball{transform-origin:163px 68px;animation:sisyphus-roll 1.7s ease-in-out infinite}
-.sisyphus-man{transform-origin:104px 80px;animation:sisyphus-push .85s ease-in-out infinite alternate}
-.loader-title{font:700 25px Georgia,serif;color:var(--green);letter-spacing:.01em}
-.loader-caption{font-size:13px;color:var(--muted);text-align:center;max-width:270px}
-.loader-track{width:150px;height:4px;background:#e4dfd3;border-radius:9px;overflow:hidden;margin-top:8px}
-.loader-track span{display:block;height:100%;width:42%;border-radius:9px;background:var(--orange);animation:loader-progress 1.35s ease-in-out infinite}
-@keyframes sisyphus-roll{0%,100%{transform:translateX(0) rotate(0)}50%{transform:translateX(3px) rotate(13deg)}}
-@keyframes sisyphus-push{from{transform:translateY(1px) rotate(-1deg)}to{transform:translateY(-2px) rotate(2deg)}}
-@keyframes loader-progress{0%{transform:translateX(-115%)}100%{transform:translateX(260%)}}
+.loader-art-wrap{position:relative;width:min(100vw,150vh);aspect-ratio:3/2;flex:0 0 auto}
+.sisyphus-loader-image{display:block;width:100%;height:100%;object-fit:contain}
+.loader-track-overlay{position:absolute;left:31.25%;top:89.45%;width:37.5%;height:3.75%;margin:0;border-radius:999px;overflow:hidden;background:#efd7a7;border:0}
+.loader-track-overlay span{display:block;width:3%;height:100%;border-radius:999px;background:repeating-linear-gradient(135deg,#b98246 0 12px,#c99456 12px 24px);transition:width .16s linear;animation:none}
+@media(max-aspect-ratio:3/2){.loader-art-wrap{width:auto;height:100vh;aspect-ratio:3/2;max-width:none}}
+@media(prefers-reduced-motion:reduce){.page-loader{transition:none}.loader-track-overlay span{transition:none}}
 .social-name-link{color:inherit;text-decoration:none;border-bottom:1px dotted #bca98d}
 .social-name-link:hover{color:var(--green);border-bottom-style:solid}
 .social-person-bio{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;margin-top:8px}
@@ -829,37 +824,11 @@ textarea { resize: vertical; }
 </style>
 </head>
 <body class="diary-locked">
-<div class="page-loader" id="pageLoader" role="status" aria-live="polite" aria-label="Штаб писателя загружается">
-  <div class="sisyphus-scene" aria-hidden="true">
-    <svg viewBox="0 0 220 130" class="sisyphus-art">
-      <path d="M12 112 Q55 106 94 113 T208 110" fill="none" stroke="#b8a58a" stroke-width="3" stroke-linecap="round"/>
-      <g class="sisyphus-ball">
-        <circle cx="163" cy="68" r="31" fill="#bda78a" stroke="#7b6249" stroke-width="3"/>
-        <path d="M146 49l13 8-5 14 14 8 12-9M132 68l13 3 4 17M160 37l-2 20 14 8 15-10M173 84l-3 12" fill="none" stroke="#80664d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
-      <g class="sisyphus-man" stroke-linecap="round" stroke-linejoin="round">
-        <!-- Голова и волосы -->
-        <path d="M84 43Q84 32 94 32Q104 33 104 43L101 49Q95 54 88 49Z" fill="#493b32"/>
-        <circle cx="94" cy="43" r="8.5" fill="#e4bd91" stroke="#493b32" stroke-width="2.5"/>
-        <path d="M87 41Q90 34 99 38" fill="none" stroke="#493b32" stroke-width="3" stroke-linecap="round"/>
-        <path d="M97 44l3 1" fill="none" stroke="#493b32" stroke-width="1.8" stroke-linecap="round"/>
-        <!-- Рубаха и пояс -->
-        <path d="M89 53Q96 51 102 57L108 73Q105 80 99 83L85 78Q84 68 89 53Z" fill="#a85f45" stroke="#754233" stroke-width="2.5"/>
-        <path d="M87 76Q96 80 106 76" fill="none" stroke="#e0b16f" stroke-width="3"/>
-        <!-- Две руки, упирающиеся в камень -->
-        <path d="M91 58L109 58 124 63 137 64" fill="none" stroke="#e4bd91" stroke-width="5.5"/>
-        <path d="M94 64L109 67 124 69 137 70" fill="none" stroke="#e4bd91" stroke-width="5.5"/>
-        <path d="M133 63l5 1M133 69l5 1" fill="none" stroke="#493b32" stroke-width="2.2"/>
-        <!-- Ровно две ноги и ботинки -->
-        <path d="M88 78L83 91 88 101" fill="none" stroke="#493b32" stroke-width="6"/>
-        <path d="M100 81L107 91 116 100" fill="none" stroke="#493b32" stroke-width="6"/>
-        <path d="M88 101l-6 2M116 100l5 3" fill="none" stroke="#493b32" stroke-width="4.5"/>
-      </g>
-    </svg>
+<div class="page-loader" id="pageLoader" role="status" aria-live="polite" aria-label="Загружаем Штаб писателя">
+  <div class="loader-art-wrap">
+    <img class="sisyphus-loader-image" src="data:image/webp;base64,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" alt="">
+    <div class="loader-track loader-track-overlay" aria-hidden="true"><span id="loaderProgressFill"></span></div>
   </div>
-  <div class="loader-title">Штаб писателя</div>
-  <div class="loader-caption">Даже большой роман начинается с одного шага</div>
-  <div class="loader-track"><span></span></div>
 </div>
 <div class="wrap">
   <section class="fresco-banner" aria-label="Штаб писателя">
@@ -2877,13 +2846,34 @@ function makePersonRow(profile, isFollowing, mode) {
 <script id="sisyphus-loader-dismiss">
 (() => {
   const loader = document.getElementById('pageLoader');
-  if (!loader) return;
-  let hidden = false;
-  const hide = () => { if (hidden) return; hidden = true; loader.classList.add('is-hidden'); window.setTimeout(() => loader.remove(), 500); };
+  const fill = document.getElementById('loaderProgressFill');
+  if (!loader || !fill) return;
+  let hidden = false, progress = 2, loadFinished = document.readyState === 'complete';
   const startedAt = Number(window.__writersHQLoadStartedAt) || Date.now();
-  const afterMinimum = () => window.setTimeout(hide, Math.max(0, 5000 - (Date.now() - startedAt)));
-  if (document.readyState === 'complete') afterMinimum();
-  else window.addEventListener('load', afterMinimum, { once: true });
+  const hide = () => {
+    if (hidden) return;
+    hidden = true;
+    loader.classList.add('is-hidden');
+    window.setTimeout(() => loader.remove(), 500);
+  };
+  window.addEventListener('load', () => { loadFinished = true; }, { once: true });
+  const update = () => {
+    if (hidden) return;
+    const entries = performance.getEntriesByType('resource');
+    const done = entries.filter(entry => entry.responseEnd > 0).length;
+    const resourceTarget = entries.length ? Math.min(88, (done / entries.length) * 88) : 4;
+    const timeTarget = Math.min(78, ((Date.now() - startedAt) / 7000) * 78);
+    const target = loadFinished ? 100 : Math.max(4, Math.min(89, Math.max(resourceTarget, timeTarget)));
+    progress += (target - progress) * (loadFinished ? .2 : .045);
+    fill.style.width = Math.min(100, progress).toFixed(1) + '%';
+    if (loadFinished && Date.now() - startedAt >= 5000 && progress >= 99) {
+      fill.style.width = '100%';
+      hide();
+      return;
+    }
+    requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
 })();
 </script>
 </body>
