@@ -1367,13 +1367,13 @@ async function loadProjectHub(){
   // и показывают тот же прогресс, что и дневник.
   const [projectRows,sessionRows]=await withProjectHubTimeout(Promise.all([
    client.from('writer_projects').select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
-   client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count').eq('user_id',userId).order('work_date',{ascending:true})
+   client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count,note').eq('user_id',userId).order('work_date',{ascending:true})
   ]));
   if(projectRows.error)throw projectRows.error;if(sessionRows.error)throw sessionRows.error;
   if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
-  const projects=projectRows.data||[],projectSessions={};
-  projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
-  (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;projectSessions[row.project_id][row.activity_type==='editing'?'editing':'writing'][row.work_date]=Number(row.chars_count)||0});
+  const projects=projectRows.data||[],projectSessions={},projectNotes={};
+  projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}};projectNotes[p.id]={writing:{},editing:{}}});
+  (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;const mode=row.activity_type==='editing'?'editing':'writing';projectSessions[row.project_id][mode][row.work_date]=Number(row.chars_count)||0;projectNotes[row.project_id][mode][row.work_date]=row.note||''});
   state.projects=projects;state.projectSessions=projectSessions;state.projectNotes=projectNotes;
   if(!state.selectedProjectId||!projects.some(p=>p.id===state.selectedProjectId))state.selectedProjectId=projects[0]?.id||null;
   state.entries=sessionEntries();
