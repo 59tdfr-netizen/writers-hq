@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 BASE = "https://vsekonkursy.ru"
 LIST_URL = BASE + "/tvorcheskie-konkursy/literaturnye-konkursy"
 MAX_PAGES = int(os.getenv("SCRAPER_MAX_PAGES", "8"))
+MAX_LIVE_INSERTS = max(1, int(os.getenv("SCRAPER_MAX_LIVE_INSERTS", "3")))
 USER_AGENT = "WritersHQOpportunityCollector/1.0 (+https://github.com/59tdfr-netizen/writers-hq)"
 MONTHS = {
     "января": 1, "февраля": 2, "марта": 3, "апреля": 4, "мая": 5, "июня": 6,
@@ -326,6 +327,9 @@ def main():
     inserted = skipped = failed = 0
     would_insert = 0
     for _, (listed_title, url, card_text) in candidates.items():
+        if not dry_run and inserted >= MAX_LIVE_INSERTS:
+            print(f"STOP live insert cap reached ({MAX_LIVE_INSERTS}); remaining candidates left for a later run")
+            break
         record = extract_detail(url, card_text)
         time.sleep(0.35)
         if not record:
