@@ -35,7 +35,7 @@ DEADLINE_CONTEXT = re.compile(
     r"[^\n.!?]{0,100}",
     re.I,
 )
-EXPIRED_MARKER = re.compile(r"конкурс\s+прош[её]л|при[её]м\s+(?:заявок|работ)\s+заверш[её]н|архив", re.I)
+EXPIRED_MARKER = re.compile(r"конкурс\s+(?:уже\s+)?заверш[её]н|при[её]м\s+(?:заявок|работ)\s+заверш[её]н|при[её]м\s+заявок\s+закрыт|работы\s+не\s+принимаются|срок\s+подачи\s+ист[её]к", re.I)
 GENERIC_ROUNDUP_TITLE = re.compile(r"^(?:все\s+)?конкурсы\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?:\s+\d{4})?$", re.I)
 
 
@@ -142,8 +142,13 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         return None
     soup = BeautifulSoup(raw, "html.parser")
     page_text = clean_text(soup.get_text(" ", strip=True))
-    if EXPIRED_MARKER.search(page_text[:5000]):
-        print(f"SKIP expired/archived page: {url}")
+    title_el = soup.select_one("h1.entry-title, h1.post-title, article h1, main h1, h1")
+    page_title = clean_text(title_el.get_text(" ", strip=True)) if title_el else ""
+    article = soup.select_one("article .entry-content, article .post-content, .entry-content, .post-content, main")
+    leading_content = clean_text(article.get_text(" ", strip=True))[:1800] if article else page_text[:1800]
+    # Do not treat generic site navigation/footer words such as "архив" as evidence that a specific contest is closed.
+    if EXPIRED_MARKER.search(page_title + " " + leading_content):
+        print(f"SKIP explicitly closed/expired page: {url}")
         return None
     deadline = find_deadline(page_text, list_text)
     if not deadline:
