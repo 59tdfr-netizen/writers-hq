@@ -139,9 +139,14 @@ def extract_detail(url: str, list_text: str) -> dict | None:
     soup = BeautifulSoup(raw, "html.parser")
     page_text = clean_text(soup.get_text(" ", strip=True))
     if EXPIRED_MARKER.search(page_text[:5000]):
+        print(f"SKIP expired/archived page: {url}")
         return None
     deadline = find_deadline(page_text, list_text)
-    if not deadline or deadline < date.today():
+    if not deadline:
+        print(f"SKIP no reliable deadline found: {url}")
+        return None
+    if deadline < date.today():
+        print(f"SKIP past deadline ({deadline.isoformat()}): {url}")
         return None
 
     title_el = soup.select_one("h1.entry-title, h1.post-title, article h1, main h1, h1")
@@ -150,6 +155,7 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         title = clean_text(soup.title.get_text(" ", strip=True)) if soup.title else ""
         title = re.sub(r"\s*[|–—-]\s*Все конкурсы.*$", "", title, flags=re.I)
     if len(title) < 8:
+        print(f"SKIP missing/short title: {url}")
         return None
 
     organizer = ""
@@ -265,6 +271,7 @@ def main():
         )
 
     candidates = {}
+    consecutive_empty_pages = 0
     for page in range(1, MAX_PAGES + 1):
         page_url = LIST_URL if page == 1 else f"{LIST_URL}/page/{page}"
         try:
@@ -273,16 +280,28 @@ def main():
             if page == 1:
                 raise
             print(f"WARN list page skipped {page_url}: {exc}", file=sys.stderr)
+            consecutive_empty_pages += 1
+            if consecutive_empty_pages >= 3:
+                print("INFO stopping after 3 consecutive inaccessible/empty pages")
+                break
             continue
+        card_count = len(soup.select("article, .post, .entry, .type-post"))
         links = collect_links(soup)
+        print(f"INFO page {page}: {len(links)} usable candidates from {card_count} article/post containers")
         if not links and page > 1:
-            print(f"INFO no more cards at page {page}; stopping")
-            break
+            consecutive_empty_pages += 1
+            print(f"INFO no usable cards on page {page}; continuing pagination check")
+            if consecutive_empty_pages >= 3:
+                print("INFO stopping after 3 consecutive pages without usable candidates")
+                break
+            time.sleep(0.5)
+            continue
+        consecutive_empty_pages = 0
         for title, url, card_text in links:
             candidates[url] = (title, url, card_text)
         time.sleep(0.5)
 
-    print(f"Found {len(candidates)} source-page candidates across up to {MAX_PAGES} pages")
+    print(f"Found {len(candidates)} unique source-page candidates across {page if 'page' in locals() else 0} checked pages (limit {MAX_PAGES})")
     status, existing = supabase_request("GET", "writer_opportunities?select=title,source_url,deadline,dedupe_url_key,dedupe_title_deadline_key&limit=5000")
     if status != 200 or not isinstance(existing, list):
         raise RuntimeError("Could not load existing opportunity keys from Supabase")
