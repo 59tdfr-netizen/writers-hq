@@ -381,6 +381,10 @@ def main():
         if dry_run:
             would_insert += 1
             print(f"WOULD INSERT: {record['title']} — deadline {record['deadline']}")
+            # Keep this dry-run's in-memory keys in sync so a matching item from
+            # another source is reported as a duplicate, without writing to Supabase.
+            existing_urls.add(url_key)
+            existing_title_deadlines.add(title_deadline)
             continue
         try:
             # Let PostgREST/PostgreSQL honor every unique index. The dedupe indexes are
