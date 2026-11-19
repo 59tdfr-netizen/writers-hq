@@ -808,6 +808,25 @@ textarea { resize: vertical; }
 @media(max-width:520px){.page-loader{padding:18px}.loader-title{font-size:23px}.activity-item{grid-template-columns:34px minmax(0,1fr);padding:11px;gap:9px}.activity-avatar{width:34px;height:34px}.author-card-actions{align-items:stretch}.coffee-link{white-space:normal;text-align:center}}
 @media(prefers-reduced-motion:reduce){.sisyphus-ball,.sisyphus-man,.loader-track span{animation:none!important}.page-loader{transition:none}}
 </style>
+<style id="hq-donation-float-style">
+.hq-donation-float {
+  position: fixed; right: 20px; bottom: 20px; z-index: 30;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  max-width: calc(100vw - 28px); padding: 12px 16px;
+  border: 1px solid #d5b77f; border-radius: 999px;
+  background: #f7ead3; color: #642b25; text-decoration: none;
+  font: 750 13px/1.2 Manrope, Arial, sans-serif;
+  box-shadow: 0 5px 20px rgba(35, 22, 16, .2);
+  transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+.hq-donation-float:hover { background: #ffefcf; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(35,22,16,.24); }
+.hq-donation-float:active { transform: translateY(0) scale(.98); }
+.hq-donation-float:focus-visible { outline: 3px solid #d5b77f; outline-offset: 3px; }
+@media (max-width: 520px) {
+  .hq-donation-float { right: 12px; bottom: 12px; padding: 11px 13px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .hq-donation-float { transition: none; } }
+</style>
 </head>
 <body class="diary-locked">
 <div class="page-loader" id="pageLoader" role="status" aria-live="polite" aria-label="Штаб писателя загружается">
@@ -818,14 +837,24 @@ textarea { resize: vertical; }
         <circle cx="163" cy="68" r="31" fill="#bda78a" stroke="#7b6249" stroke-width="3"/>
         <path d="M146 49l13 8-5 14 14 8 12-9M132 68l13 3 4 17M160 37l-2 20 14 8 15-10M173 84l-3 12" fill="none" stroke="#80664d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       </g>
-      <g class="sisyphus-man" stroke="#493b32" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="103" cy="49" r="10" fill="#d8b38a" stroke-width="3"/>
-        <path d="M101 61L87 79 104 91 118 75" fill="none" stroke-width="8"/>
-        <path d="M93 70L119 64 138 70" fill="none" stroke-width="6"/>
-        <path d="M105 89L92 107M108 89L124 104" fill="none" stroke-width="7"/>
-        <path d="M96 38q7-8 15 0" fill="none" stroke-width="3"/>
+      <g class="sisyphus-man" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Голова и волосы -->
+        <path d="M84 43Q84 32 94 32Q104 33 104 43L101 49Q95 54 88 49Z" fill="#493b32"/>
+        <circle cx="94" cy="43" r="8.5" fill="#e4bd91" stroke="#493b32" stroke-width="2.5"/>
+        <path d="M87 41Q90 34 99 38" fill="none" stroke="#493b32" stroke-width="3" stroke-linecap="round"/>
+        <path d="M97 44l3 1" fill="none" stroke="#493b32" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- Рубаха и пояс -->
+        <path d="M89 53Q96 51 102 57L108 73Q105 80 99 83L85 78Q84 68 89 53Z" fill="#a85f45" stroke="#754233" stroke-width="2.5"/>
+        <path d="M87 76Q96 80 106 76" fill="none" stroke="#e0b16f" stroke-width="3"/>
+        <!-- Две руки, упирающиеся в камень -->
+        <path d="M91 58L109 58 124 63 137 64" fill="none" stroke="#e4bd91" stroke-width="5.5"/>
+        <path d="M94 64L109 67 124 69 137 70" fill="none" stroke="#e4bd91" stroke-width="5.5"/>
+        <path d="M133 63l5 1M133 69l5 1" fill="none" stroke="#493b32" stroke-width="2.2"/>
+        <!-- Ровно две ноги и ботинки -->
+        <path d="M88 78L83 91 88 101" fill="none" stroke="#493b32" stroke-width="6"/>
+        <path d="M100 81L107 91 116 100" fill="none" stroke="#493b32" stroke-width="6"/>
+        <path d="M88 101l-6 2M116 100l5 3" fill="none" stroke="#493b32" stroke-width="4.5"/>
       </g>
-      <path d="M126 52l9 5M127 58l8 5" stroke="#496b52" stroke-width="3" stroke-linecap="round"/>
     </svg>
   </div>
   <div class="loader-title">Штаб писателя</div>
@@ -1070,12 +1099,12 @@ textarea { resize: vertical; }
         <div class="bio-counter"><span id="bioCounter">0</span> / 500</div>
       </div>
       <button id="saveProfileBioBtn" class="btn primary" type="button">Сохранить информацию</button>
-      <div class="form-row" style="margin-top:16px">
-        <div class="field"><label for="profileSocialUrl">Ссылка на соцсеть или канал</label><input id="profileSocialUrl" type="url" maxlength="500" placeholder="https://t.me/… или https://instagram.com/…"></div>
-        <div class="field"><label for="profileDonationUrl">Ссылка для доната</label><input id="profileDonationUrl" type="url" maxlength="500" placeholder="https://…"></div>
+      <div class="field" style="margin-top:16px;max-width:520px">
+        <label for="profileSocialUrl">Ссылка на соцсеть или канал</label>
+        <input id="profileSocialUrl" type="url" maxlength="500" placeholder="https://t.me/… или https://instagram.com/…">
       </div>
-      <button id="saveProfileLinksBtn" class="btn secondary" type="button">Сохранить ссылки</button>
-      <p class="small" style="margin-top:7px">Ссылка на соцсеть появится в имени автора. Донат проходит на выбранной тобой внешней площадке — Штаб не принимает и не хранит платежи.</p>
+      <button id="saveProfileLinksBtn" class="btn secondary" type="button">Сохранить ссылку</button>
+      <p class="small" style="margin-top:7px">Ссылка на соцсеть появится в имени автора. Поддержать сам Штаб можно кнопкой в углу экрана.</p>
     </section>
     <div class="settings-grid">
       <div>
@@ -1097,6 +1126,9 @@ textarea { resize: vertical; }
   <footer class="footer"><button class="link-btn" id="exportBtn">Скачать резервную копию данных</button></footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<a class="hq-donation-float" href="https://t.tb.ru/pm_short/LTtDRucHIy" target="_blank" rel="noopener noreferrer" aria-label="Поддержать Штаб писателя донатом">
+  <span aria-hidden="true">☕</span><span>Поддержать Штаб</span>
+</a>
 <script>
 (function(){
 const $=id=>document.getElementById(id);
@@ -1875,8 +1907,6 @@ function makePersonRow(profile, isFollowing, mode) {
       finally { button.disabled = false; }
     });
     actions.append(button);
-    const donationUrl = safeExternalUrl(profile.donation_url);
-    if (donationUrl) { const coffee = document.createElement('a'); coffee.className = 'coffee-link'; coffee.href = donationUrl; coffee.target = '_blank'; coffee.rel = 'noopener noreferrer'; coffee.textContent = '☕ Автору на кофе'; actions.append(coffee); }
     row.append(info, actions); return row;
   }
 
@@ -1901,7 +1931,7 @@ function makePersonRow(profile, isFollowing, mode) {
 
   async function loadOwnProfile(user) {
     let { data, error } = await client.from('profiles')
-      .select('id, display_name, bio, avatar_url, social_url, donation_url').eq('id', user.id).maybeSingle();
+      .select('id, display_name, bio, avatar_url, social_url').eq('id', user.id).maybeSingle();
     let profileFieldsReady = true;
     if (error && /column .* does not exist|schema cache/i.test(error.message || '')) {
       // Keep login usable before the optional bio/avatar database migration is applied.
@@ -1926,7 +1956,6 @@ function makePersonRow(profile, isFollowing, mode) {
     $('profileDisplayName').value = name;
     $('profileBio').value = profileFieldsReady && data && data.bio || '';
     $('profileSocialUrl').value = profileFieldsReady && data && data.social_url || '';
-    $('profileDonationUrl').value = profileFieldsReady && data && data.donation_url || '';
     $('bioCounter').textContent = String($('profileBio').value.length);
     setAvatarPreview(profileFieldsReady && data && data.avatar_url || '');
     $('removeAvatarBtn').hidden = !(profileFieldsReady && data && data.avatar_url);
@@ -1997,8 +2026,6 @@ function makePersonRow(profile, isFollowing, mode) {
       const actions = document.createElement('div'); actions.className = 'activity-actions';
       const likeControl = document.createElement('span'); actions.append(likeControl);
       renderLikeButton(likeControl, item.user_id, 'achievement', item.achievement_id).catch(() => {});
-      const donationUrl = safeExternalUrl(item.donation_url);
-      if (donationUrl) { const coffee = document.createElement('a'); coffee.className = 'coffee-link'; coffee.href = donationUrl; coffee.target = '_blank'; coffee.rel = 'noopener noreferrer'; coffee.textContent = '☕ Автору на кофе'; actions.append(coffee); }
       main.append(copy, achievement, date, actions); card.append(avatar, main); list.append(card);
     }
   }
@@ -2026,7 +2053,7 @@ function makePersonRow(profile, isFollowing, mode) {
       return;
     }
     const { data: profiles, error: profileError } = await client.from('profiles')
-      .select('id, display_name, bio, avatar_url, social_url, donation_url').in('id', ids).order('display_name', { ascending: true });
+      .select('id, display_name, bio, avatar_url, social_url').in('id', ids).order('display_name', { ascending: true });
     if (profileError) throw profileError;
     $('followingStatus').textContent = 'Авторы, на которых ты подписан.';
     (profiles || []).forEach(profile => list.append(makePersonRow(profile, true, 'following')));
@@ -2043,7 +2070,7 @@ function makePersonRow(profile, isFollowing, mode) {
     }
     status.textContent = 'Ищем авторов…';
     const { data, error } = await client.from('profiles')
-      .select('id, display_name, bio, avatar_url, social_url, donation_url').ilike('display_name', `%${query.replace(/[%_,]/g, ' ')}%`)
+      .select('id, display_name, bio, avatar_url, social_url').ilike('display_name', `%${query.replace(/[%_,]/g, ' ')}%`)
       .neq('id', activeUserId).order('display_name', { ascending: true }).limit(20);
     if (error) {
       status.textContent = 'Не удалось выполнить поиск.';
@@ -2525,20 +2552,20 @@ function makePersonRow(profile, isFollowing, mode) {
   });
 
   $('saveProfileLinksBtn').addEventListener('click', async () => {
-    const socialRaw = $('profileSocialUrl').value.trim(), donationRaw = $('profileDonationUrl').value.trim();
+    const socialRaw = $('profileSocialUrl').value.trim();
     const validateHttps = (value, label) => {
       if (!value) return null;
       try { const url = new URL(value); if (url.protocol !== 'https:') throw new Error(); return url.href; }
       catch (_) { throw new Error('Для поля «' + label + '» укажи полную ссылку, начинающуюся с https://'); }
     };
-    let socialUrl, donationUrl;
-    try { socialUrl = validateHttps(socialRaw, 'Ссылка на соцсеть или канал'); donationUrl = validateHttps(donationRaw, 'Ссылка для доната'); }
+    let socialUrl;
+    try { socialUrl = validateHttps(socialRaw, 'Ссылка на соцсеть или канал'); }
     catch (error) { $('settingsMessage').textContent = error.message; $('settingsMessage').className = 'auth-message error'; return; }
     const button = $('saveProfileLinksBtn'); button.disabled = true;
     try {
-      const { error } = await client.from('profiles').update({ social_url: socialUrl, donation_url: donationUrl }).eq('id', activeUserId);
+      const { error } = await client.from('profiles').update({ social_url: socialUrl }).eq('id', activeUserId);
       if (error) throw error;
-      $('settingsMessage').textContent = 'Ссылки сохранены. Соцсеть появится в имени, донат — в карточке автора.';
+      $('settingsMessage').textContent = 'Ссылка сохранена. Соцсеть появится в имени автора.';
       $('settingsMessage').className = 'auth-message success';
       await loadFollowing(); await loadActivityFeed();
       if ($('authorSearch').value.trim().length >= 2) await searchAuthors();
