@@ -16,6 +16,19 @@ on:
         required: false
         default: "8"
         type: string
+      dry_run:
+        description: "true = preview only; false = allow limited database inserts"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      max_live_inserts:
+        description: "Maximum new records in a manual live run (1–10)"
+        required: false
+        default: "3"
+        type: string
 
 permissions:
   contents: read
@@ -48,5 +61,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SCRAPER_MAX_PAGES: ${{ inputs.max_pages || '8' }}
-          SCRAPER_DRY_RUN: "true"
+          SCRAPER_DRY_RUN: ${{ inputs.dry_run || 'true' }}
+          SCRAPER_MAX_LIVE_INSERTS: ${{ inputs.max_live_inserts || '3' }}
         run: python scripts/collect_literary_opportunities.py
