@@ -2624,8 +2624,8 @@ function makePersonRow(profile, isFollowing, mode) {
       }, { onConflict: 'user_id' });
       if (error) throw error;
       $('settingsMessage').textContent = allowed
-        ? 'Статистика и достижения теперь видны твоим подписчикам.'
-        : 'Показ статистики и достижений отключён.';
+        ? 'Твои достижения теперь появляются в ленте сообщества.'
+        : 'Показ достижений в ленте сообщества отключён.';
       $('settingsMessage').className = 'auth-message success';
     } catch (error) {
       $('settingsMessage').textContent = 'Не удалось сохранить настройку: ' + (error.message || 'ошибка');
