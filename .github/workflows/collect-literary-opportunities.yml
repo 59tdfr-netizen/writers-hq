@@ -65,6 +65,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SCRAPER_MAX_PAGES: ${{ inputs.max_pages || '8' }}
-          SCRAPER_DRY_RUN: ${{ inputs.dry_run || 'true' }}
+          # Scheduled runs are live after the controlled insert test passed. Pushes stay dry-run; manual runs remain opt-in.
+          SCRAPER_DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || inputs.dry_run || 'true' }}
           SCRAPER_MAX_LIVE_INSERTS: ${{ inputs.max_live_inserts || '3' }}
         run: python scripts/collect_literary_opportunities.py
