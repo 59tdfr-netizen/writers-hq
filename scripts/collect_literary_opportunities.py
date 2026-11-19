@@ -18,6 +18,11 @@ from bs4 import BeautifulSoup
 
 BASE = "https://vsekonkursy.ru"
 LIST_URL = BASE + "/tvorcheskie-konkursy/literaturnye-konkursy"
+SOURCES = [
+    {"name": "ВсеКонкурсы", "base_url": BASE, "list_url": LIST_URL, "pagination": "path"},
+    {"name": "Конкурсы.Пиши.про", "base_url": "https://konkursy.pishi.pro", "list_url": "https://konkursy.pishi.pro/", "pagination": "query"},
+    {"name": "Печорин.net", "base_url": "https://pechorin.net", "list_url": "https://pechorin.net/competitions", "pagination": "query"},
+]
 MAX_PAGES = int(os.getenv("SCRAPER_MAX_PAGES", "8"))
 MAX_LIVE_INSERTS = min(10, max(1, int(os.getenv("SCRAPER_MAX_LIVE_INSERTS", "3"))))
 USER_AGENT = "WritersHQOpportunityCollector/1.0 (+https://github.com/59tdfr-netizen/writers-hq)"
@@ -31,7 +36,7 @@ DATE_RE = re.compile(
     re.I,
 )
 DEADLINE_CONTEXT = re.compile(
-    r"(?:дедлайн|срок(?: подачи)?|до какого числа|при[её]м заявок.{0,100}?до|"
+    r"(?:дедлайн|срок(?: подачи)?|до какого числа|при[её]м заявок.{0,100}?до|окончание при[её]ма заявок|"
     r"принимают.{0,80}?до|заявки.{0,80}?до|работы.{0,80}?до|при[её]м работ.{0,100}?до)"
     r"[^\n.!?]{0,100}",
     re.I,
@@ -97,18 +102,38 @@ def clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", unescape(value or "")).strip()
 
 
-def collect_links(soup: BeautifulSoup) -> list[tuple[str, str, str]]:
+def source_page_url(source: dict, page: int) -> str:
+    if page <= 1:
+        return source["list_url"]
+    if source["pagination"] == "path":
+        return source["list_url"].rstrip("/") + f"/page/{page}"
+    separator = "&" if "?" in source["list_url"] else "?"
+    return source["list_url"] + separator + f"page={page}"
+
+
+def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[str, str, str]]:
     found = []
     seen = set()
-    cards = soup.select("article, .post, .entry, .type-post")
-    if not cards:
-        cards = [a.parent.parent for a in soup.select("a[href]") if a.parent and a.parent.parent]
+    host = (urlparse(list_url).hostname or "").lower()
+    if host == "pechorin.net":
+        anchors = soup.select('a[href*="/competitions/view/"]')
+        cards = [a.parent.parent for a in anchors if a.parent and a.parent.parent]
+    elif host == "konkursy.pishi.pro":
+        anchors = soup.select('a[href*="/vse-literaturnye-konkursy/"]')
+        cards = [a.parent.parent for a in anchors if a.parent and a.parent.parent]
+    else:
+        cards = soup.select("article, .post, .entry, .type-post")
+        if not cards:
+            cards = [a.parent.parent for a in soup.select("a[href]") if a.parent and a.parent.parent]
     for card in cards:
         text = clean_text(card.get_text(" ", strip=True))
         if not text or EXPIRED_MARKER.search(text):
             continue
         title_el = card.select_one("h1, h2, h3, .entry-title, .post-title")
         anchor = title_el.find("a", href=True) if title_el else None
+        if anchor is None and host in ("pechorin.net", "konkursy.pishi.pro"):
+            selector = 'a[href*="/competitions/view/"]' if host == "pechorin.net" else 'a[href*="/vse-literaturnye-konkursy/"]'
+            anchor = card.select_one(selector)
         if anchor is None:
             for candidate in card.select("a[href]"):
                 label = clean_text(candidate.get_text(" ", strip=True))
@@ -122,9 +147,10 @@ def collect_links(soup: BeautifulSoup) -> list[tuple[str, str, str]]:
         if GENERIC_ROUNDUP_TITLE.fullmatch(title):
             print(f"SKIP roundup page (not an individual opportunity): {title}")
             continue
-        url = canonical_url(urljoin(BASE, anchor.get("href", "")))
+        source_base = f"{urlparse(list_url).scheme}://{urlparse(list_url).netloc}"
+        url = canonical_url(urljoin(source_base, anchor.get("href", "")))
         parsed = urlparse(url)
-        if parsed.hostname not in ("vsekonkursy.ru", "www.vsekonkursy.ru") or url.rstrip("/") == LIST_URL.rstrip("/"):
+        if parsed.hostname != host or url.rstrip("/") == canonical_url(list_url).rstrip("/"):
             continue
         if len(title) < 8 or title.lower() in ("подробнее", "читать далее"):
             continue
@@ -194,7 +220,7 @@ def extract_detail(url: str, list_text: str) -> dict | None:
     submission_url = None
     for a in soup.select("a[href]"):
         label = clean_text(a.get_text(" ", strip=True)).lower()
-        if re.search(r"подать заявку|отправить (?:работу|текст)|форма заявки|регистрация|заполнить анкету", label):
+        if re.search(r"подать заявку|отправить (?:работу|текст)|форма заявки|регистрация|заполнить анкету|перейти на сайт конкурса", label):
             candidate = canonical_url(urljoin(url, a["href"]))
             if urlparse(candidate).scheme in ("http", "https"):
                 submission_url = candidate
@@ -281,31 +307,41 @@ def main():
         )
 
     candidates = {}
-    consecutive_empty_pages = 0
-    for page in range(1, MAX_PAGES + 1):
-        page_url = LIST_URL if page == 1 else f"{LIST_URL}/page/{page}"
-        try:
-            soup = BeautifulSoup(fetch(page_url), "html.parser")
-        except (HTTPError, URLError, TimeoutError, RuntimeError) as exc:
-            if page == 1:
-                raise
-            print(f"WARN list page skipped {page_url}: {exc}", file=sys.stderr)
-            consecutive_empty_pages += 1
-            continue
-        card_count = len(soup.select("article, .post, .entry, .type-post"))
-        links = collect_links(soup)
-        print(f"INFO page {page}: {len(links)} usable candidates from {card_count} article/post containers")
-        if not links and page > 1:
-            consecutive_empty_pages += 1
-            print(f"INFO no usable cards on page {page}; continuing pagination check")
-            time.sleep(0.5)
-            continue
+    pages_checked = 0
+    for source in SOURCES:
         consecutive_empty_pages = 0
-        for title, url, card_text in links:
-            candidates[url] = (title, url, card_text)
-        time.sleep(0.5)
+        source_candidates = 0
+        for page in range(1, MAX_PAGES + 1):
+            page_url = source_page_url(source, page)
+            try:
+                soup = BeautifulSoup(fetch(page_url), "html.parser")
+            except (HTTPError, URLError, TimeoutError, RuntimeError) as exc:
+                if page == 1:
+                    print(f"ERROR source={source['name']} first page failed: {exc}", file=sys.stderr)
+                    break
+                print(f"WARN list page skipped {page_url}: {exc}", file=sys.stderr)
+                consecutive_empty_pages += 1
+                if consecutive_empty_pages >= 2:
+                    break
+                continue
+            pages_checked += 1
+            links = collect_links(soup, source["list_url"])
+            print(f"INFO source={source['name']} page={page}: {len(links)} usable candidates")
+            if not links and page > 1:
+                consecutive_empty_pages += 1
+                print(f"INFO source={source['name']} no usable cards on page {page}")
+                if consecutive_empty_pages >= 2:
+                    break
+                time.sleep(0.5)
+                continue
+            consecutive_empty_pages = 0
+            for title, url, card_text in links:
+                candidates[url] = (title, url, card_text)
+                source_candidates += 1
+            time.sleep(0.5)
+        print(f"INFO source={source['name']} listing candidates={source_candidates}")
 
-    print(f"Found {len(candidates)} unique source-page candidates across {page if 'page' in locals() else 0} checked pages (limit {MAX_PAGES})")
+    print(f"Found {len(candidates)} unique source-page candidates across {pages_checked} checked pages (limit {MAX_PAGES} per source)")
     status, existing = supabase_request("GET", "writer_opportunities?select=title,source_url,deadline,dedupe_url_key,dedupe_title_deadline_key&limit=5000")
     if status != 200 or not isinstance(existing, list):
         raise RuntimeError("Could not load existing opportunity keys from Supabase")
