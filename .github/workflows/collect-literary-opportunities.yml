@@ -1,6 +1,12 @@
 name: Update literary opportunities
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/collect_literary_opportunities.py"
+      - ".github/workflows/collect-literary-opportunities.yml"
   schedule:
     - cron: "17 6 * * *"
   workflow_dispatch:
