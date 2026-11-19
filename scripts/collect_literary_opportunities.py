@@ -326,9 +326,10 @@ def main():
     print("Mode: DRY RUN — no database writes" if dry_run else "Mode: LIVE — database writes enabled")
     inserted = skipped = failed = 0
     would_insert = 0
+    live_attempts = 0
     for _, (listed_title, url, card_text) in candidates.items():
-        if not dry_run and inserted >= MAX_LIVE_INSERTS:
-            print(f"STOP live insert cap reached ({MAX_LIVE_INSERTS}); remaining candidates left for a later run")
+        if not dry_run and live_attempts >= MAX_LIVE_INSERTS:
+            print(f"STOP live insert attempt cap reached ({MAX_LIVE_INSERTS}); remaining candidates left for a later run")
             break
         record = extract_detail(url, card_text)
         time.sleep(0.35)
@@ -346,7 +347,12 @@ def main():
             print(f"WOULD INSERT: {record['title']} — deadline {record['deadline']}")
             continue
         try:
-            code, result = supabase_request("POST", "writer_opportunities?on_conflict=dedupe_url_key", record)
+            # Let PostgREST/PostgreSQL honor every unique index. The dedupe indexes are
+            # partial indexes (WHERE key IS NOT NULL), which cannot be targeted by the
+            # simple on_conflict column parameter. Client-side checks above still avoid
+            # known URL and title/deadline duplicates before attempting the insert.
+            live_attempts += 1
+            code, result = supabase_request("POST", "writer_opportunities", record)
             if code == 409 or (isinstance(result, str) and "duplicate key" in result.lower()) or (isinstance(result, list) and not result):
                 print(f"SKIP database duplicate: {record['title']}")
                 skipped += 1
