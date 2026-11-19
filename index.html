@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>window.__writersHQLoadStartedAt = Date.now();</script>
 <title>Штаб писателя</title>
 <style>
 :root{--bg:#f5f3ee;--paper:#fffefa;--ink:#252923;--muted:#777c72;--line:#e7e4db;--green:#496b52;--green2:#dce9d9;--orange:#c47748;--red:#b85d54;--shadow:0 8px 30px rgba(40,44,35,.06)}
@@ -772,9 +773,65 @@ textarea { resize: vertical; }
     animation: none !important;
   }
 }
+
+.page-loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;background:var(--bg);transition:opacity .45s ease,visibility .45s ease}
+.page-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.sisyphus-scene{width:min(220px,66vw);height:130px;display:grid;place-items:center}
+.sisyphus-art{width:100%;height:100%;overflow:visible}
+.sisyphus-ball{transform-origin:163px 68px;animation:sisyphus-roll 1.7s ease-in-out infinite}
+.sisyphus-man{transform-origin:104px 80px;animation:sisyphus-push .85s ease-in-out infinite alternate}
+.loader-title{font:700 25px Georgia,serif;color:var(--green);letter-spacing:.01em}
+.loader-caption{font-size:13px;color:var(--muted);text-align:center;max-width:270px}
+.loader-track{width:150px;height:4px;background:#e4dfd3;border-radius:9px;overflow:hidden;margin-top:8px}
+.loader-track span{display:block;height:100%;width:42%;border-radius:9px;background:var(--orange);animation:loader-progress 1.35s ease-in-out infinite}
+@keyframes sisyphus-roll{0%,100%{transform:translateX(0) rotate(0)}50%{transform:translateX(3px) rotate(13deg)}}
+@keyframes sisyphus-push{from{transform:translateY(1px) rotate(-1deg)}to{transform:translateY(-2px) rotate(2deg)}}
+@keyframes loader-progress{0%{transform:translateX(-115%)}100%{transform:translateX(260%)}}
+.social-name-link{color:inherit;text-decoration:none;border-bottom:1px dotted #bca98d}
+.social-name-link:hover{color:var(--green);border-bottom-style:solid}
+.social-person-bio{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;margin-top:8px}
+.author-achievement-icons{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.author-achievement-icon{width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);border-radius:9px;background:#fbf6ec;font-size:17px}
+.author-card-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.coffee-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 11px;border:1px solid #ddc7a8;border-radius:10px;background:#fff7e8;color:#75502e;font:600 12px/1.3 Arial,sans-serif;text-decoration:none;white-space:nowrap}
+.coffee-link:hover{background:#f6e7d0}
+.activity-feed{display:flex;flex-direction:column;gap:11px}
+.activity-item{display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.activity-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid #ddc9a9}
+.activity-main{min-width:0}
+.activity-copy{font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.activity-copy strong{font-weight:750}
+.activity-date{font-size:11px;color:var(--muted);margin-top:3px}
+.activity-achievement{display:inline-flex;align-items:center;gap:8px;margin-top:9px;padding:8px 10px;border-radius:10px;background:#f7f2e8;border:1px solid #e9dfce;font-size:13px}
+.activity-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.activity-actions .like-btn{margin:0}
+@media(max-width:520px){.page-loader{padding:18px}.loader-title{font-size:23px}.activity-item{grid-template-columns:34px minmax(0,1fr);padding:11px;gap:9px}.activity-avatar{width:34px;height:34px}.author-card-actions{align-items:stretch}.coffee-link{white-space:normal;text-align:center}}
+@media(prefers-reduced-motion:reduce){.sisyphus-ball,.sisyphus-man,.loader-track span{animation:none!important}.page-loader{transition:none}}
 </style>
 </head>
 <body class="diary-locked">
+<div class="page-loader" id="pageLoader" role="status" aria-live="polite" aria-label="Штаб писателя загружается">
+  <div class="sisyphus-scene" aria-hidden="true">
+    <svg viewBox="0 0 220 130" class="sisyphus-art">
+      <path d="M12 112 Q55 106 94 113 T208 110" fill="none" stroke="#b8a58a" stroke-width="3" stroke-linecap="round"/>
+      <g class="sisyphus-ball">
+        <circle cx="163" cy="68" r="31" fill="#bda78a" stroke="#7b6249" stroke-width="3"/>
+        <path d="M146 49l13 8-5 14 14 8 12-9M132 68l13 3 4 17M160 37l-2 20 14 8 15-10M173 84l-3 12" fill="none" stroke="#80664d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <g class="sisyphus-man" stroke="#493b32" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="103" cy="49" r="10" fill="#d8b38a" stroke-width="3"/>
+        <path d="M101 61L87 79 104 91 118 75" fill="none" stroke-width="8"/>
+        <path d="M93 70L119 64 138 70" fill="none" stroke-width="6"/>
+        <path d="M105 89L92 107M108 89L124 104" fill="none" stroke-width="7"/>
+        <path d="M96 38q7-8 15 0" fill="none" stroke-width="3"/>
+      </g>
+      <path d="M126 52l9 5M127 58l8 5" stroke="#496b52" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="loader-title">Штаб писателя</div>
+  <div class="loader-caption">Даже большой роман начинается с одного шага</div>
+  <div class="loader-track"><span></span></div>
+</div>
 <div class="wrap">
   <section class="fresco-banner" aria-label="Штаб писателя">
     <div class="fresco-copy">
@@ -854,6 +911,7 @@ textarea { resize: vertical; }
       <div class="field"><label for="workModeSelect">Что делал(а) сегодня?</label><select id="workModeSelect"><option value="writing">Писал(а)</option><option value="editing">Редактировал(а)</option></select></div>
       <div class="field"><label for="entryDate">Дата записи</label><input id="entryDate" type="date"></div>
       <div class="field"><label for="entryChars">Сколько символов написал(а) за этот день?</label><input id="entryChars" type="number" min="0" step="1" placeholder="Например, 2500"></div>
+      <div class="field"><label for="entryNote">Заметка в дневник</label><textarea id="entryNote" rows="2" maxlength="500" placeholder="Сегодня писалось плохо… или, наоборот, всё шло легко"></textarea><div class="small" style="text-align:right"><span id="entryNoteCount">0</span> / 500</div></div>
       <div class="btn-row"><button class="btn primary" id="saveEntry">Сохранить результат</button><button class="btn secondary" id="clearEntry">Обнулить этот день</button></div>
       <div class="entry-note">Записывай итог за день. Если вернёшься к прошлой дате, можно добавить или исправить результат.</div>
     </section>
@@ -958,16 +1016,10 @@ textarea { resize: vertical; }
     <div class="small">авторов зарегистрировались и ведут свои писательские дневники</div>
   </section>
 
-  <section class="card received-support-card auth-hidden" id="receivedSupportCard">
-    <div class="card-head">
-      <div><h2>Поддержка сообщества</h2><div class="small" style="margin-top:4px">Авторы, которые поддержали тебя.</div></div>
-      <button type="button" class="btn secondary" id="receivedSupportToggle" aria-expanded="false">Тебя поддерживают: <span id="receivedSupportCount">0</span></button>
-    </div>
-    <div id="receivedSupportDetails" hidden>
-      <p class="small" id="receivedSupportStatus" aria-live="polite">Нажми на число, чтобы посмотреть авторов.</p>
-      <div class="social-list" id="receivedSupportList"></div>
-      <button type="button" class="btn secondary" id="refreshReceivedSupport" style="margin-top:10px">Обновить список</button>
-    </div>
+  <section class="card activity-feed-card auth-hidden" id="activityFeedCard">
+    <div class="card-head"><div><h2>Новости авторов</h2><div class="small" style="margin-top:4px">Новые достижения тех, кто разрешил делиться ими с сообществом.</div></div><button type="button" class="btn secondary" id="refreshActivityFeed">Обновить</button></div>
+    <p class="small" id="activityFeedStatus" aria-live="polite">Загружаем ленту…</p>
+    <div class="activity-feed" id="activityFeed"></div>
   </section>
   <section class="card social-card auth-hidden" id="socialCard">
     <div class="card-head"><div><h2>Авторы</h2><div class="small" style="margin-top:4px">Находи знакомых писателей и подписывайся на них.</div></div><span class="small" id="followingCount">0 подписок</span></div>
@@ -1018,6 +1070,12 @@ textarea { resize: vertical; }
         <div class="bio-counter"><span id="bioCounter">0</span> / 500</div>
       </div>
       <button id="saveProfileBioBtn" class="btn primary" type="button">Сохранить информацию</button>
+      <div class="form-row" style="margin-top:16px">
+        <div class="field"><label for="profileSocialUrl">Ссылка на соцсеть или канал</label><input id="profileSocialUrl" type="url" maxlength="500" placeholder="https://t.me/… или https://instagram.com/…"></div>
+        <div class="field"><label for="profileDonationUrl">Ссылка для доната</label><input id="profileDonationUrl" type="url" maxlength="500" placeholder="https://…"></div>
+      </div>
+      <button id="saveProfileLinksBtn" class="btn secondary" type="button">Сохранить ссылки</button>
+      <p class="small" style="margin-top:7px">Ссылка на соцсеть появится в имени автора. Донат проходит на выбранной тобой внешней площадке — Штаб не принимает и не хранит платежи.</p>
     </section>
     <div class="settings-grid">
       <div>
@@ -1030,7 +1088,7 @@ textarea { resize: vertical; }
       </div>
     </div>
     <div class="setting-section">
-      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Разрешить подписчикам видеть статистику и достижения</strong><br>Достаточно односторонней подписки. Если отключить настройку, доступ к данным пропадёт.</span></label>
+      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Показывать мои достижения в ленте сообщества</strong><br>Если выключить настройку, новые и прежние достижения исчезнут из общей ленты.</span></label>
       <button id="saveVisibilityBtn" class="btn primary" type="button">Сохранить видимость</button>
     </div>
     <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
@@ -1048,7 +1106,7 @@ const keyDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
 const fmtDate=s=>s?parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}):'—';
 const monthFmt=d=>d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
-const defaultState={entries:{},goal:{name:'Новая книга',sheets:8,sheetSize:40000,deadline:''},achievements:[],lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
+const defaultState={entries:{},goal:{name:'Новая книга',sheets:8,sheetSize:40000,deadline:''},achievements:[],projectNotes:{},lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
 
 let state;
 
@@ -1070,7 +1128,7 @@ try {
   state = defaultState;
 }
 
-state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];state.projects=state.projects||[];state.projectSessions=state.projectSessions||{};state.workMode=state.workMode||'writing';state.selectedProjectId=state.selectedProjectId||null;if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
+state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];state.projectNotes=state.projectNotes||{};state.projects=state.projects||[];state.projectSessions=state.projectSessions||{};state.workMode=state.workMode||'writing';state.selectedProjectId=state.selectedProjectId||null;if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 let selectedDate=todayKey(), viewDate=parseDate(todayKey());
 function persist(){localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 const achievementDefs=[
@@ -1115,6 +1173,7 @@ async function checkAchievements(){
    persist();
    try {
      await window.writersHQDiary.saveSettings();
+     if (window.writersHQRefreshFeed) await window.writersHQRefreshFeed();
      showToast(earned.length===1?`🎉 Достижение получено: ${earned[0].title}`:`🎉 Новые достижения: ${earned.map(a=>a.title).join(', ')}`);
    } catch (error) {
      showToast('Достижение получено, но не удалось сохранить его в облаке. Проверь соединение.');
@@ -1158,6 +1217,8 @@ function renderTop(){
 $('todayChip').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
 $('entryDate').value=selectedDate;$('selectedDateLabel').textContent=fmtDate(selectedDate);
 $('entryChars').value=sessionEntries()[selectedDate]??'';
+$('entryNote').value=((state.projectNotes||{})[state.selectedProjectId]||{})[state.workMode]?.[selectedDate]||'';
+$('entryNoteCount').textContent=String($('entryNote').value.length);
 $('todayTotal').innerHTML=`${fmt(sessionEntries()[todayKey()]||0)} <span class="unit">симв.</span>`;
 document.querySelector('.stats .stat .label').textContent=state.workMode==='editing'?'Отредактировано сегодня':'Сегодня';
 $('allTotal').innerHTML=`${fmt(Object.values(sessionEntries()).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0))} <span class="unit">симв.</span>`;
@@ -1313,7 +1374,7 @@ async function loadProjectHub(){
   const projects=projectRows.data||[],projectSessions={};
   projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
   (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;projectSessions[row.project_id][row.activity_type==='editing'?'editing':'writing'][row.work_date]=Number(row.chars_count)||0});
-  state.projects=projects;state.projectSessions=projectSessions;
+  state.projects=projects;state.projectSessions=projectSessions;state.projectNotes=projectNotes;
   if(!state.selectedProjectId||!projects.some(p=>p.id===state.selectedProjectId))state.selectedProjectId=projects[0]?.id||null;
   state.entries=sessionEntries();
   const selected=currentProject();
@@ -1386,7 +1447,7 @@ window.writersHQDiary = {
 
     const [projectsResult,sessionsResult,settingsResult]=await Promise.all([
       client.from('writer_projects').select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
-      client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count').eq('user_id',userId).order('work_date',{ascending:true}),
+      client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count,note').eq('user_id',userId).order('work_date',{ascending:true}),
       client.from('writer_settings').select('diary_goal,diary_achievements').eq('user_id',userId).maybeSingle()
     ]);
     if(projectsResult.error)throw projectsResult.error;
@@ -1397,8 +1458,8 @@ window.writersHQDiary = {
       const {data:newProject,error:createError}=await client.from('writer_projects').insert({user_id:userId,name:'Новая книга',goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,status,created_at').single();
       if(createError)throw createError;projects=[newProject];
     }
-    const projectSessions={};projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}}});
-    for(const row of sessionsResult.data||[]){if(!projectSessions[row.project_id])continue;projectSessions[row.project_id][row.activity_type==='editing'?'editing':'writing'][row.work_date]=Number(row.chars_count)||0;}
+    const projectSessions={};const projectNotes={};projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}};projectNotes[p.id]={writing:{},editing:{}}});
+    for(const row of sessionsResult.data||[]){if(!projectSessions[row.project_id])continue;const mode=row.activity_type==='editing'?'editing':'writing';projectSessions[row.project_id][mode][row.work_date]=Number(row.chars_count)||0;projectNotes[row.project_id][mode][row.work_date]=row.note||'';}
 
     // Если пользователь сменился во время запроса,
     // не применяем данные предыдущего аккаунта.
@@ -1468,7 +1529,7 @@ window.writersHQDiary = {
     renderAchievements();
   },
 
-  async saveEntry(date, chars) {
+  async saveEntry(date, chars, note = '') {
     const client = window.writersHQClient;
     const userId = window.writersHQUserId;
 
@@ -1477,10 +1538,13 @@ window.writersHQDiary = {
     }
 
     const project=currentProject();if(!project)throw new Error('Сначала создай проект.');
-    const {error}=await client.from('writer_work_sessions').upsert({user_id:userId,project_id:project.id,work_date:date,activity_type:state.workMode,chars_count:chars},{onConflict:'user_id,project_id,work_date,activity_type'});
+    const cleanNote=String(note||'').trim().slice(0,500);
+    const {error}=await client.from('writer_work_sessions').upsert({user_id:userId,project_id:project.id,work_date:date,activity_type:state.workMode,chars_count:chars,note:cleanNote},{onConflict:'user_id,project_id,work_date,activity_type'});
     if(error)throw error;
     if(!state.projectSessions[project.id])state.projectSessions[project.id]={writing:{},editing:{}};
-    state.projectSessions[project.id][state.workMode][date]=chars;state.entries=state.projectSessions[project.id][state.workMode];
+    if(!state.projectNotes[project.id])state.projectNotes[project.id]={writing:{},editing:{}};
+    if(!state.projectNotes[project.id][state.workMode])state.projectNotes[project.id][state.workMode]={};
+    state.projectSessions[project.id][state.workMode][date]=chars;state.projectNotes[project.id][state.workMode][date]=cleanNote;state.entries=state.projectSessions[project.id][state.workMode];
     persist();
   },
 
@@ -1500,6 +1564,7 @@ window.writersHQDiary = {
     }
 
     delete state.entries[date];
+    if(state.projectNotes[project.id]&&state.projectNotes[project.id][state.workMode])delete state.projectNotes[project.id][state.workMode][date];
     persist();
   }
 };
@@ -1508,6 +1573,7 @@ $('projectSelect').addEventListener('change',()=>{selectProjectData($('projectSe
 $('workModeSelect').addEventListener('change',()=>{state.workMode=$('workModeSelect').value==='editing'?'editing':'writing';state.entries=sessionEntries();persist();render()});
 $('addProjectBtn').addEventListener('click',async()=>{if(window.__writersHQCreatingProject)return;const name=prompt('Название нового проекта:');if(!name||!name.trim())return;window.__writersHQCreatingProject=true;const button=$('addProjectBtn');button.disabled=true;try{const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();if(error)throw error;state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();showToast('Проект добавлен.')}catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false;window.__writersHQCreatingProject=false}});
 $('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
+$('entryNote').addEventListener('input',()=>{$('entryNoteCount').textContent=String($('entryNote').value.length)});
 $('saveEntry').addEventListener('click', async () => {
   const val = Number($('entryChars').value);
 
@@ -1526,7 +1592,8 @@ $('saveEntry').addEventListener('click', async () => {
   try {
     await window.writersHQDiary.saveEntry(
       selectedDate,
-      Math.round(val)
+      Math.round(val),
+      $('entryNote').value
     );
 
     await checkAchievements();
@@ -1688,7 +1755,7 @@ render();
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'like-btn';
-    button.textContent = itemType === 'stats' ? '♡ Поддержать автора' : '♡ Поддержать';
+    button.textContent = itemType === 'stats' ? '♡ Поддержать автора' : '♡ Нравится';
     button.setAttribute('aria-pressed', 'false');
     container.replaceChildren(button);
 
@@ -1702,7 +1769,7 @@ render();
       return query;
     };
     const updateLabel = () => {
-      button.textContent = (liked ? '♥ ' : '♡ ') + (itemType === 'stats' ? 'Поддержать автора' : 'Поддержать');
+      button.textContent = (liked ? '♥ ' : '♡ ') + (itemType === 'stats' ? 'Поддержать автора' : 'Нравится');
       button.classList.toggle('liked', liked);
       button.setAttribute('aria-pressed', String(liked));
     };
@@ -1766,183 +1833,51 @@ render();
   }
 
 function makePersonRow(profile, isFollowing, mode) {
-    const row = document.createElement('div');
-    row.className = 'social-person';
+    const row = document.createElement('div'); row.className = 'social-person';
     const info = document.createElement('div');
-    const identity = document.createElement('div');
-    identity.className = 'social-person-identity';
+    const identity = document.createElement('div'); identity.className = 'social-person-identity';
     if (profile.avatar_url) {
-      const avatar = document.createElement('img');
-      avatar.className = 'social-person-avatar';
-      avatar.src = profile.avatar_url;
-      avatar.alt = '';
-      avatar.loading = 'lazy';
-      avatar.addEventListener('error', () => avatar.replaceWith(makeGreekPortraitPlaceholder()), { once: true });
-      identity.append(avatar);
-    } else {
-      identity.append(makeGreekPortraitPlaceholder());
+      const avatar = document.createElement('img'); avatar.className = 'social-person-avatar'; avatar.src = profile.avatar_url; avatar.alt = ''; avatar.loading = 'lazy';
+      avatar.addEventListener('error', () => avatar.replaceWith(makeGreekPortraitPlaceholder()), { once: true }); identity.append(avatar);
+    } else { const placeholder = makeGreekPortraitPlaceholder(); placeholder.classList.add('social-person-avatar'); identity.append(placeholder); }
+    const identityText = document.createElement('div'); identityText.style.minWidth = '0'; identityText.append(makeAuthorName(profile));
+    const meta = document.createElement('div'); meta.className = 'social-person-meta'; meta.textContent = mode === 'following' ? 'Вы подписаны' : (isFollowing ? 'Уже в твоих подписках' : 'Автор «Штаба писателя»');
+    identityText.append(meta); identity.append(identityText); info.append(identity);
+    if (profile.bio && profile.bio.trim()) { const bio = document.createElement('div'); bio.className = 'social-person-bio'; bio.textContent = profile.bio.trim(); info.append(bio); }
+    if (mode === 'following') {
+      const iconStrip = document.createElement('div'); iconStrip.className = 'author-achievement-icons'; iconStrip.setAttribute('aria-label', 'Достижения автора'); info.append(iconStrip);
+      client.rpc('get_writer_achievements', { p_target_user_id: profile.id }).then(({data,error}) => {
+        if (error || !Array.isArray(data)) return;
+        const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
+        data.forEach(item => {
+          const id = typeof item === 'string' ? item : (item.achievement_id || item.id);
+          const def = defs.find(entry => entry.id === id); if (!def) return;
+          const badge = document.createElement('span'); badge.className = 'author-achievement-icon'; badge.textContent = def.icon; badge.title = def.title; badge.setAttribute('aria-label', def.title); iconStrip.append(badge);
+        });
+        if (!iconStrip.children.length) iconStrip.remove();
+      }).catch(() => iconStrip.remove());
     }
-    const identityText = document.createElement('div');
-    identityText.style.minWidth = '0';
-    const name = document.createElement('div');
-    name.className = 'social-person-name';
-    name.textContent = profile.display_name || 'Автор без имени';
-    const meta = document.createElement('div');
-    meta.className = 'social-person-meta';
-    meta.textContent = mode === 'following' ? 'Вы подписаны' : (isFollowing ? 'Уже в твоих подписках' : 'Автор «Штаба писателя»');
-    identityText.append(name, meta);
-    identity.append(identityText);
-    info.append(identity);
-    if (profile.bio && profile.bio.trim()) {
-      const bio = document.createElement('div');
-      bio.className = 'social-person-bio';
-      bio.textContent = profile.bio.trim().split(/\s+/).slice(0, 2).join(' ');
-      bio.title = profile.bio.trim();
-      info.append(bio);
-    }
-    const supportRow = document.createElement('div');
-    supportRow.className = 'author-support-row';
-    const supportLabel = document.createElement('span');
-    supportLabel.textContent = 'Поддержать автора';
-    supportLabel.className = 'small';
-    const supportControl = document.createElement('span');
-    supportRow.append(supportLabel, supportControl);
-    info.append(supportRow);
-    renderLikeButton(supportControl, profile.id, 'stats').catch(error => {
-      const fallback = document.createElement('button');
-      fallback.type = 'button';
-      fallback.className = 'like-btn';
-      fallback.textContent = '♡ Поддержать автора';
-      fallback.addEventListener('click', () => showMessage('Поддержка временно недоступна: ' + (error.message || 'ошибка загрузки').toString(), 'error'));
-      supportControl.replaceChildren(fallback);
-    });
-    const actions = document.createElement('div');
-    actions.style.display = 'flex';
-    actions.style.flexDirection = 'column';
-    actions.style.alignItems = 'flex-end';
-    actions.style.gap = '6px';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'btn ' + (isFollowing ? 'secondary' : 'primary');
-    button.textContent = isFollowing ? 'Отписаться' : 'Подписаться';
+    const actions = document.createElement('div'); actions.className = 'author-card-actions';
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'btn ' + (isFollowing ? 'secondary' : 'primary'); button.textContent = isFollowing ? 'Отписаться' : 'Подписаться';
     button.addEventListener('click', async () => {
       button.disabled = true;
       try {
         if (isFollowing) {
-          const { error } = await client.from('writer_follows').delete()
-            .eq('follower_id', activeUserId).eq('followed_id', profile.id);
-          if (error) throw error;
-          followedIds.delete(profile.id);
-          showMessage('Подписка отменена.', 'success');
+          const { error } = await client.from('writer_follows').delete().eq('follower_id', activeUserId).eq('followed_id', profile.id);
+          if (error) throw error; followedIds.delete(profile.id); showMessage('Подписка отменена.', 'success');
         } else {
           const { error } = await client.from('writer_follows').insert({ follower_id: activeUserId, followed_id: profile.id });
-          if (error) throw error;
-          followedIds.add(profile.id);
-          showMessage('Подписка оформлена.', 'success');
+          if (error) throw error; followedIds.add(profile.id); showMessage('Подписка оформлена.', 'success');
         }
-        await loadFollowing();
+        await loadFollowing(); await loadActivityFeed();
         if ($('authorSearch').value.trim().length >= 2) await searchAuthors();
-      } catch (error) {
-        showMessage('Не удалось изменить подписку: ' + (error.message || 'ошибка'), 'error');
-      } finally {
-        button.disabled = false;
-      }
+      } catch (error) { showMessage('Не удалось изменить подписку: ' + (error.message || 'ошибка'), 'error'); }
+      finally { button.disabled = false; }
     });
     actions.append(button);
-    const statsButton = document.createElement('button');
-    statsButton.type = 'button';
-    statsButton.className = 'btn secondary';
-    statsButton.textContent = 'Статистика и достижения';
-    statsButton.hidden = !isFollowing;
-    const statsPanel = document.createElement('div');
-    statsPanel.className = 'author-stats';
-    statsPanel.hidden = true;
-    statsButton.addEventListener('click', async () => {
-      if (!statsPanel.hidden) { statsPanel.hidden = true; statsButton.textContent = 'Статистика и достижения'; return; }
-      statsPanel.hidden = false;
-      statsPanel.textContent = 'Загружаем статистику…';
-      statsButton.disabled = true;
-      try {
-        const { data, error } = await client.rpc('get_writer_stats', { p_target_user_id: profile.id });
-        if (error) throw error;
-        const record = Array.isArray(data) ? data[0] : data;
-        const { data: earnedIds, error: achievementsError } = await client.rpc('get_writer_achievements', { p_target_user_id: profile.id });
-        if (achievementsError) throw achievementsError;
-        statsPanel.replaceChildren();
-        if (!record || typeof record !== 'object' || !Object.keys(record).length) {
-          const unavailable = document.createElement('p');
-          unavailable.textContent = 'Статистика пока недоступна.';
-          statsPanel.append(unavailable);
-        } else {
-          const labels = {
-            month_chars: 'Написано в этом месяце', monthly_chars: 'Написано в этом месяце', monthly_written: 'Написано в этом месяце',
-            lifetime_chars: 'Написано за всё время', all_time_chars: 'Написано за всё время', total_chars: 'Написано за всё время',
-            chars_written: 'Написано за всё время', total_written: 'Написано за всё время',
-            active_days: 'Активных дней', active_days_count: 'Активных дней',
-            current_streak: 'Текущая серия', longest_streak: 'Лучшая серия', today_chars: 'Сегодня',
-            monthly_rating: 'Место в рейтинге за месяц', all_time_rating: 'Место в рейтинге за всё время'
-          };
-          Object.entries(record).forEach(([key, value]) => {
-            if (key === 'writer_id' || key === 'display_name' || value === null || value === undefined || typeof value === 'object') return;
-            const line = document.createElement('div');
-            line.className = 'stat-line';
-            const label = document.createElement('span');
-            label.textContent = labels[key] || key.replace(/_/g, ' ');
-            const val = document.createElement('strong');
-            val.textContent = typeof value === 'number' ? new Intl.NumberFormat('ru-RU').format(value) : String(value);
-            line.append(label, val);
-            statsPanel.append(line);
-          });
-          if (!statsPanel.children.length) statsPanel.textContent = 'Статистика пока недоступна.';
-        }
-        const earned = Array.isArray(earnedIds) ? earnedIds : [];
-        const achievementHeading = document.createElement('h4');
-        achievementHeading.textContent = 'Достижения';
-        achievementHeading.style.margin = '14px 0 8px';
-        statsPanel.append(achievementHeading);
-        const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
-        if (!earned.length) {
-          const none = document.createElement('p');
-          none.className = 'small';
-          none.textContent = 'Пока нет полученных достижений.';
-          statsPanel.append(none);
-        } else {
-          for (const id of earned) {
-            const definition = defs.find(item => item.id === id);
-            const line = document.createElement('div');
-            line.className = 'stat-line';
-            const label = document.createElement('span');
-            label.textContent = definition ? `${definition.icon} ${definition.title}` : String(id);
-            const val = document.createElement('strong');
-            val.textContent = 'Получено';
-            line.append(label, val);
-            statsPanel.append(line);
-            const achievementLikeRow = document.createElement('div');
-            achievementLikeRow.className = 'like-row';
-            const achievementLikeControl = document.createElement('span');
-            achievementLikeRow.append(achievementLikeControl);
-            statsPanel.append(achievementLikeRow);
-            await renderLikeButton(achievementLikeControl, profile.id, 'achievement', id);
-          }
-        }
-        // Поддержка автора вынесена из приватной панели статистики и доступна независимо от её видимости.
-
-        statsButton.textContent = 'Скрыть статистику и достижения';
-      } catch (error) {
-        statsPanel.textContent = 'Не удалось загрузить данные: ' + (error.message || 'неизвестная ошибка') + '. Проверь настройку видимости автора и SQL-функции в Supabase.';
-        showMessage('Ошибка загрузки статистики: ' + (error.message || 'неизвестная ошибка'), 'error');
-        statsButton.textContent = 'Скрыть сообщение';
-      } finally {
-        statsButton.disabled = false;
-      }
-    });
-    actions.append(statsButton);
-    row.append(info, actions);
-    // Stats panel sits beneath the person row contents without exposing private diary entries.
-    row.style.flexWrap = 'wrap';
-    statsPanel.style.width = '100%';
-    row.append(statsPanel);
-    return row;
+    const donationUrl = safeExternalUrl(profile.donation_url);
+    if (donationUrl) { const coffee = document.createElement('a'); coffee.className = 'coffee-link'; coffee.href = donationUrl; coffee.target = '_blank'; coffee.rel = 'noopener noreferrer'; coffee.textContent = '☕ Автору на кофе'; actions.append(coffee); }
+    row.append(info, actions); return row;
   }
 
   function setAvatarPreview(url) {
@@ -1966,7 +1901,7 @@ function makePersonRow(profile, isFollowing, mode) {
 
   async function loadOwnProfile(user) {
     let { data, error } = await client.from('profiles')
-      .select('id, display_name, bio, avatar_url').eq('id', user.id).maybeSingle();
+      .select('id, display_name, bio, avatar_url, social_url, donation_url').eq('id', user.id).maybeSingle();
     let profileFieldsReady = true;
     if (error && /column .* does not exist|schema cache/i.test(error.message || '')) {
       // Keep login usable before the optional bio/avatar database migration is applied.
@@ -1990,6 +1925,8 @@ function makePersonRow(profile, isFollowing, mode) {
     }
     $('profileDisplayName').value = name;
     $('profileBio').value = profileFieldsReady && data && data.bio || '';
+    $('profileSocialUrl').value = profileFieldsReady && data && data.social_url || '';
+    $('profileDonationUrl').value = profileFieldsReady && data && data.donation_url || '';
     $('bioCounter').textContent = String($('profileBio').value.length);
     setAvatarPreview(profileFieldsReady && data && data.avatar_url || '');
     $('removeAvatarBtn').hidden = !(profileFieldsReady && data && data.avatar_url);
@@ -2015,66 +1952,58 @@ function makePersonRow(profile, isFollowing, mode) {
     $('allowStatsVisibility').checked = allowed;
   }
 
-  async function loadReceivedSupport(showNames = false) {
-    if (!activeUserId) return;
-    const countEl = $('receivedSupportCount');
-    const details = $('receivedSupportDetails');
-    const status = $('receivedSupportStatus');
-    const list = $('receivedSupportList');
-    const { data, error } = await client.rpc('get_writer_supporters');
-    if (error) throw error;
-    const supporters = Array.isArray(data) ? data : [];
-    const supporterIds = supporters.map(item => item.liker_id).filter(id => id && id !== activeUserId);
-    countEl.textContent = new Intl.NumberFormat('ru-RU').format(supporterIds.length);
-
-    if (!showNames && details.hidden) return;
-    details.hidden = false;
-    $('receivedSupportToggle').setAttribute('aria-expanded', 'true');
-    list.replaceChildren();
-    if (!supporterIds.length) {
-      status.textContent = 'Пока тебя никто не поддержал. Когда авторы поставят тебе лайк, они появятся здесь.';
-      return;
-    }
-    status.textContent = 'Тебя поддерживают:';
-    const { data: profiles, error: profilesError } = await client.from('profiles')
-      .select('id, display_name').in('id', supporterIds).order('display_name', { ascending: true });
-    if (profilesError) throw profilesError;
-    const byId = new Map((profiles || []).map(profile => [profile.id, profile]));
-    supporterIds.forEach(id => {
-      const profile = byId.get(id) || { id, display_name: 'Автор' };
-      const row = document.createElement('div');
-      row.className = 'social-person';
-      const info = document.createElement('div');
-      const name = document.createElement('div');
-      name.className = 'social-person-name';
-      name.textContent = profile.display_name || 'Автор без имени';
-      const meta = document.createElement('div');
-      meta.className = 'social-person-meta';
-      meta.textContent = 'Поддерживает твой дневник или достижения';
-      info.append(name, meta);
-      row.append(info);
-      list.append(row);
-    });
+  function safeExternalUrl(value) {
+    try { const url = new URL(String(value || '').trim()); return url.protocol === 'https:' ? url.href : ''; }
+    catch (_) { return ''; }
   }
 
-  $('receivedSupportToggle').addEventListener('click', async () => {
-    const details = $('receivedSupportDetails');
-    const willOpen = details.hidden;
-    details.hidden = !willOpen;
-    $('receivedSupportToggle').setAttribute('aria-expanded', String(willOpen));
-    if (willOpen) {
-      $('receivedSupportStatus').textContent = 'Загружаем список авторов…';
-      try { await loadReceivedSupport(true); }
-      catch (error) { $('receivedSupportStatus').textContent = 'Не удалось загрузить поддержку: ' + (error.message || 'неизвестная ошибка'); }
+  function makeAuthorName(profile, className = 'social-person-name') {
+    const text = profile.display_name || 'Автор без имени';
+    const safeUrl = safeExternalUrl(profile.social_url);
+    if (!safeUrl) { const span = document.createElement('span'); span.className = className; span.textContent = text; return span; }
+    const link = document.createElement('a');
+    link.className = className + ' social-name-link'; link.textContent = text; link.href = safeUrl;
+    link.target = '_blank'; link.rel = 'noopener noreferrer'; link.title = 'Открыть соцсеть или канал автора';
+    return link;
+  }
+
+  async function loadActivityFeed() {
+    if (!activeUserId) return;
+    const status = $('activityFeedStatus'), list = $('activityFeed');
+    status.textContent = 'Загружаем ленту…'; list.replaceChildren();
+    const { data, error } = await client.rpc('get_writer_achievement_feed');
+    if (error) { status.textContent = 'Не удалось загрузить ленту: ' + (error.message || 'ошибка доступа'); return; }
+    const events = Array.isArray(data) ? data : [];
+    const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
+    if (!events.length) { status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений, получат новые значки, они появятся здесь.'; return; }
+    status.textContent = 'Свежие достижения сообщества';
+    for (const item of events) {
+      const def = defs.find(entry => entry.id === item.achievement_id);
+      const card = document.createElement('article'); card.className = 'activity-item';
+      const avatar = item.avatar_url ? document.createElement('img') : makeGreekPortraitPlaceholder();
+      if (item.avatar_url) { avatar.className = 'activity-avatar'; avatar.src = item.avatar_url; avatar.alt = ''; avatar.loading = 'lazy'; avatar.addEventListener('error', () => avatar.replaceWith(makeGreekPortraitPlaceholder()), { once: true }); }
+      else avatar.classList.add('activity-avatar');
+      const main = document.createElement('div'); main.className = 'activity-main';
+      const copy = document.createElement('div'); copy.className = 'activity-copy';
+      copy.append(makeAuthorName({display_name:item.display_name, social_url:item.social_url}, 'activity-author-name'));
+      copy.append(document.createTextNode(' получил(а) достижение'));
+      const achievement = document.createElement('div'); achievement.className = 'activity-achievement';
+      const icon = document.createElement('span'); icon.textContent = def ? def.icon : '🏅'; icon.setAttribute('aria-hidden', 'true');
+      const title = document.createElement('strong'); title.textContent = def ? def.title : item.achievement_id;
+      achievement.append(icon, title);
+      const date = document.createElement('div'); date.className = 'activity-date';
+      const earnedAt = item.earned_at ? new Date(item.earned_at) : null;
+      date.textContent = earnedAt && !Number.isNaN(earnedAt.getTime()) ? earnedAt.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'}) : 'Недавно';
+      const actions = document.createElement('div'); actions.className = 'activity-actions';
+      const likeControl = document.createElement('span'); actions.append(likeControl);
+      renderLikeButton(likeControl, item.user_id, 'achievement', item.achievement_id).catch(() => {});
+      const donationUrl = safeExternalUrl(item.donation_url);
+      if (donationUrl) { const coffee = document.createElement('a'); coffee.className = 'coffee-link'; coffee.href = donationUrl; coffee.target = '_blank'; coffee.rel = 'noopener noreferrer'; coffee.textContent = '☕ Автору на кофе'; actions.append(coffee); }
+      main.append(copy, achievement, date, actions); card.append(avatar, main); list.append(card);
     }
-  });
-
-  $('refreshReceivedSupport').addEventListener('click', async () => {
-    $('receivedSupportStatus').textContent = 'Обновляем список…';
-    try { await loadReceivedSupport(true); }
-    catch (error) { $('receivedSupportStatus').textContent = 'Не удалось обновить поддержку: ' + (error.message || 'неизвестная ошибка'); }
-  });
-
+  }
+  window.writersHQRefreshFeed = loadActivityFeed;
+  $('refreshActivityFeed').addEventListener('click', () => loadActivityFeed());
   async function loadCommunityCount() {
     const { data, error } = await client.rpc('get_registered_writer_count');
     if (error) throw error;
@@ -2097,7 +2026,7 @@ function makePersonRow(profile, isFollowing, mode) {
       return;
     }
     const { data: profiles, error: profileError } = await client.from('profiles')
-      .select('id, display_name, bio, avatar_url').in('id', ids).order('display_name', { ascending: true });
+      .select('id, display_name, bio, avatar_url, social_url, donation_url').in('id', ids).order('display_name', { ascending: true });
     if (profileError) throw profileError;
     $('followingStatus').textContent = 'Авторы, на которых ты подписан.';
     (profiles || []).forEach(profile => list.append(makePersonRow(profile, true, 'following')));
@@ -2114,7 +2043,7 @@ function makePersonRow(profile, isFollowing, mode) {
     }
     status.textContent = 'Ищем авторов…';
     const { data, error } = await client.from('profiles')
-      .select('id, display_name, bio, avatar_url').ilike('display_name', `%${query.replace(/[%_,]/g, ' ')}%`)
+      .select('id, display_name, bio, avatar_url, social_url, donation_url').ilike('display_name', `%${query.replace(/[%_,]/g, ' ')}%`)
       .neq('id', activeUserId).order('display_name', { ascending: true }).limit(20);
     if (error) {
       status.textContent = 'Не удалось выполнить поиск.';
@@ -2382,7 +2311,7 @@ function makePersonRow(profile, isFollowing, mode) {
     $('socialCard').classList.toggle('auth-hidden', !user);
     $('communityCountCard').classList.toggle('auth-hidden', !user);
     $('profileSettingsCard').classList.toggle('auth-hidden', !user);
-    $('receivedSupportCard').classList.toggle('auth-hidden', !user);
+    $('activityFeedCard').classList.toggle('auth-hidden', !user);
     const accountPanel = document.querySelector('.auth-panel');
     if (accountPanel) accountPanel.hidden = !!user || !document.getElementById('diarySection')?.classList.contains('active');
     if (!user) $('ownerNameLine').classList.add('auth-hidden');
@@ -2415,10 +2344,8 @@ function makePersonRow(profile, isFollowing, mode) {
       $('authorSearchResults').replaceChildren();
       $('followingList').replaceChildren();
       $('followingCount').textContent = '0 подписок';
-      $('receivedSupportCount').textContent = '0';
-      $('receivedSupportList').replaceChildren();
-      $('receivedSupportDetails').hidden = true;
-      $('receivedSupportToggle').setAttribute('aria-expanded', 'false');
+      $('activityFeed').replaceChildren();
+      $('activityFeedStatus').textContent = 'Войди в аккаунт, чтобы читать новости сообщества.';
       renderSession(null);
       return;
     }
@@ -2448,7 +2375,7 @@ function makePersonRow(profile, isFollowing, mode) {
       await loadStatsPreference(user);
       await loadFollowing();
       await loadCommunityCount();
-      await loadReceivedSupport(false);
+      await loadActivityFeed();
       if (version !== syncVersion || activeUserId !== user.id) return;
 
       document.body.classList.remove('diary-locked');
@@ -2597,6 +2524,30 @@ function makePersonRow(profile, isFollowing, mode) {
     } finally { button.disabled = false; }
   });
 
+  $('saveProfileLinksBtn').addEventListener('click', async () => {
+    const socialRaw = $('profileSocialUrl').value.trim(), donationRaw = $('profileDonationUrl').value.trim();
+    const validateHttps = (value, label) => {
+      if (!value) return null;
+      try { const url = new URL(value); if (url.protocol !== 'https:') throw new Error(); return url.href; }
+      catch (_) { throw new Error('Для поля «' + label + '» укажи полную ссылку, начинающуюся с https://'); }
+    };
+    let socialUrl, donationUrl;
+    try { socialUrl = validateHttps(socialRaw, 'Ссылка на соцсеть или канал'); donationUrl = validateHttps(donationRaw, 'Ссылка для доната'); }
+    catch (error) { $('settingsMessage').textContent = error.message; $('settingsMessage').className = 'auth-message error'; return; }
+    const button = $('saveProfileLinksBtn'); button.disabled = true;
+    try {
+      const { error } = await client.from('profiles').update({ social_url: socialUrl, donation_url: donationUrl }).eq('id', activeUserId);
+      if (error) throw error;
+      $('settingsMessage').textContent = 'Ссылки сохранены. Соцсеть появится в имени, донат — в карточке автора.';
+      $('settingsMessage').className = 'auth-message success';
+      await loadFollowing(); await loadActivityFeed();
+      if ($('authorSearch').value.trim().length >= 2) await searchAuthors();
+    } catch (error) {
+      $('settingsMessage').textContent = 'Не удалось сохранить ссылки: ' + (error.message || 'ошибка');
+      $('settingsMessage').className = 'auth-message error';
+    } finally { button.disabled = false; }
+  });
+
   $('saveProfileBioBtn').addEventListener('click', async () => {
     const bio = $('profileBio').value.trim();
     const button = $('saveProfileBioBtn');
@@ -2630,6 +2581,7 @@ function makePersonRow(profile, isFollowing, mode) {
       $('settingsMessage').textContent = 'Имя сохранено.';
       $('settingsMessage').className = 'auth-message success';
       await loadFollowing();
+      await loadActivityFeed();
     } catch (error) {
       $('settingsMessage').textContent = 'Не удалось сохранить имя: ' + (error.message || 'ошибка');
       $('settingsMessage').className = 'auth-message error';
@@ -2893,6 +2845,18 @@ function makePersonRow(profile, isFollowing, mode) {
       }, 120);
     });
   });
+})();
+</script>
+<script id="sisyphus-loader-dismiss">
+(() => {
+  const loader = document.getElementById('pageLoader');
+  if (!loader) return;
+  let hidden = false;
+  const hide = () => { if (hidden) return; hidden = true; loader.classList.add('is-hidden'); window.setTimeout(() => loader.remove(), 500); };
+  const startedAt = Number(window.__writersHQLoadStartedAt) || Date.now();
+  const afterMinimum = () => window.setTimeout(hide, Math.max(0, 5000 - (Date.now() - startedAt)));
+  if (document.readyState === 'complete') afterMinimum();
+  else window.addEventListener('load', afterMinimum, { once: true });
 })();
 </script>
 </body>
