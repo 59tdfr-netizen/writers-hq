@@ -1618,9 +1618,7 @@ $('saveEntry').addEventListener('click', async () => {
   } catch (error) {
     alert(
       'Не удалось сохранить запись в облаке. ' +
-      'Проверь подключение и попробуй ещё раз.
-
-' +
+      'Проверь подключение и попробуй ещё раз.\n\n' +
       (error.message || '')
     );
   } finally {
@@ -1641,9 +1639,7 @@ $('clearEntry').addEventListener('click', async () => {
     showToast('Запись удалена.');
   } catch (error) {
     alert(
-      'Не удалось удалить запись из облака.
-
-' +
+      'Не удалось удалить запись из облака.\n\n' +
       (error.message || '')
     );
   } finally {
@@ -1681,9 +1677,7 @@ $('saveGoal').addEventListener('click', async () => {
   } catch (error) {
     state.goal = previousGoal;
     render();
-    alert('Не удалось сохранить цель в облаке. Проверь подключение и попробуй ещё раз.
-
-' + (error.message || ''));
+    alert('Не удалось сохранить цель в облаке. Проверь подключение и попробуй ещё раз.\n\n' + (error.message || ''));
   } finally {
     button.disabled = false;
   }
