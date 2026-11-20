@@ -20,6 +20,8 @@ from scripts.collect_literary_opportunities import (
     listing_page_signature,
     source_page_url,
     normalize_title,
+    normalize_contest_identity,
+    has_duplicate_contest_identity,
     parse_date,
 )
 
@@ -36,6 +38,20 @@ class CollectorParsingTests(unittest.TestCase):
             normalize_title(" Конкурс «В рифме Москвы»! "),
             "конкурсврифмемосквы",
         )
+
+    def test_cross_source_title_variants_are_recognized_as_same_contest(self):
+        title_a = "Конкурс рукописей «Под солнцем фантастики» издательства «Бумба»: научная фантастика и фэнтези (2026)"
+        title_b = "Литературный конкурс «Под солнцем фантастики»"
+        identity_a = normalize_contest_identity(title_a)
+        identity_b = normalize_contest_identity(title_b)
+        self.assertTrue(identity_a)
+        self.assertTrue(identity_b)
+        self.assertTrue(has_duplicate_contest_identity(title_b, "2026-11-30", {identity_a + "|2026-11-30"}))
+
+    def test_cross_source_identity_requires_same_deadline(self):
+        title_a = "Конкурс рукописей «Под солнцем фантастики» издательства «Бумба»"
+        identity_a = normalize_contest_identity(title_a)
+        self.assertFalse(has_duplicate_contest_identity("Литературный конкурс «Под солнцем фантастики»", "2026-12-01", {identity_a + "|2026-11-30"}))
 
     def test_parse_numeric_date(self):
         match = re.search(r"(?<!\d)(\d{1,2})\s*(?:[./-]\s*)(\d{1,2})\s*(?:[./-]\s*)(20\d{2})(?!\d)", "01.12.2026")
