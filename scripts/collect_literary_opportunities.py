@@ -19,9 +19,9 @@ from bs4 import BeautifulSoup
 BASE = "https://vsekonkursy.ru"
 LIST_URL = BASE + "/tvorcheskie-konkursy/literaturnye-konkursy"
 SOURCES = [
-    {"name": "ВсеКонкурсы", "base_url": BASE, "list_url": LIST_URL, "pagination": "path"},
     {"name": "Конкурсы.Пиши.про", "base_url": "https://konkursy.pishi.pro", "list_url": "https://konkursy.pishi.pro/", "pagination": "query"},
     {"name": "Печорин.net", "base_url": "https://pechorin.net", "list_url": "https://pechorin.net/competitions", "pagination": "query"},
+    {"name": "ВсеКонкурсы", "base_url": BASE, "list_url": LIST_URL, "pagination": "path"},
 ]
 MAX_PAGES = int(os.getenv("SCRAPER_MAX_PAGES", "8"))
 MAX_LIVE_INSERTS = min(10, max(1, int(os.getenv("SCRAPER_MAX_LIVE_INSERTS", "3"))))
@@ -109,6 +109,19 @@ def source_page_url(source: dict, page: int) -> str:
         return source["list_url"].rstrip("/") + f"/page/{page}"
     separator = "&" if "?" in source["list_url"] else "?"
     return source["list_url"] + separator + f"page={page}"
+
+
+def interleave_source_candidates(candidates_by_source: dict[str, list[tuple[str, str, str]]]) -> dict[str, tuple[str, str, str]]:
+    """Round-robin candidates across sources so an insert cap cannot starve one source."""
+    ordered = {}
+    max_count = max((len(items) for items in candidates_by_source.values()), default=0)
+    for index in range(max_count):
+        for source in SOURCES:
+            items = candidates_by_source.get(source["name"], [])
+            if index < len(items):
+                item = items[index]
+                ordered[item[1]] = item
+    return ordered
 
 
 def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[str, str, str]]:
@@ -343,16 +356,8 @@ def main():
         candidates_by_source[source["name"]] = list(source_candidates.values())
         print(f"INFO source={source['name']} listing candidates={len(source_candidates)}")
 
-    # Interleave sources so the live insert cap cannot starve later sources.
-    # Each daily run gets a chance to inspect candidates from every source.
-    candidates = {}
-    max_source_candidates = max((len(items) for items in candidates_by_source.values()), default=0)
-    for index in range(max_source_candidates):
-        for source in SOURCES:
-            items = candidates_by_source.get(source["name"], [])
-            if index < len(items):
-                item = items[index]
-                candidates[item[1]] = item
+    # Interleave sources so the live insert cap cannot starve any source.
+    candidates = interleave_source_candidates(candidates_by_source)
 
     print(f"Found {len(candidates)} unique source-page candidates across {pages_checked} checked pages (limit {MAX_PAGES} per source)")
     status, existing = supabase_request("GET", "writer_opportunities?select=title,source_url,deadline,dedupe_url_key,dedupe_title_deadline_key&limit=5000")
