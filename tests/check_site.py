@@ -63,6 +63,9 @@ def main():
     assert '<html lang="ru">' in HTML, "Set the document language to Russian."
     assert '<meta name="description"' in HTML, "Missing SEO description."
     assert '<meta property="og:title"' in HTML, "Missing Open Graph title."
+    assert "firstTab.focus({ preventScroll: true })" in HTML, "Opening the mobile navigation must move keyboard focus into the drawer."
+    assert "event.key !== 'Tab'" in HTML and "nav.contains(document.activeElement)" in HTML, "The mobile navigation must keep keyboard focus inside the open drawer."
+    assert "closeMenu(true)" in HTML, "Closing the mobile navigation must restore focus to its toggle."
     muted = final_css_token("--muted")
     for surface_name in ("--bg", "--paper"):
         surface = final_css_token(surface_name)
