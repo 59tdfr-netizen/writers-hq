@@ -13,6 +13,8 @@ from scripts.collect_literary_opportunities import (
     collect_links,
     extract_eligibility,
     extract_fee_info,
+    extract_organizer,
+    extract_eligible_formats,
     find_deadline,
     interleave_source_candidates,
     source_page_url,
@@ -126,6 +128,17 @@ class CollectorParsingTests(unittest.TestCase):
     def test_missing_fee_is_not_claimed_free(self):
         fee = extract_fee_info("Условия подачи заявки опубликованы на сайте организатора.")
         self.assertIn("не указаны", fee)
+
+    def test_organizer_extraction_stops_before_next_section(self):
+        text = "Организатор: Центральная городская библиотека при поддержке управления культуры. О конкурсе Конкурс посвящён литературе."
+        self.assertEqual(
+            extract_organizer(text),
+            "Центральная городская библиотека при поддержке управления культуры",
+        )
+
+    def test_eligible_formats_extracts_explicit_format_label(self):
+        text = "Тип принимаемых произведений: Проза, Поэзия. Далее описание конкурса."
+        self.assertEqual(extract_eligible_formats(text), ["Проза", "Поэзия"])
 
 
 if __name__ == "__main__":
