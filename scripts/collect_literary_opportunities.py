@@ -399,6 +399,10 @@ def main():
             pages_checked += 1
             links = collect_links(soup, source["list_url"])
             print(f"INFO source={source['name']} page={page}: {len(links)} usable candidates")
+            if not links:
+                page_title = clean_text(soup.title.get_text(" ", strip=True)) if soup.title else "(no title)"
+                expected_path = "vse-literaturnye-konkursy" if source["name"] == "Конкурсы.Пиши.про" else "competitions/view"
+                print(f"INFO source={source['name']} zero-link diagnostics: title={page_title[:100]!r}, html_chars={len(str(soup))}, expected_path_mentions={str(soup).lower().count(expected_path)}")
             if not links and page > 1:
                 consecutive_empty_pages += 1
                 print(f"INFO source={source['name']} no usable cards on page {page}")
