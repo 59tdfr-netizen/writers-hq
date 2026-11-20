@@ -41,6 +41,12 @@ DEADLINE_CONTEXT = re.compile(
     r"[^\n.!?]{0,100}",
     re.I,
 )
+DEADLINE_END_CONTEXT = re.compile(
+    r"(?:срок(?:\s+(?:подачи|при[её]ма(?:\s+(?:работ|заявок))?))?|"
+    r"при[её]м\s+(?:заявок|работ)|работы|заявки|дедлайн)"
+    r"[^.!?]{0,140}?\bдо\s+([^.!?]{0,70})",
+    re.I,
+)
 EXPIRED_MARKER = re.compile(r"конкурс\s+(?:уже\s+)?заверш[её]н|при[её]м\s+(?:заявок|работ)\s+заверш[её]н|при[её]м\s+заявок\s+закрыт|работы\s+не\s+принимаются|срок\s+подачи\s+ист[её]к", re.I)
 GENERIC_ROUNDUP_TITLE = re.compile(r"^(?:все\s+)?конкурсы\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?:\s+\d{4})?$", re.I)
 
@@ -80,7 +86,16 @@ def parse_date(match: re.Match) -> date | None:
 
 
 def find_deadline(text: str, card_text: str) -> date | None:
-    # Prefer dates explicitly attached to a deadline/admission phrase; do not confuse publication dates with deadlines.
+    # If the page contains both a summary deadline and a more specific rule
+    # saying applications are accepted "до" a date, prefer that explicit end date.
+    for source in (text, card_text):
+        for context in DEADLINE_END_CONTEXT.findall(source):
+            for match in DATE_RE.finditer(context):
+                parsed = parse_date(match)
+                if parsed:
+                    return parsed
+    # Otherwise prefer dates explicitly attached to a deadline/admission phrase;
+    # do not confuse publication dates with deadlines.
     for source in (text, card_text):
         for context in DEADLINE_CONTEXT.findall(source):
             for match in DATE_RE.finditer(context):
