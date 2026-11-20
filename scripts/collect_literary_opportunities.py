@@ -129,6 +129,29 @@ def extract_fee_info(text: str) -> str:
     return "Стоимость участия и возможный взнос не указаны в извлечённом тексте; проверьте условия у организатора."
 
 
+def extract_organizer(text: str) -> str:
+    text = clean_text(text)
+    match = re.search(r"Организатор\s*:\s*(.{3,180})", text, re.I)
+    if not match:
+        return "Организатор не удалось надёжно извлечь; проверьте страницу конкурса."
+    value = re.split(
+        r"\s+(?:Описание|Условия|Этапы|Призы|Дедлайн|О конкурсе|Требования|Порядок подачи|Контактная информация)\b",
+        match.group(1),
+        maxsplit=1,
+        flags=re.I,
+    )[0].strip(" .,:;—-")
+    return value[:180] if len(value) >= 3 else "Организатор не удалось надёжно извлечь; проверьте страницу конкурса."
+
+
+def extract_eligible_formats(text: str) -> list[str]:
+    text = clean_text(text)
+    match = re.search(r"Тип принимаемых произведений\s*:\s*([^.!?]{3,120})", text, re.I)
+    if not match:
+        return []
+    values = re.split(r",|;|/|\s+и\s+", match.group(1))
+    return list(dict.fromkeys(value.strip(" .,:;") for value in values if value.strip(" .,:;")))[:8]
+
+
 def source_page_url(source: dict, page: int) -> str:
     if page <= 1:
         return source["list_url"]
@@ -238,25 +261,22 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         print(f"SKIP missing/short title: {url}")
         return None
 
-    organizer = ""
-    organizer_match = re.search(r"Организатор\s*:\s*(.{3,180}?)(?:\s+(?:Описание|Условия|Этапы|Призы|Дедлайн)\b|$)", page_text, re.I)
-    if organizer_match:
-        organizer = clean_text(organizer_match.group(1)).strip(" .,:;")
-    if not organizer:
-        organizer = "Уточняется на странице конкурса"
+    organizer = extract_organizer(page_text)
 
     description = ""
-    meta = soup.find("meta", attrs={"name": re.compile("^description$", re.I)})
-    if meta and meta.get("content"):
-        description = clean_text(meta["content"])
+    content = soup.select_one("article .entry-content, .post-content, .entry-content, main")
+    if content:
+        for p in content.select("p"):
+            candidate = clean_text(p.get_text(" ", strip=True))
+            if len(candidate) > 70 and not re.search(r"организатор\s*:|дедлайн\s*:|все конкурсы|литературные конкурсы.*все конкурсы", candidate, re.I):
+                description = candidate
+                break
     if not description:
-        content = soup.select_one("article .entry-content, .post-content, .entry-content, main")
-        if content:
-            for p in content.select("p"):
-                candidate = clean_text(p.get_text(" ", strip=True))
-                if len(candidate) > 70 and not re.search(r"организатор\s*:|дедлайн\s*:", candidate, re.I):
-                    description = candidate
-                    break
+        meta = soup.find("meta", attrs={"name": re.compile("^description$", re.I)})
+        if meta and meta.get("content"):
+            candidate = clean_text(meta["content"])
+            if len(candidate) > 70:
+                description = candidate
     if not description:
         description = "Открытый литературный конкурс. Подробные условия и требования — на странице организатора."
     description = description[:1200]
@@ -287,7 +307,7 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         "organizer": organizer[:180],
         "summary": description,
         "genres": genres,
-        "eligible_formats": [],
+        "eligible_formats": extract_eligible_formats(leading_content + " " + page_text),
         "eligibility": extract_eligibility(leading_content + " " + page_text),
         "fee_info": extract_fee_info(leading_content + " " + page_text),
         "deadline": deadline.isoformat(),
