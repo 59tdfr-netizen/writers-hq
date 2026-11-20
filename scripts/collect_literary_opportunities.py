@@ -161,6 +161,18 @@ def source_page_url(source: dict, page: int) -> str:
     return source["list_url"] + separator + f"page={page}"
 
 
+def anchor_context_text(anchor) -> str:
+    """Return nearby card text without accidentally including the whole listing."""
+    anchor_text = clean_text(anchor.get_text(" ", strip=True))
+    for parent in anchor.parents:
+        if getattr(parent, "name", None) not in ("article", "li", "tr", "section", "div"):
+            continue
+        text = clean_text(parent.get_text(" ", strip=True))
+        if len(anchor_text) <= len(text) <= 600:
+            return text
+    return clean_text(anchor.parent.get_text(" ", strip=True)) if anchor.parent else anchor_text
+
+
 def interleave_source_candidates(candidates_by_source: dict[str, list[tuple[str, str, str]]]) -> dict[str, tuple[str, str, str]]:
     """Round-robin candidates across sources so an insert cap cannot starve one source."""
     ordered = {}
@@ -192,14 +204,7 @@ def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[s
         print(f"INFO source={host} matching detail anchors=0")
     for card in cards:
         direct_anchor = card if getattr(card, "name", None) == "a" else None
-        context = direct_anchor.parent.parent if direct_anchor and direct_anchor.parent and direct_anchor.parent.parent else card
-        text = clean_text(context.get_text(" ", strip=True))
-        # Some catalog layouts place all rows under one wrapper. Do not let an
-        # expired notice elsewhere in that wrapper discard every individual link.
-        if direct_anchor and EXPIRED_MARKER.search(text):
-            parent_text = clean_text(direct_anchor.parent.get_text(" ", strip=True)) if direct_anchor.parent else ""
-            if parent_text and not EXPIRED_MARKER.search(parent_text):
-                text = parent_text
+        text = anchor_context_text(direct_anchor) if direct_anchor else clean_text(card.get_text(" ", strip=True))
         if not text or EXPIRED_MARKER.search(text):
             continue
         title_el = card.select_one("h1, h2, h3, .entry-title, .post-title") if not direct_anchor else None
