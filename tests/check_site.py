@@ -54,7 +54,7 @@ def contrast_ratio(first, second):
 
 
 def final_css_token(name):
-    values = re.findall(rf"{re.escape(name)}\\s*:\\s*(#[0-9a-fA-F]{{6}})", HTML)
+    values = re.findall(rf"{re.escape(name)}\s*:\s*(#[0-9a-fA-F]{{6}})", HTML)
     assert values, f"Missing CSS token {name}."
     return values[-1]
 
