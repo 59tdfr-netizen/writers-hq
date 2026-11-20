@@ -42,6 +42,7 @@ def main():
     assert '<html lang="ru">' in HTML, "Set the document language to Russian."
     assert '<meta name="description"' in HTML, "Missing SEO description."
     assert '<meta property="og:title"' in HTML, "Missing Open Graph title."
+    assert "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.1" in HTML, "Pin the Supabase SDK to an exact version."
     assert '<link rel="icon"' in HTML, "Missing favicon."
     assert 'resetPasswordForEmail' in HTML, "Missing password reset request."
     assert "event === 'PASSWORD_RECOVERY'" in HTML, "Missing password recovery screen."
