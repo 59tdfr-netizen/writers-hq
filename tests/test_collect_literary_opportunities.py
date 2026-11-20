@@ -17,6 +17,7 @@ from scripts.collect_literary_opportunities import (
     extract_eligible_formats,
     find_deadline,
     interleave_source_candidates,
+    listing_page_signature,
     source_page_url,
     normalize_title,
     parse_date,
@@ -121,6 +122,13 @@ class CollectorParsingTests(unittest.TestCase):
         links = collect_links(BeautifulSoup(html, "html.parser"), "https://konkursy.pishi.pro/")
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0][0], "Активный литературный конкурс")
+
+    def test_repeated_listing_page_signature_is_stable(self):
+        page_one = [("A", "https://konkursy.pishi.pro/a", "a"), ("B", "https://konkursy.pishi.pro/b", "b")]
+        page_two = [("B", "https://konkursy.pishi.pro/b", "other text"), ("A", "https://konkursy.pishi.pro/a", "different text")]
+        page_three = [("C", "https://konkursy.pishi.pro/c", "c")]
+        self.assertEqual(listing_page_signature(page_one), listing_page_signature(page_two))
+        self.assertNotEqual(listing_page_signature(page_one), listing_page_signature(page_three))
 
     def test_sources_are_interleaved_before_insert_cap(self):
         by_source = {
