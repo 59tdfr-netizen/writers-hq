@@ -153,6 +153,16 @@ class CollectorParsingTests(unittest.TestCase):
         fee = extract_fee_info("Условия подачи заявки опубликованы на сайте организатора.")
         self.assertIn("не указаны", fee)
 
+    def test_eligibility_preserves_age_limit_alongside_general_rules(self):
+        text = "К участию в конкурсе приглашаются все желающие, независимо от гражданства и места проживания. Возрастное ограничение от +18."
+        eligibility = extract_eligibility(text)
+        self.assertIn("независимо от гражданства", eligibility)
+        self.assertIn("18", eligibility)
+
+    def test_fee_extracts_exact_entry_fee_amount(self):
+        text = "Стоимость участия: Платное. Вступительный взнос: Сумма взноса составляет 555₽."
+        self.assertIn("555₽", extract_fee_info(text))
+
     def test_organizer_extraction_stops_before_next_section(self):
         text = "Организатор: Центральная городская библиотека при поддержке управления культуры. О конкурсе Конкурс посвящён литературе."
         self.assertEqual(
