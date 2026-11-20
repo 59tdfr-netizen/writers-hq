@@ -11,6 +11,8 @@ from scripts.collect_literary_opportunities import (
     GENERIC_ROUNDUP_TITLE,
     canonical_url,
     collect_links,
+    extract_eligibility,
+    extract_fee_info,
     find_deadline,
     interleave_source_candidates,
     source_page_url,
@@ -110,6 +112,20 @@ class CollectorParsingTests(unittest.TestCase):
         }
         ordered = list(interleave_source_candidates(by_source).values())
         self.assertEqual([item[0] for item in ordered], ["P1", "C1", "V1", "P2", "V2"])
+
+    def test_eligibility_extracts_minimum_age_from_source(self):
+        text = "К участию приглашаются авторы в возрасте от 7 лет независимо от места проживания."
+        self.assertIn("от 7 лет", extract_eligibility(text))
+
+    def test_fee_extracts_free_participation(self):
+        text = "Участие бесплатное, организационный взнос не предусмотрен."
+        fee = extract_fee_info(text)
+        self.assertIn("бесплатное", fee)
+        self.assertIn("взнос не предусмотрен", fee)
+
+    def test_missing_fee_is_not_claimed_free(self):
+        fee = extract_fee_info("Условия подачи заявки опубликованы на сайте организатора.")
+        self.assertIn("не указаны", fee)
 
 
 if __name__ == "__main__":
