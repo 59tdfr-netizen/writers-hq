@@ -1,6 +1,6 @@
--- Switch writer avatars to private storage.
--- Deploy the client code that resolves signed URLs before applying this migration.
--- The app stores object paths (not signed URLs) in profiles.avatar_url.
+-- Stage 2 of the private-avatar rollout. Apply only AFTER the signed-URL client is deployed
+-- and the preflight policy migration has been applied.
+-- This normalizes old public URLs to object paths and then makes the bucket private.
 
 begin;
 
