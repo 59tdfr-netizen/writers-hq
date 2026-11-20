@@ -43,6 +43,9 @@ def main():
     assert '<meta name="description"' in HTML, "Missing SEO description."
     assert '<meta property="og:title"' in HTML, "Missing Open Graph title."
     assert '<link rel="icon"' in HTML, "Missing favicon."
+    assert 'resetPasswordForEmail' in HTML, "Missing password reset request."
+    assert "event === 'PASSWORD_RECOVERY'" in HTML, "Missing password recovery screen."
+    assert 'id="signupPassword" type="password" required minlength="8"' in HTML, "Signup password must be at least 8 characters."
     assert (ROOT / "assets" / "favicon.svg").is_file(), "Favicon file is missing."
     ET.parse(ROOT / "assets" / "favicon.svg")
 
