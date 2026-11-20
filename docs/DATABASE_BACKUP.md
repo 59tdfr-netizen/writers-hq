@@ -24,7 +24,7 @@ Treat the database URL as a password: never paste it into issues, pull requests,
 ## Recovery outline
 
 1. Download the encrypted artifact from a trusted session.
-2. Verify its encrypted-file checksum with `sha256sum -c writers-hq.dump.age.sha256`.
+2. In the directory containing both downloaded files, verify its encrypted-file checksum with `sha256sum -c writers-hq.dump.age.sha256`.
 3. Decrypt it locally with the offline private key, for example: `age --decrypt --identity writers-hq-backup-key.txt --output writers-hq.dump writers-hq.dump.age`.
 4. Validate the archive with `pg_restore --list writers-hq.dump`.
 5. Restore into a **separate, empty recovery project** first. Supabase-managed roles, extensions, and system schemas can make a direct full-database restore unsuitable without adjustments. Do not restore over production until the recovery has been rehearsed and checked.

@@ -27,6 +27,7 @@ jobs:
           if [[ -z "$SUPABASE_DB_URL" || -z "$BACKUP_AGE_PUBLIC_KEY" ]]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Database backup skipped. Add SUPABASE_DB_URL and BACKUP_AGE_PUBLIC_KEY repository secrets."
+            echo "⚠️ **Database backup was skipped.** Required repository secrets are missing; no backup artifact was created." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
@@ -53,7 +54,6 @@ jobs:
           test -s "$RUNNER_TEMP/writers-hq.dump"
           pg_restore --list "$RUNNER_TEMP/writers-hq.dump" > "$RUNNER_TEMP/restore-list.txt"
           test -s "$RUNNER_TEMP/restore-list.txt"
-          sha256sum "$RUNNER_TEMP/writers-hq.dump" > "$RUNNER_TEMP/writers-hq.dump.sha256"
 
       - name: Encrypt backup
         if: steps.config.outputs.configured == 'true'
@@ -67,7 +67,8 @@ jobs:
             --output "$RUNNER_TEMP/writers-hq.dump.age" \
             "$RUNNER_TEMP/writers-hq.dump"
           test -s "$RUNNER_TEMP/writers-hq.dump.age"
-          sha256sum "$RUNNER_TEMP/writers-hq.dump.age" > "$RUNNER_TEMP/writers-hq.dump.age.sha256"
+          (cd "$RUNNER_TEMP" && sha256sum writers-hq.dump.age > writers-hq.dump.age.sha256)
+          echo "✅ Database dump created, archive index validated, and encrypted artifact prepared. This does not yet prove a full project restore." >> "$GITHUB_STEP_SUMMARY"
           rm -f "$RUNNER_TEMP/writers-hq.dump"
 
       - name: Store encrypted backup artifact
