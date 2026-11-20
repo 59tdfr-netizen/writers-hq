@@ -7,6 +7,7 @@ on:
       - "assets/**"
       - "tests/check_site.py"
       - "tests/check_workflows.py"
+      - "supabase/migrations/**"
       - ".github/workflows/database-backup.yml"
       - ".github/workflows/site-checks.yml"
   push:
