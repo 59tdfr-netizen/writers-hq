@@ -106,17 +106,29 @@ def extract_eligibility(text: str) -> str:
     text = clean_text(text)
     patterns = (
         r"(?:к участию\s+(?:приглашаются|допускаются|принимаются)|участвовать\s+могут|участие\s+могут\s+принять)[^.!?]{0,240}[.!?]?",
-        r"(?:возрастные ограничения|авторы в возрасте|участники в возрасте)[^.!?]{0,180}[.!?]?",
+        r"(?:возрастные ограничения|возрастное ограничение|авторы в возрасте|участники в возрасте)[^.!?]{0,180}[.!?]?",
     )
+    details = []
     for pattern in patterns:
         match = re.search(pattern, text, re.I)
         if match:
-            return clean_text(match.group(0))[:300]
+            detail = clean_text(match.group(0))
+            if detail.lower() not in {item.lower() for item in details}:
+                details.append(detail)
+    if details:
+        return " ".join(details)[:300]
     return "Возрастные и территориальные условия не удалось надёжно извлечь автоматически; проверьте положение конкурса."
 
 
 def extract_fee_info(text: str) -> str:
     text = clean_text(text)
+    amount = re.search(
+        r"(?:вступительный взнос|сумма взноса|организационный взнос|стоимость участия)[^.!?]{0,140}?\d[\d\s]*(?:[.,]\d{1,2})?\s*(?:₽|руб(?:лей|ля|ль)?\.?)",
+        text,
+        re.I,
+    )
+    if amount:
+        return clean_text(amount.group(0))[:220]
     patterns = (
         r"(?:участие бесплатное|организационный взнос не предусмотрен|взнос не взимается|бесплатное участие)[^.!?]{0,140}[.!?]?",
         r"(?:стоимость участия|организационный взнос)\s*:\s*(?:платное|бесплатное|\d+[^.!?]{0,80})",
