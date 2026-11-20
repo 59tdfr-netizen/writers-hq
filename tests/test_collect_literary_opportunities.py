@@ -57,9 +57,10 @@ class CollectorParsingTests(unittest.TestCase):
         self.assertIsNone(find_deadline("Подробности на сайте организатора", ""))
 
     def test_source_pagination_urls(self):
-        self.assertEqual(source_page_url(SOURCES[0], 2), "https://vsekonkursy.ru/tvorcheskie-konkursy/literaturnye-konkursy/page/2")
-        self.assertEqual(source_page_url(SOURCES[1], 2), "https://konkursy.pishi.pro/?page=2")
-        self.assertEqual(source_page_url(SOURCES[2], 2), "https://pechorin.net/competitions?page=2")
+        by_name = {source["name"]: source for source in SOURCES}
+        self.assertEqual(source_page_url(by_name["ВсеКонкурсы"], 2), "https://vsekonkursy.ru/tvorcheskie-konkursy/literaturnye-konkursy/page/2")
+        self.assertEqual(source_page_url(by_name["Конкурсы.Пиши.про"], 2), "https://konkursy.pishi.pro/?page=2")
+        self.assertEqual(source_page_url(by_name["Печорин.net"], 2), "https://pechorin.net/competitions?page=2")
 
     def test_pishi_listing_extracts_only_contest_detail_links(self):
         html = """
