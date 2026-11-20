@@ -1848,6 +1848,38 @@ render();
     return placeholder;
   }
 
+function avatarObjectPath(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    let path = raw;
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        const parsed = new URL(raw);
+        const marker = '/writer-avatars/';
+        const index = parsed.pathname.indexOf(marker);
+        if (index < 0) return '';
+        path = parsed.pathname.slice(index + marker.length);
+      } catch (_) { return ''; }
+    }
+    try { path = decodeURIComponent(path); } catch (_) { return ''; }
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/avatar-[0-9]+-[a-z0-9]+\.webp$/i.test(path) ? path : '';
+  }
+
+  async function resolveAvatarUrl(value) {
+    const path = avatarObjectPath(value);
+    if (!path) return '';
+    const { data, error } = await client.storage.from('writer-avatars').createSignedUrl(path, 3600);
+    if (error || !data || !data.signedUrl) return '';
+    return data.signedUrl;
+  }
+
+  async function resolveAvatarProfiles(profiles) {
+    return Promise.all((profiles || []).map(async profile => ({
+      ...profile,
+      avatar_url: await resolveAvatarUrl(profile.avatar_url)
+    })));
+  }
+
 function makePersonRow(profile, isFollowing, mode) {
     const row = document.createElement('div'); row.className = 'social-person';
     const info = document.createElement('div');
@@ -1941,7 +1973,8 @@ function makePersonRow(profile, isFollowing, mode) {
     $('profileBio').value = profileFieldsReady && data && data.bio || '';
     $('profileSocialUrl').value = profileFieldsReady && data && data.social_url || '';
     $('bioCounter').textContent = String($('profileBio').value.length);
-    setAvatarPreview(profileFieldsReady && data && data.avatar_url || '');
+    const ownAvatarUrl = profileFieldsReady && data && data.avatar_url ? await resolveAvatarUrl(data.avatar_url) : '';
+    setAvatarPreview(ownAvatarUrl);
     $('removeAvatarBtn').hidden = !(profileFieldsReady && data && data.avatar_url);
     if (!profileFieldsReady) $('avatarMessage').textContent = 'Чтобы включить аватары и информацию о себе, сначала обнови таблицу profiles в Supabase (инструкция в чате).';
     setOwnerName(name);
@@ -1987,10 +2020,11 @@ function makePersonRow(profile, isFollowing, mode) {
     const { data, error } = await client.rpc('get_writer_achievement_feed');
     if (error) { status.textContent = 'Не удалось загрузить ленту: ' + (error.message || 'ошибка доступа'); return; }
     const events = Array.isArray(data) ? data : [];
+    const resolvedEvents = await Promise.all(events.map(async item => ({ ...item, avatar_url: await resolveAvatarUrl(item.avatar_url) })));
     const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
     if (!events.length) { status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений, получат новые значки, они появятся здесь.'; return; }
     status.textContent = 'Свежие достижения сообщества';
-    for (const item of events) {
+    for (const item of resolvedEvents) {
       const def = defs.find(entry => entry.id === item.achievement_id);
       const card = document.createElement('article'); card.className = 'activity-item';
       const avatar = item.avatar_url ? document.createElement('img') : makeGreekPortraitPlaceholder();
@@ -2040,7 +2074,8 @@ function makePersonRow(profile, isFollowing, mode) {
       .select('id, display_name, bio, avatar_url, social_url').in('id', ids).order('display_name', { ascending: true });
     if (profileError) throw profileError;
     $('followingStatus').textContent = 'Авторы, на которых ты подписан.';
-    (profiles || []).forEach(profile => list.append(makePersonRow(profile, true, 'following')));
+    const resolvedProfiles = await resolveAvatarProfiles(profiles);
+    resolvedProfiles.forEach(profile => list.append(makePersonRow(profile, true, 'following')));
   }
 
   async function searchAuthors() {
@@ -2065,7 +2100,8 @@ function makePersonRow(profile, isFollowing, mode) {
       return;
     }
     status.textContent = `Найдено авторов: ${data.length}.`;
-    data.forEach(profile => list.append(makePersonRow(profile, followedIds.has(profile.id), 'search')));
+    const resolvedProfiles = await resolveAvatarProfiles(data);
+    resolvedProfiles.forEach(profile => list.append(makePersonRow(profile, followedIds.has(profile.id), 'search')));
   }
 
 
@@ -2505,9 +2541,9 @@ function makePersonRow(profile, isFollowing, mode) {
         contentType: 'image/webp', upsert: false, cacheControl: '3600'
       });
       if (uploadError) throw uploadError;
-      const { data: publicData } = client.storage.from('writer-avatars').getPublicUrl(path);
-      const avatarUrl = publicData.publicUrl;
-      const { error: profileError } = await client.from('profiles').update({ avatar_url: avatarUrl }).eq('id', activeUserId);
+      const avatarUrl = await resolveAvatarUrl(path);
+      if (!avatarUrl) throw new Error('Не удалось получить защищённую ссылку на портрет.');
+      const { error: profileError } = await client.from('profiles').update({ avatar_url: path }).eq('id', activeUserId);
       if (profileError) throw profileError;
       setAvatarPreview(avatarUrl);
       $('removeAvatarBtn').hidden = false;
