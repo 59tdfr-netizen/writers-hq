@@ -12,6 +12,7 @@ from scripts.collect_literary_opportunities import (
     canonical_url,
     collect_links,
     find_deadline,
+    interleave_source_candidates,
     source_page_url,
     normalize_title,
     parse_date,
@@ -87,6 +88,27 @@ class CollectorParsingTests(unittest.TestCase):
     def test_end_of_application_phrase_is_deadline_context(self):
         text = "Окончание приема заявок: 01 Декабря 2026. Организатор сообщает результаты позже."
         self.assertEqual(find_deadline(text, ""), date(2026, 12, 1))
+
+    def test_source_links_work_without_heading_card_markup(self):
+        html = """
+        <html><body><table><tr><td>
+          <a href="/vse-literaturnye-konkursy/contest-987/">Конкурс прозы для авторов</a>
+          <span>Окончание приема заявок: 30 Ноября 2026</span>
+        </td></tr></table></body></html>
+        """
+        links = collect_links(BeautifulSoup(html, "html.parser"), "https://konkursy.pishi.pro/")
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0][0], "Конкурс прозы для авторов")
+        self.assertIn("30 Ноября 2026", links[0][2])
+
+    def test_sources_are_interleaved_before_insert_cap(self):
+        by_source = {
+            SOURCES[0]["name"]: [("P1", "https://konkursy.pishi.pro/1", "p1"), ("P2", "https://konkursy.pishi.pro/2", "p2")],
+            SOURCES[1]["name"]: [("C1", "https://pechorin.net/competitions/view/1", "c1")],
+            SOURCES[2]["name"]: [("V1", "https://vsekonkursy.ru/1", "v1"), ("V2", "https://vsekonkursy.ru/2", "v2")],
+        }
+        ordered = list(interleave_source_candidates(by_source).values())
+        self.assertEqual([item[0] for item in ordered], ["P1", "C1", "V1", "P2", "V2"])
 
 
 if __name__ == "__main__":
