@@ -50,6 +50,13 @@ def main():
     assert 'id="newPassword" type="password" minlength="8"' in HTML, "Password changes must require at least 8 characters."
     assert "if (password.length < 8)" in HTML, "Password updates must validate minimum length."
     assert "авторам, которые подписаны на меня" in HTML, "Explain who can see shared statistics."
+    feed_migration = ROOT / "supabase" / "migrations" / "20261120161000_fix_achievement_feed_followers.sql"
+    assert feed_migration.is_file(), "Achievement feed follower-direction migration is missing."
+    feed_sql = feed_migration.read_text(encoding="utf-8")
+    assert "wf.follower_id = e.user_id" in feed_sql, "Achievement feed must select authors who follow the event author."
+    assert "wf.followed_id = (select auth.uid())" in feed_sql, "Achievement feed must only show events to the event author's followers."
+    assert "s.show_stats_to_mutuals is true" in feed_sql, "Achievement feed must respect the author's explicit sharing consent."
+    assert "security definer" in feed_sql.lower() and "set search_path to ''" in feed_sql.lower(), "Keep the feed function's security settings."
     assert "emailRedirectTo: window.location.origin + window.location.pathname" in HTML, "Email confirmation must follow the current site URL."
     assert "emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'" not in HTML, "Avoid hard-coded auth redirects."
     assert (ROOT / "assets" / "favicon.svg").is_file(), "Favicon file is missing."
