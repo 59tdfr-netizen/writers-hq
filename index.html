@@ -2850,17 +2850,27 @@ function makePersonRow(profile, isFollowing, mode) {
   };
 
   let changeToken = 0;
-  function closeMenu() {
+  function closeMenu(restoreFocus = false) {
+    const wasOpen = document.body.classList.contains('mobile-menu-open');
     document.body.classList.remove('mobile-menu-open');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-label', 'Открыть меню');
+    if (restoreFocus && wasOpen && !nav.classList.contains('auth-hidden')) {
+      toggle.focus({ preventScroll: true });
+    }
   }
   toggle.addEventListener('click', () => {
     const open = !document.body.classList.contains('mobile-menu-open');
-    document.body.classList.toggle('mobile-menu-open', open);
     toggle.classList.remove('menu-toggle-hidden');
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+    if (!open) {
+      closeMenu(true);
+      return;
+    }
+    document.body.classList.add('mobile-menu-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Закрыть меню');
+    const firstTab = nav.querySelector('.section-tab:not(:disabled)');
+    if (firstTab) firstTab.focus({ preventScroll: true });
   });
 
   // Keep the floating control out of the reader's way while scrolling down.
@@ -2883,9 +2893,30 @@ function makePersonRow(profile, isFollowing, mode) {
       scrollTicking = false;
     });
   }, { passive: true });
-  backdrop.addEventListener('click', closeMenu);
+  backdrop.addEventListener('click', () => closeMenu(true));
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeMenu();
+    if (!document.body.classList.contains('mobile-menu-open')) return;
+    if (event.key === 'Escape') {
+      closeMenu(true);
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(nav.querySelectorAll(
+      'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+    )).filter(element => element.getAttribute('aria-hidden') !== 'true');
+    if (!focusable.length) {
+      event.preventDefault();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !nav.contains(document.activeElement))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !nav.contains(document.activeElement))) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 
   const observer = new MutationObserver(() => {
@@ -2896,7 +2927,7 @@ function makePersonRow(profile, isFollowing, mode) {
   nav.querySelectorAll('.section-tab[data-section]').forEach(tab => {
     tab.addEventListener('click', () => {
       const item = artworks[tab.dataset.section];
-      closeMenu();
+      closeMenu(true);
       if (!item) return;
       const token = ++changeToken;
       banner.classList.add('is-changing');
