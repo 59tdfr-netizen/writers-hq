@@ -1,0 +1,82 @@
+name: Encrypted database backup
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: encrypted-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check backup configuration
+        id: config
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+        shell: bash
+        run: |
+          if [[ -z "$SUPABASE_DB_URL" || -z "$BACKUP_AGE_PUBLIC_KEY" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Database backup skipped. Add SUPABASE_DB_URL and BACKUP_AGE_PUBLIC_KEY repository secrets."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install PostgreSQL client and age
+        if: steps.config.outputs.configured == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client age
+
+      - name: Dump and validate database
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          pg_dump "$SUPABASE_DB_URL" \
+            --format=custom \
+            --no-owner \
+            --no-acl \
+            --file="$RUNNER_TEMP/writers-hq.dump"
+          test -s "$RUNNER_TEMP/writers-hq.dump"
+          pg_restore --list "$RUNNER_TEMP/writers-hq.dump" > "$RUNNER_TEMP/restore-list.txt"
+          test -s "$RUNNER_TEMP/restore-list.txt"
+          sha256sum "$RUNNER_TEMP/writers-hq.dump" > "$RUNNER_TEMP/writers-hq.dump.sha256"
+
+      - name: Encrypt backup
+        if: steps.config.outputs.configured == 'true'
+        env:
+          BACKUP_AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$BACKUP_AGE_PUBLIC_KEY" | grep -Eq '^age1[0-9a-z]{20,}$'
+          age --encrypt --recipient "$BACKUP_AGE_PUBLIC_KEY" \
+            --output "$RUNNER_TEMP/writers-hq.dump.age" \
+            "$RUNNER_TEMP/writers-hq.dump"
+          test -s "$RUNNER_TEMP/writers-hq.dump.age"
+          sha256sum "$RUNNER_TEMP/writers-hq.dump.age" > "$RUNNER_TEMP/writers-hq.dump.age.sha256"
+          rm -f "$RUNNER_TEMP/writers-hq.dump"
+
+      - name: Store encrypted backup artifact
+        if: steps.config.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: writers-hq-db-backup-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/writers-hq.dump.age
+            ${{ runner.temp }}/writers-hq.dump.age.sha256
+          if-no-files-found: error
+          retention-days: 30
