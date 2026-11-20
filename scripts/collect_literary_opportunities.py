@@ -161,6 +161,10 @@ def source_page_url(source: dict, page: int) -> str:
     return source["list_url"] + separator + f"page={page}"
 
 
+def listing_page_signature(links: list[tuple[str, str, str]]) -> tuple[str, ...]:
+    return tuple(sorted({url for _, url, _ in links}))
+
+
 def anchor_context_text(anchor) -> str:
     """Return nearby card text without accidentally including the whole listing."""
     anchor_text = clean_text(anchor.get_text(" ", strip=True))
@@ -393,6 +397,7 @@ def main():
     for source in SOURCES:
         consecutive_empty_pages = 0
         source_candidates = {}
+        seen_page_signatures = set()
         for page in range(1, MAX_PAGES + 1):
             page_url = source_page_url(source, page)
             try:
@@ -408,6 +413,12 @@ def main():
                 continue
             pages_checked += 1
             links = collect_links(soup, source["list_url"])
+            signature = listing_page_signature(links)
+            if signature and signature in seen_page_signatures:
+                print(f"INFO source={source['name']} page={page} repeats prior listing content; stopping pagination")
+                break
+            if signature:
+                seen_page_signatures.add(signature)
             print(f"INFO source={source['name']} page={page}: {len(links)} usable candidates")
             if not links:
                 page_title = clean_text(soup.title.get_text(" ", strip=True)) if soup.title else "(no title)"
