@@ -1618,7 +1618,9 @@ $('saveEntry').addEventListener('click', async () => {
   } catch (error) {
     alert(
       'Не удалось сохранить запись в облаке. ' +
-      'Проверь подключение и попробуй ещё раз.\n\n' +
+      'Проверь подключение и попробуй ещё раз.
+
+' +
       (error.message || '')
     );
   } finally {
@@ -1639,7 +1641,9 @@ $('clearEntry').addEventListener('click', async () => {
     showToast('Запись удалена.');
   } catch (error) {
     alert(
-      'Не удалось удалить запись из облака.\n\n' +
+      'Не удалось удалить запись из облака.
+
+' +
       (error.message || '')
     );
   } finally {
@@ -1677,7 +1681,9 @@ $('saveGoal').addEventListener('click', async () => {
   } catch (error) {
     state.goal = previousGoal;
     render();
-    alert('Не удалось сохранить цель в облаке. Проверь подключение и попробуй ещё раз.\n\n' + (error.message || ''));
+    alert('Не удалось сохранить цель в облаке. Проверь подключение и попробуй ещё раз.
+
+' + (error.message || ''));
   } finally {
     button.disabled = false;
   }
@@ -1973,7 +1979,8 @@ function makePersonRow(profile, isFollowing, mode) {
     $('profileBio').value = profileFieldsReady && data && data.bio || '';
     $('profileSocialUrl').value = profileFieldsReady && data && data.social_url || '';
     $('bioCounter').textContent = String($('profileBio').value.length);
-    const ownAvatarUrl = profileFieldsReady && data && data.avatar_url ? await resolveAvatarUrl(data.avatar_url) : '';\n    setAvatarPreview(ownAvatarUrl);
+    const ownAvatarUrl = profileFieldsReady && data && data.avatar_url ? await resolveAvatarUrl(data.avatar_url) : '';
+    setAvatarPreview(ownAvatarUrl);
     $('removeAvatarBtn').hidden = !(profileFieldsReady && data && data.avatar_url);
     if (!profileFieldsReady) $('avatarMessage').textContent = 'Чтобы включить аватары и информацию о себе, сначала обнови таблицу profiles в Supabase (инструкция в чате).';
     setOwnerName(name);
@@ -2018,7 +2025,8 @@ function makePersonRow(profile, isFollowing, mode) {
     status.textContent = 'Загружаем ленту…'; list.replaceChildren();
     const { data, error } = await client.rpc('get_writer_achievement_feed');
     if (error) { status.textContent = 'Не удалось загрузить ленту: ' + (error.message || 'ошибка доступа'); return; }
-    const events = Array.isArray(data) ? data : [];\n    const resolvedEvents = await Promise.all(events.map(async item => ({ ...item, avatar_url: await resolveAvatarUrl(item.avatar_url) })));
+    const events = Array.isArray(data) ? data : [];
+    const resolvedEvents = await Promise.all(events.map(async item => ({ ...item, avatar_url: await resolveAvatarUrl(item.avatar_url) })));
     const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
     if (!events.length) { status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений, получат новые значки, они появятся здесь.'; return; }
     status.textContent = 'Свежие достижения сообщества';
@@ -2072,7 +2080,8 @@ function makePersonRow(profile, isFollowing, mode) {
       .select('id, display_name, bio, avatar_url, social_url').in('id', ids).order('display_name', { ascending: true });
     if (profileError) throw profileError;
     $('followingStatus').textContent = 'Авторы, на которых ты подписан.';
-    const resolvedProfiles = await resolveAvatarProfiles(profiles);\n    resolvedProfiles.forEach(profile => list.append(makePersonRow(profile, true, 'following')));
+    const resolvedProfiles = await resolveAvatarProfiles(profiles);
+    resolvedProfiles.forEach(profile => list.append(makePersonRow(profile, true, 'following')));
   }
 
   async function searchAuthors() {
@@ -2097,7 +2106,8 @@ function makePersonRow(profile, isFollowing, mode) {
       return;
     }
     status.textContent = `Найдено авторов: ${data.length}.`;
-    const resolvedProfiles = await resolveAvatarProfiles(data);\n    resolvedProfiles.forEach(profile => list.append(makePersonRow(profile, followedIds.has(profile.id), 'search')));
+    const resolvedProfiles = await resolveAvatarProfiles(data);
+    resolvedProfiles.forEach(profile => list.append(makePersonRow(profile, followedIds.has(profile.id), 'search')));
   }
 
 
