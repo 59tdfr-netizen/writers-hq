@@ -47,7 +47,7 @@ GENERIC_ROUNDUP_TITLE = re.compile(r"^(?:все\s+)?конкурсы\s+(?:янв
 
 def fetch(url: str) -> str:
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"})
-    with urlopen(request, timeout=25) as response:
+    with urlopen(request, timeout=12) as response:
         if response.status != 200:
             raise RuntimeError(f"HTTP {response.status} for {url}")
         return response.read().decode(response.headers.get_content_charset() or "utf-8", errors="replace")
@@ -410,7 +410,11 @@ def main():
     inserted = skipped = failed = 0
     would_insert = 0
     live_attempts = 0
-    for _, (listed_title, url, card_text) in candidates.items():
+    max_dry_run_detail_checks = min(100, max(1, int(os.getenv("SCRAPER_MAX_DRY_RUN_DETAIL_CHECKS", "35"))))
+    for candidate_index, (_, (listed_title, url, card_text)) in enumerate(candidates.items()):
+        if dry_run and candidate_index >= max_dry_run_detail_checks:
+            print(f"STOP dry-run detail check cap reached ({max_dry_run_detail_checks}); remaining candidates left for the next run")
+            break
         if not dry_run and live_attempts >= MAX_LIVE_INSERTS:
             print(f"STOP live insert attempt cap reached ({MAX_LIVE_INSERTS}); remaining candidates left for a later run")
             break
