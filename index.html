@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Штаб писателя — место для писательского дневника, творческих проектов, целей и календаря литературных конкурсов.">
+<meta name="theme-color" content="#f5f3ee">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Штаб писателя">
+<meta property="og:title" content="Штаб писателя — место для вашей литературы">
+<meta property="og:description" content="Ведите писательский дневник, собирайте проекты, следите за целями и не пропускайте литературные конкурсы.">
+<meta property="og:url" content="https://59tdfr-netizen.github.io/writers-hq/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+<link rel="canonical" href="https://59tdfr-netizen.github.io/writers-hq/">
 <script>window.__writersHQLoadStartedAt = Date.now();</script>
-<title>Штаб писателя</title>
+<title>Штаб писателя — дневник, проекты и литературные конкурсы</title>
 <style>
 :root{--bg:#f5f3ee;--paper:#fffefa;--ink:#252923;--muted:#777c72;--line:#e7e4db;--green:#496b52;--green2:#dce9d9;--orange:#c47748;--red:#b85d54;--shadow:0 8px 30px rgba(40,44,35,.06)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,"Arial",sans-serif;line-height:1.5}
@@ -852,19 +862,27 @@ textarea { resize: vertical; }
           <div class="field"><label for="loginPassword">Пароль</label><input id="loginPassword" type="password" required autocomplete="current-password"></div>
         </div>
         <div class="btn-row"><button id="signInBtn" type="submit" class="btn primary">Войти</button></div>
+        <button id="forgotPasswordBtn" type="button" class="btn secondary" style="margin-top:10px">Забыли пароль?</button>
       </form>
-      <details style="margin-top:16px">
+      <details id="signupDetails" style="margin-top:16px">
         <summary style="cursor:pointer;font-size:13px;font-weight:700;color:var(--green)">Нет аккаунта? Зарегистрироваться</summary>
         <form id="signUpForm" style="margin-top:14px">
           <div class="form-row">
             <div class="field"><label for="displayName">Имя</label><input id="displayName" type="text" required minlength="2" maxlength="60" autocomplete="nickname"></div>
             <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email"></div>
           </div>
-          <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required autocomplete="new-password"></div>
+          <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required minlength="8" autocomplete="new-password"><p class="small" style="margin:5px 0 0">Не менее 8 символов.</p></div>
           <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать статистику и достижения авторам, на которых я подписан(а)</strong><br>Эту настройку можно будет изменить в профиле. Для этого достаточно подписки на тебя — взаимная подписка не нужна.</span></label>
           <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
         </form>
       </details>
+      <form id="passwordRecoveryForm" hidden style="margin-top:16px">
+        <h3 style="margin:0 0 8px">Новый пароль</h3>
+        <p class="small">Придумай новый пароль длиной не менее 8 символов.</p>
+        <div class="field"><label for="recoveryPassword">Новый пароль</label><input id="recoveryPassword" type="password" required minlength="8" autocomplete="new-password"></div>
+        <div class="field"><label for="recoveryPasswordConfirm">Повтори новый пароль</label><input id="recoveryPasswordConfirm" type="password" required minlength="8" autocomplete="new-password"></div>
+        <div class="btn-row"><button id="saveRecoveryPasswordBtn" type="submit" class="btn primary">Сохранить пароль</button></div>
+      </form>
     </div>
 
     <div id="signedInPanel" class="auth-hidden">
@@ -2636,6 +2654,10 @@ function makePersonRow(profile, isFollowing, mode) {
       const password = $('signupPassword').value;
       const displayName = $('displayName').value.trim();
 
+      if (password.length < 8) {
+        throw new Error('Пароль должен содержать не менее 8 символов.');
+      }
+
       const { data, error } = await client.auth.signUp({
         email,
         password,
@@ -2661,6 +2683,61 @@ function makePersonRow(profile, isFollowing, mode) {
       }
     } catch (error) {
       showMessage(error.message || 'Не удалось создать аккаунт.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  $('forgotPasswordBtn').addEventListener('click', async () => {
+    const email = $('loginEmail').value.trim();
+    if (!email) {
+      showMessage('Сначала укажи email в поле входа — на него придёт ссылка для сброса пароля.', 'error');
+      $('loginEmail').focus();
+      return;
+    }
+
+    setBusy(true);
+    showMessage('Отправляем ссылку для сброса пароля…');
+    try {
+      const redirectTo = window.location.origin + window.location.pathname + window.location.search;
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) throw error;
+      showMessage('Если для этого адреса есть аккаунт, на почту придёт ссылка для сброса пароля.', 'success');
+    } catch (error) {
+      showMessage(error.message || 'Не удалось отправить ссылку. Попробуй позже.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  $('passwordRecoveryForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const password = $('recoveryPassword').value;
+    const confirmation = $('recoveryPasswordConfirm').value;
+    if (password.length < 8) {
+      showMessage('Пароль должен содержать не менее 8 символов.', 'error');
+      return;
+    }
+    if (password !== confirmation) {
+      showMessage('Пароли не совпадают. Проверь оба поля.', 'error');
+      $('recoveryPasswordConfirm').focus();
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { error } = await client.auth.updateUser({ password });
+      if (error) throw error;
+
+      $('passwordRecoveryForm').hidden = true;
+      $('signInForm').hidden = false;
+      $('signupDetails').hidden = false;
+      $('recoveryPassword').value = '';
+      $('recoveryPasswordConfirm').value = '';
+      await client.auth.signOut();
+      showMessage('Пароль обновлён. Теперь войди с новым паролем.', 'success');
+    } catch (error) {
+      showMessage(error.message || 'Не удалось обновить пароль. Запроси новую ссылку и попробуй ещё раз.', 'error');
     } finally {
       setBusy(false);
     }
@@ -2716,6 +2793,14 @@ function makePersonRow(profile, isFollowing, mode) {
   // SIGNED_IN / SIGNED_OUT обновляют интерфейс после действий пользователя.
   // TOKEN_REFRESHED не требует повторной загрузки всего дневника.
   client.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      $('signInForm').hidden = true;
+      $('signupDetails').hidden = true;
+      $('passwordRecoveryForm').hidden = false;
+      showMessage('Ссылка подтверждена. Задай новый пароль.', 'success');
+      $('recoveryPassword').focus();
+      return;
+    }
     if (!['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT'].includes(event)) {
       return;
     }
