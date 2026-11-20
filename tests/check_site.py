@@ -57,6 +57,12 @@ def main():
     avatar_migration = ROOT / "supabase" / "migrations" / "20261120150000_private_writer_avatars.sql"
     assert avatar_migration.is_file(), "Private avatar storage migration is missing."
     migration_sql = avatar_migration.read_text(encoding="utf-8")
+    preflight_migration = ROOT / "supabase" / "migrations" / "20261120140000_prepare_private_writer_avatars.sql"
+    assert preflight_migration.is_file(), "Private avatar preflight migration is missing."
+    preflight_sql = preflight_migration.read_text(encoding="utf-8")
+    assert "does NOT make the bucket private" in preflight_sql, "Preflight must not disable public URLs before the client rollout."
+    assert "to authenticated" in preflight_sql and "using (bucket_id = 'writer-avatars')" in preflight_sql, "Preflight must let authenticated users request signed URLs for other avatars."
+    assert "Apply only AFTER the signed-URL client is deployed" in migration_sql, "Final avatar migration must document rollout order."
     assert "to authenticated" in migration_sql and "using (bucket_id = 'writer-avatars')" in migration_sql, "Authenticated users must be able to read avatar objects."
     assert "set public = false" in migration_sql, "Avatar storage bucket must be private after migration."
     assert "emailRedirectTo: window.location.origin + window.location.pathname" in HTML, "Email confirmation must follow the current site URL."
