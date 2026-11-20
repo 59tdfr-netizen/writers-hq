@@ -1,6 +1,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
 import subprocess
+import re
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -38,10 +39,36 @@ class InlineScriptExtractor(HTMLParser):
             self.current = None
 
 
+
+def relative_luminance(hex_color):
+    channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+    channels = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+
+def contrast_ratio(first, second):
+    luminance_a = relative_luminance(first)
+    luminance_b = relative_luminance(second)
+    lighter, darker = max(luminance_a, luminance_b), min(luminance_a, luminance_b)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def final_css_token(name):
+    values = re.findall(rf"{re.escape(name)}\s*:\s*(#[0-9a-fA-F]{{6}})", HTML)
+    assert values, f"Missing CSS token {name}."
+    return values[-1]
+
+
 def main():
     assert '<html lang="ru">' in HTML, "Set the document language to Russian."
     assert '<meta name="description"' in HTML, "Missing SEO description."
     assert '<meta property="og:title"' in HTML, "Missing Open Graph title."
+    muted = final_css_token("--muted")
+    for surface_name in ("--bg", "--paper"):
+        surface = final_css_token(surface_name)
+        assert contrast_ratio(muted, surface) >= 4.5, (
+            f"Muted text contrast against {surface_name} must meet WCAG AA for normal text."
+        )
     assert "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.1" in HTML, "Pin the Supabase SDK to an exact version."
     assert '<link rel="icon"' in HTML, "Missing favicon."
     assert 'resetPasswordForEmail' in HTML, "Missing password reset request."
