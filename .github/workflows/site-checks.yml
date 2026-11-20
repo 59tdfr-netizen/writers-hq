@@ -1,6 +1,14 @@
 name: Site checks
 
 on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "assets/**"
+      - "tests/check_site.py"
+      - "tests/check_workflows.py"
+      - ".github/workflows/database-backup.yml"
+      - ".github/workflows/site-checks.yml"
   push:
     branches: [main]
     paths:
