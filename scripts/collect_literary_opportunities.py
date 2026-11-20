@@ -188,10 +188,18 @@ def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[s
         cards = soup.select("article, .post, .entry, .type-post")
         if not cards:
             cards = [a.parent.parent for a in soup.select("a[href]") if a.parent and a.parent.parent]
+    if host in ("pechorin.net", "konkursy.pishi.pro") and not cards:
+        print(f"INFO source={host} matching detail anchors=0")
     for card in cards:
         direct_anchor = card if getattr(card, "name", None) == "a" else None
         context = direct_anchor.parent.parent if direct_anchor and direct_anchor.parent and direct_anchor.parent.parent else card
         text = clean_text(context.get_text(" ", strip=True))
+        # Some catalog layouts place all rows under one wrapper. Do not let an
+        # expired notice elsewhere in that wrapper discard every individual link.
+        if direct_anchor and EXPIRED_MARKER.search(text):
+            parent_text = clean_text(direct_anchor.parent.get_text(" ", strip=True)) if direct_anchor.parent else ""
+            if parent_text and not EXPIRED_MARKER.search(parent_text):
+                text = parent_text
         if not text or EXPIRED_MARKER.search(text):
             continue
         title_el = card.select_one("h1, h2, h3, .entry-title, .post-title") if not direct_anchor else None
