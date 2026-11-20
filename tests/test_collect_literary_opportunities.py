@@ -49,6 +49,14 @@ class CollectorParsingTests(unittest.TestCase):
         text = "Опубликовано 10 ноября 2026. Приём заявок до 1 декабря 2026 года."
         self.assertEqual(find_deadline(text, ""), date(2026, 12, 1))
 
+    def test_explicit_closing_date_wins_over_conflicting_summary_date(self):
+        text = "Окончание приема заявок: 26 ноября 2026. Срок приема работ: с момента публикации положения до 24 ноября 2026 включительно."
+        self.assertEqual(find_deadline(text, ""), date(2026, 11, 24))
+
+    def test_date_range_uses_end_date_not_start_date(self):
+        text = "Срок приема работ: с 1 ноября 2026 до 30 декабря 2026."
+        self.assertEqual(find_deadline(text, ""), date(2026, 12, 30))
+
     def test_roundup_is_not_individual_opportunity(self):
         self.assertTrue(GENERIC_ROUNDUP_TITLE.fullmatch("Конкурсы ноября"))
         self.assertTrue(GENERIC_ROUNDUP_TITLE.fullmatch("Все конкурсы декабря 2026"))
