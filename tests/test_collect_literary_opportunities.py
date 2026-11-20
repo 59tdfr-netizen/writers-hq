@@ -106,6 +106,22 @@ class CollectorParsingTests(unittest.TestCase):
         self.assertEqual(links[0][0], "Конкурс прозы для авторов")
         self.assertIn("30 Ноября 2026", links[0][2])
 
+    def test_expired_notice_elsewhere_does_not_hide_active_source_link(self):
+        html = """
+        <html><body>
+          <div class="list">
+            <div class="contest">
+              <h3><a href="/vse-literaturnye-konkursy/active-contest-987/">Активный литературный конкурс</a></h3>
+              <p>Окончание приема заявок: 30 Ноября 2026</p>
+            </div>
+            <div class="notice">Приём заявок завершён у другого конкурса.</div>
+          </div>
+        </body></html>
+        """
+        links = collect_links(BeautifulSoup(html, "html.parser"), "https://konkursy.pishi.pro/")
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0][0], "Активный литературный конкурс")
+
     def test_sources_are_interleaved_before_insert_cap(self):
         by_source = {
             SOURCES[0]["name"]: [("P1", "https://konkursy.pishi.pro/1", "p1"), ("P2", "https://konkursy.pishi.pro/2", "p2")],
