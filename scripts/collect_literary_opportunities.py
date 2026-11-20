@@ -102,6 +102,33 @@ def clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", unescape(value or "")).strip()
 
 
+def extract_eligibility(text: str) -> str:
+    text = clean_text(text)
+    patterns = (
+        r"(?:к участию\s+(?:приглашаются|допускаются|принимаются)|участвовать\s+могут|участие\s+могут\s+принять)[^.!?]{0,240}[.!?]?",
+        r"(?:возрастные ограничения|авторы в возрасте|участники в возрасте)[^.!?]{0,180}[.!?]?",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, re.I)
+        if match:
+            return clean_text(match.group(0))[:300]
+    return "Возрастные и территориальные условия не удалось надёжно извлечь автоматически; проверьте положение конкурса."
+
+
+def extract_fee_info(text: str) -> str:
+    text = clean_text(text)
+    patterns = (
+        r"(?:участие бесплатное|организационный взнос не предусмотрен|взнос не взимается|бесплатное участие)[^.!?]{0,140}[.!?]?",
+        r"(?:стоимость участия|организационный взнос)\s*:\s*(?:платное|бесплатное|\d+[^.!?]{0,80})",
+        r"участие платное[^.!?]{0,100}[.!?]?",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, re.I)
+        if match:
+            return clean_text(match.group(0))[:220]
+    return "Стоимость участия и возможный взнос не указаны в извлечённом тексте; проверьте условия у организатора."
+
+
 def source_page_url(source: dict, page: int) -> str:
     if page <= 1:
         return source["list_url"]
@@ -237,7 +264,7 @@ def extract_detail(url: str, list_text: str) -> dict | None:
     submission_url = None
     for a in soup.select("a[href]"):
         label = clean_text(a.get_text(" ", strip=True)).lower()
-        if re.search(r"подать заявку|отправить (?:работу|текст)|форма заявки|регистрация|заполнить анкету|перейти на сайт конкурса", label):
+        if re.search(r"подать заявку|отправить (?:работу|текст)|форма заявки|электронная заявка|яндекс формы|ссылка на форму|ссылка на заявку|регистрация|заполнить анкету|перейти на сайт конкурса", label):
             candidate = canonical_url(urljoin(url, a["href"]))
             if urlparse(candidate).scheme in ("http", "https"):
                 submission_url = candidate
@@ -261,8 +288,8 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         "summary": description,
         "genres": genres,
         "eligible_formats": [],
-        "eligibility": "См. требования на странице конкурса",
-        "fee_info": "Условия участия и возможный взнос — на странице конкурса",
+        "eligibility": extract_eligibility(leading_content + " " + page_text),
+        "fee_info": extract_fee_info(leading_content + " " + page_text),
         "deadline": deadline.isoformat(),
         "source_url": canonical_url(url),
         "submission_url": submission_url,
