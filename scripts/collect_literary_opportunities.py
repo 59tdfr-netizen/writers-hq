@@ -195,7 +195,12 @@ def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[s
         # and walking up exactly two parents made otherwise valid cards disappear.
         cards = soup.select('a[href*="/competitions/view/"]')
     elif host == "konkursy.pishi.pro":
-        cards = soup.select('a[href*="/vse-literaturnye-konkursy/"]')
+        # Match href values in Python as well as CSS: some rendered variants encode
+        # or rewrite path attributes differently from the indexed HTML.
+        cards = [
+            a for a in soup.find_all("a", href=True)
+            if "vse-literaturnye-konkursy" in str(a.get("href", "")).lower()
+        ]
     else:
         cards = soup.select("article, .post, .entry, .type-post")
         if not cards:
@@ -407,7 +412,12 @@ def main():
             if not links:
                 page_title = clean_text(soup.title.get_text(" ", strip=True)) if soup.title else "(no title)"
                 expected_path = "vse-literaturnye-konkursy" if source["name"] == "Конкурсы.Пиши.про" else "competitions/view"
-                print(f"INFO source={source['name']} zero-link diagnostics: title={page_title[:100]!r}, html_chars={len(str(soup))}, expected_path_mentions={str(soup).lower().count(expected_path)}")
+                href_hits = [
+                    (clean_text(a.get_text(" ", strip=True))[:45], str(a.get("href", ""))[:160])
+                    for a in soup.find_all("a", href=True)
+                    if expected_path in str(a.get("href", "")).lower()
+                ][:4]
+                print(f"INFO source={source['name']} zero-link diagnostics: title={page_title[:100]!r}, html_chars={len(str(soup))}, expected_path_mentions={str(soup).lower().count(expected_path)}, href_hits={href_hits!r}")
             if not links and page > 1:
                 consecutive_empty_pages += 1
                 print(f"INFO source={source['name']} no usable cards on page {page}")
