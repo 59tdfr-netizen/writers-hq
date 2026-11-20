@@ -66,6 +66,9 @@ def main():
     assert "firstTab.focus({ preventScroll: true })" in HTML, "Opening the mobile navigation must move keyboard focus into the drawer."
     assert "event.key !== 'Tab'" in HTML and "nav.contains(document.activeElement)" in HTML, "The mobile navigation must keep keyboard focus inside the open drawer."
     assert "closeMenu(true)" in HTML, "Closing the mobile navigation must restore focus to its toggle."
+    assert ".day.future{opacity:.48}" not in HTML, "Future calendar dates must remain readable."
+    assert ".calendar .day.future{background:#f7efe4;color:var(--muted);opacity:1}" in HTML, "Future calendar dates must use the accessible muted text color."
+    assert ".stat .label { color: var(--muted); }" in HTML, "Statistic labels must use the accessible muted text color."
     muted = final_css_token("--muted")
     for surface_name in ("--bg", "--paper"):
         surface = final_css_token(surface_name)
