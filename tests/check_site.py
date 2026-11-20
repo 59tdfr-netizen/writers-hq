@@ -46,6 +46,8 @@ def main():
     assert 'resetPasswordForEmail' in HTML, "Missing password reset request."
     assert "event === 'PASSWORD_RECOVERY'" in HTML, "Missing password recovery screen."
     assert 'id="signupPassword" type="password" required minlength="8"' in HTML, "Signup password must be at least 8 characters."
+    assert "emailRedirectTo: window.location.origin + window.location.pathname" in HTML, "Email confirmation must follow the current site URL."
+    assert "emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'" not in HTML, "Avoid hard-coded auth redirects."
     assert (ROOT / "assets" / "favicon.svg").is_file(), "Favicon file is missing."
     ET.parse(ROOT / "assets" / "favicon.svg")
 
