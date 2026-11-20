@@ -74,6 +74,33 @@ def normalize_title(title: str) -> str:
     return "".join(ch for ch in lowered if not ch.isspace() and not unicodedata.category(ch).startswith("P"))
 
 
+IDENTITY_GENERIC_TOKENS = {
+    "конкурс", "конкурса", "конкурсе", "конкурсов", "литературный", "литературная",
+    "литературное", "литературных", "рукописей", "отбор", "творческий", "творческая",
+    "международный", "всероссийский", "открытый", "издательства", "издательство",
+    "премия", "премии", "авторский", "авторская", "для", "авторов", "участников",
+    "научная", "фэнтези", "год", "года", "сезон", "2026", "2027", "и",
+}
+
+
+def normalize_contest_identity(title: str) -> str:
+    tokens = re.findall(r"[a-zа-я0-9]+", (title or "").lower().replace("ё", "е"))
+    return "".join(token for token in tokens if token not in IDENTITY_GENERIC_TOKENS)
+
+
+def has_duplicate_contest_identity(title: str, deadline: str, known_keys: set[str]) -> bool:
+    identity = normalize_contest_identity(title)
+    if len(identity) < 14:
+        return False
+    for key in known_keys:
+        known_identity, separator, known_deadline = key.rpartition("|")
+        if not separator or known_deadline != deadline or len(known_identity) < 14:
+            continue
+        if identity == known_identity or identity in known_identity or known_identity in identity:
+            return True
+    return False
+
+
 def parse_date(match: re.Match) -> date | None:
     try:
         if match.group(1):
@@ -480,12 +507,15 @@ def main():
 
     existing_urls = set()
     existing_title_deadlines = set()
+    existing_identities = set()
     for row in existing:
         url_key = row.get("dedupe_url_key") or (canonical_url(row["source_url"]) if row.get("source_url") else "")
         if url_key:
             existing_urls.add(url_key)
         if row.get("title"):
-            existing_title_deadlines.add(normalize_title(row["title"]) + "|" + (row.get("deadline") or "no-deadline"))
+            row_deadline = row.get("deadline") or "no-deadline"
+            existing_title_deadlines.add(normalize_title(row["title"]) + "|" + row_deadline)
+            existing_identities.add(normalize_contest_identity(row["title"]) + "|" + row_deadline)
 
     # Safe by default: unset/empty values (including scheduled workflow inputs) must never enable writes.
     # Live mode requires an explicit false-like value such as "false", "0", "no", or "off".
@@ -510,7 +540,12 @@ def main():
             continue
         url_key = canonical_url(record["source_url"])
         title_deadline = normalize_title(record["title"]) + "|" + record["deadline"]
-        if url_key in existing_urls or title_deadline in existing_title_deadlines:
+        identity_deadline = normalize_contest_identity(record["title"]) + "|" + record["deadline"]
+        if (
+            url_key in existing_urls
+            or title_deadline in existing_title_deadlines
+            or has_duplicate_contest_identity(record["title"], record["deadline"], existing_identities)
+        ):
             print(f"SKIP duplicate: {record['title']}")
             skipped += 1
             continue
@@ -521,6 +556,7 @@ def main():
             # another source is reported as a duplicate, without writing to Supabase.
             existing_urls.add(url_key)
             existing_title_deadlines.add(title_deadline)
+            existing_identities.add(identity_deadline)
             continue
         try:
             # Let PostgREST/PostgreSQL honor every unique index. The dedupe indexes are
@@ -538,6 +574,7 @@ def main():
             inserted += 1
             existing_urls.add(url_key)
             existing_title_deadlines.add(title_deadline)
+            existing_identities.add(identity_deadline)
             print(f"INSERTED: {record['title']} — deadline {record['deadline']}")
         except Exception as exc:
             failed += 1
