@@ -167,6 +167,8 @@ def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[s
         parsed = urlparse(url)
         if parsed.hostname != host or url.rstrip("/") == canonical_url(list_url).rstrip("/"):
             continue
+        if host == "konkursy.pishi.pro" and re.sub(r"/+$", "", parsed.path) == "/vse-literaturnye-konkursy":
+            continue
         if len(title) < 8 or title.lower() in ("подробнее", "читать далее"):
             continue
         if url in seen:
