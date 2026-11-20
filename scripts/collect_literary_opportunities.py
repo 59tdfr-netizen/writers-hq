@@ -116,21 +116,23 @@ def collect_links(soup: BeautifulSoup, list_url: str = LIST_URL) -> list[tuple[s
     seen = set()
     host = (urlparse(list_url).hostname or "").lower()
     if host == "pechorin.net":
-        anchors = soup.select('a[href*="/competitions/view/"]')
-        cards = [a.parent.parent for a in anchors if a.parent and a.parent.parent]
+        # Process matching links directly: the page's card markup can change,
+        # and walking up exactly two parents made otherwise valid cards disappear.
+        cards = soup.select('a[href*="/competitions/view/"]')
     elif host == "konkursy.pishi.pro":
-        anchors = soup.select('a[href*="/vse-literaturnye-konkursy/"]')
-        cards = [a.parent.parent for a in anchors if a.parent and a.parent.parent]
+        cards = soup.select('a[href*="/vse-literaturnye-konkursy/"]')
     else:
         cards = soup.select("article, .post, .entry, .type-post")
         if not cards:
             cards = [a.parent.parent for a in soup.select("a[href]") if a.parent and a.parent.parent]
     for card in cards:
-        text = clean_text(card.get_text(" ", strip=True))
+        direct_anchor = card if getattr(card, "name", None) == "a" else None
+        context = direct_anchor.parent.parent if direct_anchor and direct_anchor.parent and direct_anchor.parent.parent else card
+        text = clean_text(context.get_text(" ", strip=True))
         if not text or EXPIRED_MARKER.search(text):
             continue
-        title_el = card.select_one("h1, h2, h3, .entry-title, .post-title")
-        anchor = title_el.find("a", href=True) if title_el else None
+        title_el = card.select_one("h1, h2, h3, .entry-title, .post-title") if not direct_anchor else None
+        anchor = direct_anchor or (title_el.find("a", href=True) if title_el else None)
         if anchor is None and host in ("pechorin.net", "konkursy.pishi.pro"):
             selector = 'a[href*="/competitions/view/"]' if host == "pechorin.net" else 'a[href*="/vse-literaturnye-konkursy/"]'
             anchor = card.select_one(selector)
@@ -306,11 +308,11 @@ def main():
             "Do not print or share the secret value."
         )
 
-    candidates = {}
+    candidates_by_source = {}
     pages_checked = 0
     for source in SOURCES:
         consecutive_empty_pages = 0
-        source_candidates = 0
+        source_candidates = {}
         for page in range(1, MAX_PAGES + 1):
             page_url = source_page_url(source, page)
             try:
@@ -336,10 +338,21 @@ def main():
                 continue
             consecutive_empty_pages = 0
             for title, url, card_text in links:
-                candidates[url] = (title, url, card_text)
-                source_candidates += 1
+                source_candidates[url] = (title, url, card_text)
             time.sleep(0.5)
-        print(f"INFO source={source['name']} listing candidates={source_candidates}")
+        candidates_by_source[source["name"]] = list(source_candidates.values())
+        print(f"INFO source={source['name']} listing candidates={len(source_candidates)}")
+
+    # Interleave sources so the live insert cap cannot starve later sources.
+    # Each daily run gets a chance to inspect candidates from every source.
+    candidates = {}
+    max_source_candidates = max((len(items) for items in candidates_by_source.values()), default=0)
+    for index in range(max_source_candidates):
+        for source in SOURCES:
+            items = candidates_by_source.get(source["name"], [])
+            if index < len(items):
+                item = items[index]
+                candidates[item[1]] = item
 
     print(f"Found {len(candidates)} unique source-page candidates across {pages_checked} checked pages (limit {MAX_PAGES} per source)")
     status, existing = supabase_request("GET", "writer_opportunities?select=title,source_url,deadline,dedupe_url_key,dedupe_title_deadline_key&limit=5000")
