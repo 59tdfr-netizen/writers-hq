@@ -206,6 +206,21 @@ def extract_eligible_formats(text: str) -> list[str]:
     return list(dict.fromkeys(value.strip(" .,:;") for value in values if value.strip(" .,:;")))[:8]
 
 
+
+def is_poetry_only_opportunity(title: str, description: str, eligible_formats: list[str]) -> bool:
+    """Reject contests intended only for poems, while preserving mixed-format calls."""
+    formats = [re.sub(r"[^a-zа-яё]", "", value.lower().replace("ё", "е")) for value in eligible_formats]
+    poetry_formats = ("поэз", "стих", "стихотвор", "vers")
+    prose_formats = ("проз", "рассказ", "роман", "рукопис", "драматург", "пьес", "эссе", "очерк")
+    if formats and any(any(token in value for token in poetry_formats) for value in formats):
+        if not any(any(token in value for token in prose_formats) for value in formats):
+            return True
+    title_clean = (title or "").lower().replace("ё", "е")
+    title_is_poetry = bool(re.search(r"(?:конкурс|премия|опен.?колл|прием)\s+(?:авторск(?:их|ие)\s+)?(?:стих(?:ов|и|отворени[йя])|поэзи[ия]|поэтическ(?:ий|ого|их|ие))", title_clean))
+    prose_signal = bool(re.search(r"\b(?:проз[аы]|рассказ[ыа]?|роман[ы]?|рукопис[ьи]?|пьес[аы]?|драматургия)\b", title_clean + " " + (description or "").lower().replace("ё", "е")))
+    poetry_signal = bool(re.search(r"\b(?:поэзия|стихи|стихотворени[еяй]|поэтический|поэтическая|поэтические)\b", title_clean))
+    return title_is_poetry or (poetry_signal and not prose_signal)
+
 def source_page_url(source: dict, page: int) -> str:
     if page <= 1:
         return source["list_url"]
@@ -338,6 +353,9 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         return None
 
     organizer = extract_organizer(page_text)
+    if organizer.startswith("Организатор не удалось надёжно извлечь"):
+        print(f"SKIP organizer could not be verified: {url}")
+        return None
 
     description = ""
     content = soup.select_one("article .entry-content, .post-content, .entry-content, main")
@@ -378,12 +396,17 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         genres.append("Проза")
     genres = list(dict.fromkeys(genres))
 
+    eligible_formats = extract_eligible_formats(leading_content + " " + page_text)
+    if is_poetry_only_opportunity(title, leading_content + " " + description, eligible_formats):
+        print(f"SKIP poetry-only contest: {title[:160]} — {canonical_url(url)}")
+        return None
+
     return {
         "title": title[:180],
         "organizer": organizer[:180],
         "summary": description,
         "genres": genres,
-        "eligible_formats": extract_eligible_formats(leading_content + " " + page_text),
+        "eligible_formats": eligible_formats,
         "eligibility": extract_eligibility(leading_content + " " + page_text),
         "fee_info": extract_fee_info(leading_content + " " + page_text),
         "deadline": deadline.isoformat(),

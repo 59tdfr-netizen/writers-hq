@@ -830,6 +830,19 @@ textarea { resize: vertical; }
 }
 @media (prefers-reduced-motion: reduce) { .hq-donation-float { transition: none; } }
 </style>
+
+<style id="hq-compact-section-headings-and-achievement-likes">
+.opportunity-item .project-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; flex-wrap:wrap; margin:0 0 4px; }
+.opportunity-item .project-card-top .project-status-chip { min-width:0; max-width:100%; line-height:1.25; overflow-wrap:anywhere; }
+.opportunity-item .project-card-top .small { margin:0; flex:0 0 auto; }
+.opportunity-item h3 { margin:0 0 6px; line-height:1.08; }
+.activity-liker-avatars { display:inline-flex; align-items:center; padding-left:2px; }
+.activity-liker-avatar { width:25px; height:25px; border-radius:50%; object-fit:cover; border:2px solid #fff8ed; margin-left:-3px; background:#f1e4d3; }
+.activity-liker-more { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; border-radius:50%; margin-left:-3px; border:2px solid #fff8ed; background:#ead8c0; color:#5e342a; font-size:10px; font-weight:800; }
+.activity-actions { align-items:center; }
+@media(max-width:520px) { .opportunity-item .project-card-top .small { flex:1 1 100%; } .activity-liker-avatar,.activity-liker-more { width:23px; height:23px; } }
+</style>
+
 </head>
 <body class="diary-locked">
 <div class="page-loader" id="pageLoader" role="status" aria-live="polite" aria-label="Загружаем Штаб писателя">
@@ -1764,7 +1777,7 @@ render();
     $('ownerNameLine').classList.remove('auth-hidden');
   }
 
-  async function renderLikeButton(container, targetUserId, itemType, achievementId = null) {
+  async function renderLikeButton(container, targetUserId, itemType, achievementId = null, initialCount = 0) {
     // Поддержка не зависит от видимости статистики. Запрашиваем только собственную реакцию,
     // не читаем общий список лайков и не раскрываем чужие данные.
     let liked = false;
@@ -1785,7 +1798,9 @@ render();
       return query;
     };
     const updateLabel = () => {
-      button.textContent = (liked ? '♥ ' : '♡ ') + (itemType === 'stats' ? 'Поддержать автора' : 'Нравится');
+      const label = itemType === 'stats' ? 'Поддержать автора' : 'Нравится';
+      const countLabel = itemType === 'achievement' && Number(initialCount) > 0 ? ' · ' + Number(initialCount) : '';
+      button.textContent = (liked ? '♥ ' : '♡ ') + label + countLabel;
       button.classList.toggle('liked', liked);
       button.setAttribute('aria-pressed', String(liked));
     };
@@ -1826,7 +1841,11 @@ render();
           });
           if (insertError) throw insertError;
         }
-        await renderLikeButton(container, targetUserId, itemType, achievementId);
+        if (itemType === 'achievement') {
+          await loadActivityFeed();
+        } else {
+          await renderLikeButton(container, targetUserId, itemType, achievementId, initialCount);
+        }
       } catch (error) {
         const detail = error && error.message ? error.message : 'неизвестная ошибка';
         const hint = detail.toLowerCase().includes('row-level security')
@@ -1988,6 +2007,12 @@ function makePersonRow(profile, isFollowing, mode) {
     if (error) { status.textContent = 'Не удалось загрузить ленту: ' + (error.message || 'ошибка доступа'); return; }
     const events = Array.isArray(data) ? data : [];
     const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
+    const likerIds = [...new Set(events.flatMap(item => Array.isArray(item.liker_ids) ? item.liker_ids : []))];
+    let likerAvatarById = new Map();
+    if (likerIds.length) {
+      const { data: likerProfiles, error: likerProfilesError } = await client.from('profiles').select('id, avatar_url').in('id', likerIds);
+      if (!likerProfilesError && Array.isArray(likerProfiles)) likerAvatarById = new Map(likerProfiles.map(profile => [profile.id, profile.avatar_url]));
+    }
     if (!events.length) { status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений, получат новые значки, они появятся здесь.'; return; }
     status.textContent = 'Свежие достижения сообщества';
     for (const item of events) {
@@ -2009,12 +2034,31 @@ function makePersonRow(profile, isFollowing, mode) {
       date.textContent = earnedAt && !Number.isNaN(earnedAt.getTime()) ? earnedAt.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'}) : 'Недавно';
       const actions = document.createElement('div'); actions.className = 'activity-actions';
       const likeControl = document.createElement('span'); actions.append(likeControl);
-      renderLikeButton(likeControl, item.user_id, 'achievement', item.achievement_id).catch(() => {});
+      renderLikeButton(likeControl, item.user_id, 'achievement', item.achievement_id, Number(item.like_count) || 0).catch(() => {});
+      const likerIdsForItem = Array.isArray(item.liker_ids) ? item.liker_ids : [];
+      if (likerIdsForItem.length) {
+        const likers = document.createElement('div'); likers.className = 'activity-liker-avatars';
+        likers.setAttribute('aria-label', 'Авторы, которые поставили лайк');
+        for (const likerId of likerIdsForItem.slice(0, 6)) {
+          const avatarUrl = likerAvatarById.get(likerId);
+          if (!avatarUrl) continue;
+          const likerAvatar = document.createElement('img'); likerAvatar.className = 'activity-liker-avatar';
+          likerAvatar.src = avatarUrl; likerAvatar.alt = ''; likerAvatar.loading = 'lazy'; likerAvatar.title = 'Автор поставил лайк';
+          likerAvatar.addEventListener('error', () => likerAvatar.remove(), { once: true }); likers.append(likerAvatar);
+        }
+        if (Number(item.like_count) > 6) {
+          const more = document.createElement('span'); more.className = 'activity-liker-more';
+          more.textContent = '+' + (Number(item.like_count) - 6); more.setAttribute('aria-label', 'Ещё лайки'); likers.append(more);
+        }
+        if (likers.childElementCount) actions.append(likers);
+      }
       main.append(copy, achievement, date, actions); card.append(avatar, main); list.append(card);
     }
   }
   window.writersHQRefreshFeed = loadActivityFeed;
   $('refreshActivityFeed').addEventListener('click', () => loadActivityFeed());
+  window.addEventListener('focus', () => { if (activeUserId) loadActivityFeed(); });
+  setInterval(() => { if (activeUserId && !document.hidden) loadActivityFeed(); }, 30000);
   async function loadCommunityCount() {
     const { data, error } = await client.rpc('get_registered_writer_count');
     if (error) throw error;
