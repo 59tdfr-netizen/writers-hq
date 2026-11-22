@@ -2011,15 +2011,19 @@ function makePersonRow(profile, isFollowing, mode) {
     let likerAvatarById = new Map();
     if (likerIds.length) {
       const { data: likerProfiles, error: likerProfilesError } = await client.from('profiles').select('id, avatar_url').in('id', likerIds);
-      if (!likerProfilesError && Array.isArray(likerProfiles)) likerAvatarById = new Map(likerProfiles.map(profile => [profile.id, profile.avatar_url]));
+      if (!likerProfilesError && Array.isArray(likerProfiles)) {
+        const resolvedProfiles = typeof resolveAvatarProfiles === 'function' ? await resolveAvatarProfiles(likerProfiles) : likerProfiles;
+        likerAvatarById = new Map(resolvedProfiles.map(profile => [profile.id, profile.avatar_url]));
+      }
     }
     if (!events.length) { status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений, получат новые значки, они появятся здесь.'; return; }
     status.textContent = 'Свежие достижения сообщества';
     for (const item of events) {
       const def = defs.find(entry => entry.id === item.achievement_id);
       const card = document.createElement('article'); card.className = 'activity-item';
-      const avatar = item.avatar_url ? document.createElement('img') : makeGreekPortraitPlaceholder();
-      if (item.avatar_url) { avatar.className = 'activity-avatar'; avatar.src = item.avatar_url; avatar.alt = ''; avatar.loading = 'lazy'; avatar.addEventListener('error', () => avatar.replaceWith(makeGreekPortraitPlaceholder()), { once: true }); }
+      const feedAvatarUrl = item.avatar_url && typeof resolveAvatarUrl === 'function' ? await resolveAvatarUrl(item.avatar_url) : item.avatar_url;
+      const avatar = feedAvatarUrl ? document.createElement('img') : makeGreekPortraitPlaceholder();
+      if (feedAvatarUrl) { avatar.className = 'activity-avatar'; avatar.src = feedAvatarUrl; avatar.alt = ''; avatar.loading = 'lazy'; avatar.addEventListener('error', () => avatar.replaceWith(makeGreekPortraitPlaceholder()), { once: true }); }
       else avatar.classList.add('activity-avatar');
       const main = document.createElement('div'); main.className = 'activity-main';
       const copy = document.createElement('div'); copy.className = 'activity-copy';

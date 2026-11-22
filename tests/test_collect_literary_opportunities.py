@@ -218,6 +218,18 @@ class CollectorParsingTests(unittest.TestCase):
     def test_eligible_formats_stop_before_source_navigation(self):
         self.assertEqual(extract_eligible_formats("Тип принимаемых произведений: Проза Перейти на сайт конкурса Если у вас появились вопросы"), ["Проза"])
 
+    def test_fantasy_is_not_automatically_tagged_as_science_fiction(self):
+        title = "Любовный роман — романтическое фэнтези"
+        text_for_tags = (title + " современный любовный роман").lower()
+        genres = []
+        if "фэнтези" in text_for_tags:
+            genres.append("Фэнтези")
+        elif any(word in text_for_tags for word in ("фантаст", "космоопер")):
+            genres.append("Фантастика")
+        if any(word in text_for_tags for word in ("рассказ", "проз", "роман", "рукопис")):
+            genres.append("Проза")
+        self.assertEqual(genres, ["Фэнтези", "Проза"])
+
 
 if __name__ == "__main__":
     unittest.main()

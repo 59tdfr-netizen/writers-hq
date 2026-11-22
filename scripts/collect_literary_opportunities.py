@@ -388,8 +388,10 @@ def extract_detail(url: str, list_text: str) -> dict | None:
 
     text_for_tags = (title + " " + description).lower()
     genres = []
-    if any(word in text_for_tags for word in ("фантаст", "фэнтези", "космоопер")):
-        genres.extend(["Фантастика", "Фэнтези"] if "фэнтези" in text_for_tags else ["Фантастика"])
+    if "фэнтези" in text_for_tags:
+        genres.append("Фэнтези")
+    elif any(word in text_for_tags for word in ("фантаст", "космоопер")):
+        genres.append("Фантастика")
     if any(word in text_for_tags for word in ("пьес", "драматург")):
         genres.append("Драматургия")
     if any(word in text_for_tags for word in ("поэзи", "стихотвор")):
