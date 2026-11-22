@@ -206,6 +206,13 @@ def extract_organizer(text: str) -> str:
     return "Организатор не удалось надёжно извлечь; проверьте страницу конкурса."
 
 
+
+def extract_organizer_from_title(title: str) -> str:
+    """Use a publisher named explicitly in the contest title as a grounded fallback."""
+    match = re.search(r"(издательств[ао]\s+[«„\"].+?[»“\"])", title or "", re.I)
+    return clean_text(match.group(1))[:180] if match else ""
+
+
 def extract_eligible_formats(text: str) -> list[str]:
     text = clean_text(text)
     match = re.search(r"Тип принимаемых произведений\s*:\s*([^.!?]{3,160})", text, re.I)
@@ -372,6 +379,8 @@ def extract_detail(url: str, list_text: str) -> dict | None:
 
     organizer = extract_organizer(page_text)
     if organizer.startswith("Организатор не удалось надёжно извлечь"):
+        organizer = extract_organizer_from_title(title)
+    if not organizer:
         print(f"SKIP organizer could not be verified: {url}")
         return None
 

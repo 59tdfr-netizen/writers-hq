@@ -14,6 +14,7 @@ from scripts.collect_literary_opportunities import (
     extract_eligibility,
     extract_fee_info,
     extract_organizer,
+    extract_organizer_from_title,
     is_poetry_only_opportunity,
     extract_eligible_formats,
     find_deadline,
@@ -216,6 +217,12 @@ class CollectorParsingTests(unittest.TestCase):
 
     def test_eligible_formats_stop_before_source_navigation(self):
         self.assertEqual(extract_eligible_formats("Тип принимаемых произведений: Проза Перейти на сайт конкурса Если у вас появились вопросы"), ["Проза"])
+
+    def test_publisher_in_title_is_used_as_organizer_fallback(self):
+        self.assertEqual(extract_organizer_from_title("Конкурс рукописей «Под солнцем фантастики» издательства «Бумба»: фантастика"), "издательства «Бумба»")
+
+    def test_title_without_named_publisher_is_not_guessed_as_organizer(self):
+        self.assertEqual(extract_organizer_from_title("Литературный конкурс «Живые герои»"), "")
 
 
 if __name__ == "__main__":
