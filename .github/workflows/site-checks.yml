@@ -6,6 +6,8 @@ on:
       - "index.html"
       - "assets/**"
       - "tests/check_site.py"
+      - "tests/test_collect_literary_opportunities.py"
+      - "scripts/**"
       - "tests/check_workflows.py"
       - "supabase/migrations/**"
       - ".github/workflows/database-backup.yml"
