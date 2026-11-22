@@ -83,6 +83,11 @@ def main():
     assert 'id="newPassword" type="password" minlength="8"' in HTML, "Password changes must require at least 8 characters."
     assert "if (password.length < 8)" in HTML, "Password updates must validate minimum length."
     assert "авторам, которые подписаны на меня" in HTML, "Explain who can see shared statistics."
+    likes_migration = ROOT / "supabase" / "migrations" / "20261122083616_enrich_achievement_likes_feed.sql"
+    assert likes_migration.is_file(), "Achievement likes feed migration is missing."
+    likes_sql = likes_migration.read_text(encoding="utf-8")
+    assert "liker_ids" in likes_sql and "like_count" in likes_sql, "Achievement feed must expose like counts and liker ids."
+    assert "e.user_id = (select auth.uid())" in likes_sql, "Authors must see their own achievements after they receive likes."
     feed_migration = ROOT / "supabase" / "migrations" / "20261120161000_fix_achievement_feed_followers.sql"
     assert feed_migration.is_file(), "Achievement feed follower-direction migration is missing."
     feed_sql = feed_migration.read_text(encoding="utf-8")

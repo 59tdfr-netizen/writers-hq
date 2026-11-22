@@ -14,6 +14,7 @@ from scripts.collect_literary_opportunities import (
     extract_eligibility,
     extract_fee_info,
     extract_organizer,
+    is_poetry_only_opportunity,
     extract_eligible_formats,
     find_deadline,
     interleave_source_candidates,
@@ -197,6 +198,24 @@ class CollectorParsingTests(unittest.TestCase):
     def test_eligible_formats_extracts_explicit_format_label(self):
         text = "Тип принимаемых произведений: Проза, Поэзия. Далее описание конкурса."
         self.assertEqual(extract_eligible_formats(text), ["Проза", "Поэзия"])
+
+    def test_poetry_only_contest_is_rejected(self):
+        self.assertTrue(is_poetry_only_opportunity("Конкурс стихов «В рифме Москвы»", "Приём авторских стихотворений", ["Поэзия"]))
+
+    def test_mixed_prose_and_poetry_contest_is_preserved(self):
+        self.assertFalse(is_poetry_only_opportunity("Литературный конкурс «Голоса»", "Принимаются рассказы и стихи", ["Проза", "Поэзия"]))
+
+    def test_poetry_essay_mixed_contest_is_preserved(self):
+        self.assertFalse(is_poetry_only_opportunity("Конкурс стихотворений и эссе «Традиция»", "Принимаются стихи и эссе", ["Поэзия", "Эссе"]))
+
+    def test_prose_contest_that_mentions_poetry_is_preserved(self):
+        self.assertFalse(is_poetry_only_opportunity("Конкурс прозы «Новые истории»", "Вдохновлённый поэзией конкурс коротких рассказов", ["Проза"]))
+
+    def test_organizer_can_be_extracted_from_contest_founders(self):
+        self.assertEqual(extract_organizer("Ссылка на профиль организатора: Иван Окончание приема заявок: 30 ноября 2026. Учредители конкурса: lovelegend.online Жюри: автоматически"), "lovelegend.online")
+
+    def test_eligible_formats_stop_before_source_navigation(self):
+        self.assertEqual(extract_eligible_formats("Тип принимаемых произведений: Проза Перейти на сайт конкурса Если у вас появились вопросы"), ["Проза"])
 
 
 if __name__ == "__main__":

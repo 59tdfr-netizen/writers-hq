@@ -185,25 +185,58 @@ def extract_fee_info(text: str) -> str:
 
 def extract_organizer(text: str) -> str:
     text = clean_text(text)
-    match = re.search(r"Организатор\s*:\s*(.{3,180})", text, re.I)
-    if not match:
-        return "Организатор не удалось надёжно извлечь; проверьте страницу конкурса."
-    value = re.split(
-        r"\s+(?:Описание|Условия|Этапы|Призы|Дедлайн|О конкурсе|Требования|Порядок подачи|Контактная информация)\b",
-        match.group(1),
-        maxsplit=1,
-        flags=re.I,
-    )[0].strip(" .,:;—-")
-    return value[:180] if len(value) >= 3 else "Организатор не удалось надёжно извлечь; проверьте страницу конкурса."
+    patterns = (
+        r"Организатор\s*:\s*(.{3,180})",
+        r"Учредители конкурса\s*:\s*(.{3,180})",
+        r"Учредитель конкурса\s*:\s*(.{3,180})",
+        r"Организатор конкурса\s*:\s*(.{3,180})",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, re.I)
+        if not match:
+            continue
+        value = re.split(
+            r"\s+(?:Описание|Условия|Этапы|Призы|Дедлайн|О конкурсе|Требования|Порядок подачи|Контактная информация|Подробнее|Жюри|Учредители конкурса)\b",
+            match.group(1),
+            maxsplit=1,
+            flags=re.I,
+        )[0].strip(" .,:;—-")
+        if len(value) >= 3:
+            return value[:180]
+    return "Организатор не удалось надёжно извлечь; проверьте страницу конкурса."
 
 
 def extract_eligible_formats(text: str) -> list[str]:
     text = clean_text(text)
-    match = re.search(r"Тип принимаемых произведений\s*:\s*([^.!?]{3,120})", text, re.I)
+    match = re.search(r"Тип принимаемых произведений\s*:\s*([^.!?]{3,160})", text, re.I)
     if not match:
         return []
-    values = re.split(r",|;|/|\s+и\s+", match.group(1))
+    raw_values = re.split(
+        r"\s+(?:Перейти на сайт конкурса|Если у вас появились вопросы|Ссылка на|Подробнее о конкурсе)\b",
+        match.group(1),
+        maxsplit=1,
+        flags=re.I,
+    )[0]
+    values = re.split(r",|;|/|\s+и\s+", raw_values)
     return list(dict.fromkeys(value.strip(" .,:;") for value in values if value.strip(" .,:;")))[:8]
+
+
+
+def is_poetry_only_opportunity(title: str, description: str, eligible_formats: list[str]) -> bool:
+    """Reject contests intended only for poems, while preserving mixed-format calls."""
+    formats = [re.sub(r"[^a-zа-яё]", "", value.lower().replace("ё", "е")) for value in eligible_formats]
+    poetry_formats = ("поэз", "стих", "стихотвор", "vers")
+    prose_formats = ("проз", "рассказ", "роман", "рукопис", "драматург", "пьес", "эссе", "очерк")
+    has_poetry_format = any(any(token in value for token in poetry_formats) for value in formats)
+    has_prose_format = any(any(token in value for token in prose_formats) for value in formats)
+    if has_poetry_format and not has_prose_format:
+        return True
+    title_clean = (title or "").lower().replace("ё", "е")
+    description_clean = (description or "").lower().replace("ё", "е")
+    title_is_poetry = bool(re.search(r"(?:конкурс|премия|опен.?колл|прием)\s+(?:авторск(?:их|ие)\s+)?(?:стих(?:ов|и|отворени[йя])|поэзи[ия]|поэтическ(?:ий|ого|их|ие))", title_clean))
+    prose_signal = has_prose_format or bool(re.search(r"\b(?:проз[аы]|рассказ[ыа]?|роман[ы]?|рукопис[ьи]?|пьес[аы]?|драматургия|эссе|очерк)\b", title_clean + " " + description_clean))
+    poetry_signal = bool(re.search(r"\b(?:поэзия|стихи|стихотворени[еяй]|поэтический|поэтическая|поэтические)\b", title_clean))
+    return (title_is_poetry or poetry_signal) and not prose_signal
 
 
 def source_page_url(source: dict, page: int) -> str:
@@ -338,6 +371,9 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         return None
 
     organizer = extract_organizer(page_text)
+    if organizer.startswith("Организатор не удалось надёжно извлечь"):
+        print(f"SKIP organizer could not be verified: {url}")
+        return None
 
     description = ""
     content = soup.select_one("article .entry-content, .post-content, .entry-content, main")
@@ -368,8 +404,10 @@ def extract_detail(url: str, list_text: str) -> dict | None:
 
     text_for_tags = (title + " " + description).lower()
     genres = []
-    if any(word in text_for_tags for word in ("фантаст", "фэнтези", "космоопер")):
-        genres.extend(["Фантастика", "Фэнтези"] if "фэнтези" in text_for_tags else ["Фантастика"])
+    if "фэнтези" in text_for_tags:
+        genres.append("Фэнтези")
+    elif any(word in text_for_tags for word in ("фантаст", "космоопер")):
+        genres.append("Фантастика")
     if any(word in text_for_tags for word in ("пьес", "драматург")):
         genres.append("Драматургия")
     if any(word in text_for_tags for word in ("поэзи", "стихотвор")):
@@ -378,12 +416,17 @@ def extract_detail(url: str, list_text: str) -> dict | None:
         genres.append("Проза")
     genres = list(dict.fromkeys(genres))
 
+    eligible_formats = extract_eligible_formats(leading_content + " " + page_text)
+    if is_poetry_only_opportunity(title, leading_content + " " + description, eligible_formats):
+        print(f"SKIP poetry-only contest: {title[:160]} — {canonical_url(url)}")
+        return None
+
     return {
         "title": title[:180],
         "organizer": organizer[:180],
         "summary": description,
         "genres": genres,
-        "eligible_formats": extract_eligible_formats(leading_content + " " + page_text),
+        "eligible_formats": eligible_formats,
         "eligibility": extract_eligibility(leading_content + " " + page_text),
         "fee_info": extract_fee_info(leading_content + " " + page_text),
         "deadline": deadline.isoformat(),
