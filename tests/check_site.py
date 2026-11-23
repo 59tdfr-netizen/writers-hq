@@ -83,6 +83,21 @@ def main():
     assert 'id="newPassword" type="password" minlength="8"' in HTML, "Password changes must require at least 8 characters."
     assert "if (password.length < 8)" in HTML, "Password updates must validate minimum length."
     assert "авторам, которые подписаны на меня" in HTML, "Explain who can see shared statistics."
+    assert "function avatarObjectPath(value)" in HTML, "Private avatar path validation is missing."
+    assert "createSignedUrl(path, 3600)" in HTML, "Private avatars must use temporary signed URLs."
+    assert "update({ avatar_url: path })" in HTML, "Store avatar object paths rather than expiring URLs."
+    assert "getPublicUrl(path)" not in HTML, "Do not create public avatar URLs."
+    preflight_avatar_migration = ROOT / "supabase" / "migrations" / "20261123024442_prepare_private_writer_avatars.sql"
+    assert preflight_avatar_migration.is_file(), "Private avatar preflight migration is missing."
+    preflight_avatar_sql = preflight_avatar_migration.read_text(encoding="utf-8").lower()
+    assert "keeps the bucket public" in preflight_avatar_sql, "Preflight must not disable public URLs before the client rollout."
+    assert "to authenticated" in preflight_avatar_sql and "using (bucket_id = 'writer-avatars')" in preflight_avatar_sql, "Preflight must let authenticated users request signed URLs for other avatars."
+    final_avatar_migration = ROOT / "supabase" / "migrations" / "20261123030000_private_writer_avatars.sql"
+    assert final_avatar_migration.is_file(), "Final private avatar migration is missing."
+    final_avatar_sql = final_avatar_migration.read_text(encoding="utf-8").lower()
+    assert "apply only after the signed-url client is deployed" in final_avatar_sql, "Final avatar migration must document rollout order."
+    assert "set public = false" in final_avatar_sql, "Avatar storage bucket must be private after final migration."
+
     likes_migration = ROOT / "supabase" / "migrations" / "20261122083616_enrich_achievement_likes_feed.sql"
     assert likes_migration.is_file(), "Achievement likes feed migration is missing."
     likes_sql = likes_migration.read_text(encoding="utf-8")
