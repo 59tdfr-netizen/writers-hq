@@ -1,6 +1,12 @@
 name: Public site availability check
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/site-availability.yml"
+      - "index.html"
+      - "assets/favicon.svg"
   schedule:
     - cron: "43 7 * * *"
   workflow_dispatch:
