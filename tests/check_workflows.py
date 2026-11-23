@@ -4,6 +4,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = (ROOT / ".github" / "workflows" / "database-backup.yml").read_text(encoding="utf-8")
 DOCS = (ROOT / "docs" / "DATABASE_BACKUP.md").read_text(encoding="utf-8")
 UPTIME = (ROOT / ".github" / "workflows" / "site-availability.yml").read_text(encoding="utf-8")
+LINK_CHECK = (ROOT / ".github" / "workflows" / "contest-link-health.yml").read_text(encoding="utf-8")
+LINK_SCRIPT = (ROOT / "scripts" / "check_contest_links.py").read_text(encoding="utf-8")
 
 
 def main():
@@ -24,7 +26,14 @@ def main():
     assert "workflow_dispatch:" in UPTIME, "Manual public-site availability check is missing."
     assert "curl --fail" in UPTIME, "Availability check must fail on HTTP errors."
     assert "assets/favicon.svg" in UPTIME, "Availability check must verify the favicon asset."
-    print("Workflow checks passed: encrypted backups and public-site availability monitoring.")
+    assert 'cron: "31 8 * * 1"' in LINK_CHECK, "Weekly link check schedule missing."
+    assert 'LINK_CHECK_LIMIT: "25"' in LINK_CHECK, "Link checker must be bounded."
+    assert "secrets.SUPABASE_SERVICE_ROLE_KEY" in LINK_CHECK, "Service key must come from a secret."
+    assert "LIMIT = min(25" in LINK_SCRIPT, "Hard record cap missing."
+    assert "time.sleep(pause)" in LINK_SCRIPT, "Per-host rate limit missing."
+    assert "exc.code in (405, 501)" in LINK_SCRIPT, "HEAD fallback missing."
+    assert "return 1 if broken else 0" in LINK_SCRIPT, "Only confirmed broken links should fail."
+    print("Workflow checks passed: encrypted backups, site availability and contest link health.")
 
 
 if __name__ == "__main__":
