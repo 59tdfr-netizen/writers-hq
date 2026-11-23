@@ -3,7 +3,7 @@
 import json, os, sys, time
 from collections import defaultdict
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 LIMIT = min(25, max(1, int(os.getenv("LINK_CHECK_LIMIT", "25"))))
@@ -29,8 +29,14 @@ def check(url):
         return None
 
 def main():
-    base = os.getenv("SUPABASE_URL", "").rstrip("/")
+    base = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    parsed_base = urlparse(base)
+    if parsed_base.path.rstrip("/").endswith("/rest/v1"):
+        base = urlunparse((parsed_base.scheme, parsed_base.netloc, parsed_base.path.rstrip("/")[:-len("/rest/v1")], "", "", "")).rstrip("/")
+    elif parsed_base.path not in ("", "/"):
+        print("ERROR: SUPABASE_URL must be the project base URL or include only the REST API suffix.", file=sys.stderr)
+        return 2
     if not base or not key:
         print("ERROR: required Supabase secrets are missing; values are not printed.", file=sys.stderr)
         return 2
