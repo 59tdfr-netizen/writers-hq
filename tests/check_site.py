@@ -80,6 +80,7 @@ def main():
     assert 'resetPasswordForEmail' in HTML, "Missing password reset request."
     assert "event === 'PASSWORD_RECOVERY'" in HTML, "Missing password recovery screen."
     assert 'id="signupPassword" type="password" required minlength="8"' in HTML, "Signup password must be at least 8 characters."
+    assert "Каталог конкурсов собирается автоматически" in HTML and "официальной странице организатора" in HTML, "Contest catalog must explain that users should verify official terms."
     assert 'id="newPassword" type="password" minlength="8"' in HTML, "Password changes must require at least 8 characters."
     assert "if (password.length < 8)" in HTML, "Password updates must validate minimum length."
     assert "авторам, которые подписаны на меня" in HTML, "Explain who can see shared statistics."
