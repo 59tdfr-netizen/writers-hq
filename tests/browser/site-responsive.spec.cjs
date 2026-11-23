@@ -67,6 +67,23 @@ test('narrow mobile auth page remains usable at 320px', async ({ page }) => {
   await expectNoHorizontalOverflow(page);
 });
 
+test('registration requires an explicit 18+ confirmation', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#signupDetails summary').click();
+
+  const ageConfirmation = page.locator('#confirmAdult');
+  await expect(ageConfirmation).toBeVisible();
+  await expect(ageConfirmation).toHaveAttribute('required', '');
+
+  await page.locator('#displayName').fill('Тестовый автор');
+  await page.locator('#signupEmail').fill('test@example.com');
+  await page.locator('#signupPassword').fill('example-password-123');
+  expect(await page.locator('#signUpForm').evaluate(form => form.checkValidity())).toBe(false);
+
+  await ageConfirmation.check();
+  expect(await page.locator('#signUpForm').evaluate(form => form.checkValidity())).toBe(true);
+});
+
 test('forgot-password empty-email path gives a visible explanation', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');

@@ -885,6 +885,7 @@ textarea { resize: vertical; }
             <div class="field"><label for="signupEmail">Email</label><input id="signupEmail" type="email" required autocomplete="email"></div>
           </div>
           <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required minlength="8" autocomplete="new-password"><p class="small" style="margin:5px 0 0">Не менее 8 символов.</p></div>
+          <label class="privacy-setting" style="margin:12px 0"><input id="confirmAdult" type="checkbox" required><span><strong>Подтверждаю, что мне исполнилось 18 лет</strong><br>Сервис предназначен только для совершеннолетних пользователей.</span></label>
           <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать статистику и достижения авторам, которые подписаны на меня</strong><br>Эту настройку можно будет изменить в профиле. Для этого достаточно подписки на тебя — взаимная подписка не нужна.</span></label>
           <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
         </form>
@@ -2742,6 +2743,10 @@ function makePersonRow(profile, isFollowing, mode) {
       const email = $('signupEmail').value.trim();
       const password = $('signupPassword').value;
       const displayName = $('displayName').value.trim();
+
+      if (!$('confirmAdult').checked) {
+        throw new Error('Регистрация доступна только пользователям, достигшим 18 лет.');
+      }
 
       if (password.length < 8) {
         throw new Error('Пароль должен содержать не менее 8 символов.');
