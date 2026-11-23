@@ -30,6 +30,7 @@ def main():
     assert 'LINK_CHECK_LIMIT: "25"' in LINK_CHECK, "Link checker must be bounded."
     assert "secrets.SUPABASE_SERVICE_ROLE_KEY" in LINK_CHECK, "Service key must come from a secret."
     assert "LIMIT = min(25" in LINK_SCRIPT, "Hard record cap missing."
+    assert '"Authorization": "Bearer " + key' not in LINK_SCRIPT, "Opaque Supabase secret keys must not be sent as Bearer JWTs."
     assert "time.sleep(pause)" in LINK_SCRIPT, "Per-host rate limit missing."
     assert "exc.code in (405, 501)" in LINK_SCRIPT, "HEAD fallback missing."
     assert "return 1 if broken else 0" in LINK_SCRIPT, "Only confirmed broken links should fail."

@@ -37,10 +37,13 @@ def main():
     import datetime
     today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
     endpoint = f"{base}/rest/v1/writer_opportunities?select=title,source_url,deadline&source_url=not.is.null&deadline=gte.{today}&order=deadline.asc&limit={LIMIT}"
-    request = Request(endpoint, headers={"apikey": key, "Authorization": "Bearer " + key, "Accept": "application/json"})
+    request = Request(endpoint, headers={"apikey": key, "Accept": "application/json"})
     try:
         with urlopen(request, timeout=15) as response:
             records = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        print(f"ERROR: Supabase query failed with HTTP {exc.code}; response details suppressed.", file=sys.stderr)
+        return 2
     except Exception as exc:
         print(f"ERROR: Supabase query failed ({type(exc).__name__}); response details suppressed.", file=sys.stderr)
         return 2
