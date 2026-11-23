@@ -1,6 +1,6 @@
 -- Show opted-in achievement events to the authors who follow the event author,
 -- matching the wording in the profile privacy setting.
--- The previous predicate checked the opposite follow direction.
+-- The viewer is follower_id and the achievement owner is followed_id.
 
 create or replace function public.get_writer_achievement_feed()
 returns table(
@@ -36,8 +36,8 @@ as $function$
     and exists (
       select 1
       from public.writer_follows wf
-      where wf.follower_id = e.user_id
-        and wf.followed_id = (select auth.uid())
+      where wf.follower_id = (select auth.uid())
+        and wf.followed_id = e.user_id
     )
   order by e.earned_at desc, e.id desc
   limit 50;

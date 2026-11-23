@@ -91,10 +91,15 @@ def main():
     feed_migration = ROOT / "supabase" / "migrations" / "20261120161000_fix_achievement_feed_followers.sql"
     assert feed_migration.is_file(), "Achievement feed follower-direction migration is missing."
     feed_sql = feed_migration.read_text(encoding="utf-8")
-    assert "wf.follower_id = e.user_id" in feed_sql, "Achievement feed must select authors who follow the event author."
-    assert "wf.followed_id = (select auth.uid())" in feed_sql, "Achievement feed must only show events to the event author's followers."
+    assert "wf.follower_id = (select auth.uid())" in feed_sql, "Achievement feed must select authors who follow the event author."
+    assert "wf.followed_id = e.user_id" in feed_sql, "Achievement feed must only show events to the event author's followers."
     assert "s.show_stats_to_mutuals is true" in feed_sql, "Achievement feed must respect the author's explicit sharing consent."
     assert "security definer" in feed_sql.lower() and "set search_path to ''" in feed_sql.lower(), "Keep the feed function's security settings."
+    grants_migration = ROOT / "supabase" / "migrations" / "20261123024140_fix_feed_privacy_and_rpc_grants.sql"
+    assert grants_migration.is_file(), "RPC permission hardening migration is missing."
+    grants_sql = grants_migration.read_text(encoding="utf-8").lower()
+    assert "from public, anon, authenticated" in grants_sql, "RPC hardening must remove implicit PUBLIC and anonymous grants."
+    assert "to authenticated" in grants_sql, "Client-facing RPCs must explicitly grant authenticated execution."
     assert "emailRedirectTo: window.location.origin + window.location.pathname" in HTML, "Email confirmation must follow the current site URL."
     assert "emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'" not in HTML, "Avoid hard-coded auth redirects."
     assert (ROOT / "assets" / "favicon.svg").is_file(), "Favicon file is missing."

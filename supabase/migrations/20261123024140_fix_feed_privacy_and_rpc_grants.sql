@@ -63,8 +63,8 @@ as $function$
   limit 50;
 $function$;
 
--- The client-facing privileged RPCs are intentional API endpoints, but they
--- must never be callable by anonymous users or via the implicit PUBLIC grant.
+-- Client-facing privileged RPCs are intentional API endpoints, but must never
+-- be callable by anonymous users or via the implicit PUBLIC grant.
 revoke all on function public.create_club_invitation(uuid, text, integer, integer) from public, anon, authenticated;
 grant execute on function public.create_club_invitation(uuid, text, integer, integer) to authenticated;
 
@@ -89,6 +89,6 @@ grant execute on function public.is_club_member(uuid) to authenticated;
 revoke all on function public.redeem_invitation(text) from public, anon, authenticated;
 grant execute on function public.redeem_invitation(text) to authenticated;
 
--- These functions are invoked only by database triggers, never by the API.
+-- Trigger-only functions must not be callable as RPC endpoints.
 revoke all on function public.handle_new_user() from public, anon, authenticated;
 revoke all on function public.sync_writer_achievement_events() from public, anon, authenticated;
