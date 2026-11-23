@@ -54,6 +54,19 @@ test('mobile auth and registration forms stack fields without horizontal overflo
   await expectNoHorizontalOverflow(page);
 });
 
+test('narrow mobile auth page remains usable at 320px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Штаб писателя' })).toBeVisible();
+  await expect(page.locator('#signInForm')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+
+  await page.locator('#signupDetails summary').click();
+  await expect(page.locator('#displayName')).toBeVisible();
+  await expect(page.locator('#signupEmail')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
 test('forgot-password empty-email path gives a visible explanation', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
