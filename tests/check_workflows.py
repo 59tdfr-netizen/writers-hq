@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = (ROOT / ".github" / "workflows" / "database-backup.yml").read_text(encoding="utf-8")
 DOCS = (ROOT / "docs" / "DATABASE_BACKUP.md").read_text(encoding="utf-8")
+UPTIME = (ROOT / ".github" / "workflows" / "site-availability.yml").read_text(encoding="utf-8")
 
 
 def main():
@@ -19,7 +20,11 @@ def main():
     assert "Database backup was skipped" in WORKFLOW, "Missing secrets must be visible in the run summary."
     assert "does **not** include the actual bytes stored in Supabase Storage" in DOCS, "Storage backup limitation must remain documented."
     assert "does not prove a full Supabase project can be restored" in DOCS, "Restore limitation must remain documented."
-    print("Backup workflow checks passed: schedule, secrets, dump validation, encryption, checksum, artifact retention, and limitations.")
+    assert 'cron: "43 7 * * *"' in UPTIME, "Daily public-site availability check is missing."
+    assert "workflow_dispatch:" in UPTIME, "Manual public-site availability check is missing."
+    assert "curl --fail" in UPTIME, "Availability check must fail on HTTP errors."
+    assert "assets/favicon.svg" in UPTIME, "Availability check must verify the favicon asset."
+    print("Workflow checks passed: encrypted backups and public-site availability monitoring.")
 
 
 if __name__ == "__main__":
