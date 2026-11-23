@@ -83,6 +83,7 @@ def main():
     assert 'id="newPassword" type="password" minlength="8"' in HTML, "Password changes must require at least 8 characters."
     assert "if (password.length < 8)" in HTML, "Password updates must validate minimum length."
     assert "авторам, которые подписаны на меня" in HTML, "Explain who can see shared statistics."
+    assert "strong.textContent=String(message??'')" in HTML, "Toast messages must be rendered as text, not HTML."
     assert "function avatarObjectPath(value)" in HTML, "Private avatar path validation is missing."
     assert "createSignedUrl(path, 3600)" in HTML, "Private avatars must use temporary signed URLs."
     assert "update({ avatar_url: path })" in HTML, "Store avatar object paths rather than expiring URLs."
