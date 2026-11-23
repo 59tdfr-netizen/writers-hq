@@ -117,6 +117,8 @@ def main():
     assert "from public, anon, authenticated" in grants_sql, "RPC hardening must remove implicit PUBLIC and anonymous grants."
     assert "to authenticated" in grants_sql, "Client-facing RPCs must explicitly grant authenticated execution."
     assert "emailRedirectTo: window.location.origin + window.location.pathname" in HTML, "Email confirmation must follow the current site URL."
+    assert 'id="confirmAdult" type="checkbox" required' in HTML, "Registration must require 18+ self-confirmation."
+    assert "if (!$('confirmAdult').checked)" in HTML, "Registration handler must reject missing age confirmation."
     assert "emailRedirectTo: 'https://59tdfr-netizen.github.io/writers-hq/'" not in HTML, "Avoid hard-coded auth redirects."
     assert (ROOT / "assets" / "favicon.svg").is_file(), "Favicon file is missing."
     ET.parse(ROOT / "assets" / "favicon.svg")
