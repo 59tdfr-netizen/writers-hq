@@ -1211,7 +1211,7 @@ function renderAchievements(){
  $('achievementCount').textContent=`${state.achievements.length} из ${achievementDefs.length} получено`;
  $('achievementList').innerHTML=achievementDefs.map(a=>{const got=state.achievements.includes(a.id);return `<div class="achievement ${got?'':'locked'}"><div class="achievement-icon">${got?a.icon:'🔒'}</div><div><strong>${a.title}${got?' ✓':''}</strong><p>${a.desc}</p></div></div>`}).join('');
 }
-function showToast(message){const el=$('toast');el.innerHTML=`<strong>${message}</strong>`;el.classList.add('show');clearTimeout(window.__writersToastTimer);window.__writersToastTimer=setTimeout(()=>el.classList.remove('show'),5000)}
+function showToast(message){const el=$('toast');const strong=document.createElement('strong');strong.textContent=String(message??'');el.replaceChildren(strong);el.classList.add('show');clearTimeout(window.__writersToastTimer);window.__writersToastTimer=setTimeout(()=>el.classList.remove('show'),5000)}
 function backupDue(){
  const baseline=state.lastBackupAt||state.startedAt;
  return Date.now()-Number(baseline)>=7*24*60*60*1000 && !(state.backupSnoozedUntil&&Date.now()<state.backupSnoozedUntil);
