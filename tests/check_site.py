@@ -69,7 +69,11 @@ def main():
     assert ".day.future{opacity:.48}" not in HTML, "Future calendar dates must remain readable."
     assert ".calendar .day.future{background:#f7efe4;color:var(--muted);opacity:1}" in HTML, "Future calendar dates must use the accessible muted text color."
     assert "const note=String(((state.projectNotes||{})[state.selectedProjectId]||{})[state.workMode]?.[key]||'').trim();" in HTML, "Calendar tooltips must use the selected project and work mode note for each date."
-    assert 'title="${escapeHubText(tooltip)}" aria-label="${escapeHubText(tooltip)}"' in HTML, "Calendar notes must be available on hover and to assistive technology."
+    assert 'function renderCalendarDayDetails(key,activityTotals)' in HTML, "Calendar date details must be rendered in an expandable panel."
+    assert 'expandedCalendarDate=expandedCalendarDate===key?\'\':key' in HTML, "Clicking the same calendar date must collapse the details row."
+    assert 'data-close-day="${key}"' in HTML and 'data-edit-day="${key}"' in HTML, "Expanded day details must include close and edit controls."
+    assert '.calendar-day-details{grid-column:1/-1' in HTML and '@keyframes calendarDayReveal' in HTML, "Expanded calendar details must span a row and animate."
+    assert 'prefers-reduced-motion:reduce){.calendar-day-details{animation:none}' in HTML, "Calendar expansion must respect reduced-motion preferences."
     assert ".stat .label { color: var(--muted); }" in HTML, "Statistic labels must use the accessible muted text color."
     muted = final_css_token("--muted")
     for surface_name in ("--bg", "--paper"):
