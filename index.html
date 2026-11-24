@@ -1291,7 +1291,9 @@ for(let i=0;i<offset;i++)html+='<div class="day empty"></div>';
 for(let d=1;d<=last.getDate();d++){
  const date=new Date(y,m,d),key=keyDate(date),n=Number(activityTotals[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===selectedDate;
  const level=n<=0?'':n<=max*.25?'level-1':n<=max*.5?'level-2':n<=max*.75?'level-3':'level-4';
- html+=`<button class="day ${level} ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity"></span></button>`;
+ const note=String(((state.projectNotes||{})[state.selectedProjectId]||{})[state.workMode]?.[key]||'').trim();
+ const tooltip=note?`${fmtDate(key)} · ${fmt(n)} знаков · ${note}`:`${fmtDate(key)} · ${n>0?fmt(n)+' знаков':'нет записанного результата'}`;
+ html+=`<button class="day ${level} ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}" title="${escapeHubText(tooltip)}" aria-label="${escapeHubText(tooltip)}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity"></span></button>`;
 }
 $('calendar').innerHTML=html;
 $('calendar').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{selectedDate=el.dataset.date;render()}));
