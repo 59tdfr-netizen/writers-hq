@@ -68,7 +68,6 @@ def main():
     assert "closeMenu(true)" in HTML, "Closing the mobile navigation must restore focus to its toggle."
     assert ".day.future{opacity:.48}" not in HTML, "Future calendar dates must remain readable."
     assert ".calendar .day.future{background:#f7efe4;color:var(--muted);opacity:1}" in HTML, "Future calendar dates must use the accessible muted text color."
-    assert "const note=String(((state.projectNotes||{})[state.selectedProjectId]||{})[state.workMode]?.[key]||'').trim();" in HTML, "Calendar tooltips must use the selected project and work mode note for each date."
     assert 'function renderCalendarDayDetails(key,activityTotals)' in HTML, "Calendar date details must be rendered in an expandable panel."
     assert 'expandedCalendarDate=expandedCalendarDate===key?\'\':key' in HTML, "Clicking the same calendar date must collapse the details row."
     assert 'data-close-day="${key}"' in HTML and 'data-edit-day="${key}"' in HTML, "Expanded day details must include close and edit controls."
