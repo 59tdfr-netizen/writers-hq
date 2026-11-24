@@ -841,6 +841,24 @@ textarea { resize: vertical; }
 .activity-liker-more { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; border-radius:50%; margin-left:-3px; border:2px solid #fff8ed; background:#ead8c0; color:#5e342a; font-size:10px; font-weight:800; }
 .activity-actions { align-items:center; }
 @media(max-width:520px) { .opportunity-item .project-card-top .small { flex:1 1 100%; } .activity-liker-avatar,.activity-liker-more { width:23px; height:23px; } }
+
+/* Раскрывающаяся карточка дня в календаре продуктивности */
+.calendar-day-details{grid-column:1/-1;min-width:0;overflow:hidden;margin:2px 0 8px;padding:clamp(16px,2.4vw,25px);border:1px solid #d9c5a9;border-radius:16px;background:linear-gradient(135deg,#fffaf2 0%,#f4e6d4 100%);box-shadow:0 8px 22px rgba(61,39,25,.08);animation:calendarDayReveal .28s cubic-bezier(.2,.75,.25,1) both;color:var(--ink);}
+.calendar-day-details-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:1px solid rgba(150,112,74,.22)}
+.calendar-day-kicker{display:block;font-size:10px;letter-spacing:.13em;font-weight:800;color:#8a6144;text-transform:uppercase;overflow-wrap:anywhere}
+.calendar-day-details-head h3{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(25px,3vw,32px);line-height:1.05;font-weight:600;margin:5px 0 0;color:#3a2921}
+.calendar-day-close{flex:0 0 auto;width:34px;height:34px;border:1px solid #ddc9af;border-radius:50%;background:rgba(255,255,255,.55);color:#6d2924;font-size:23px;line-height:1;cursor:pointer;transition:transform .18s ease,background .18s ease}
+.calendar-day-close:hover{transform:rotate(90deg);background:#fff8ed}
+.calendar-day-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0}
+.calendar-day-stat{display:flex;flex-direction:column;gap:3px;min-width:0;padding:13px;border:1px solid rgba(170,133,91,.2);border-radius:12px;background:rgba(255,255,255,.55)}
+.calendar-day-stat>span{font-size:11px;color:#786354;overflow-wrap:anywhere}.calendar-day-stat strong{font-size:clamp(20px,3vw,27px);line-height:1.15;font-weight:750;letter-spacing:-.035em;color:#4a3025;overflow-wrap:anywhere}.calendar-day-stat small{font-size:10px;color:#8b7767}.calendar-day-stat-total{background:rgba(109,41,36,.055);border-color:rgba(109,41,36,.14)}
+.calendar-day-note-wrap{padding:15px 16px;border-left:3px solid #b78a56;border-radius:0 11px 11px 0;background:rgba(255,255,255,.48)}
+.calendar-day-note-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#6d2924}.calendar-day-note-icon{color:#b78a56;font-size:16px}.calendar-day-mode{margin-left:auto;padding:4px 8px;border-radius:20px;background:#ead7c2;color:#684a36;font-size:10px;font-weight:700;white-space:nowrap}
+.calendar-day-note{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;font-size:14px;line-height:1.7;color:#44352b}.calendar-day-empty-note{margin:10px 0 0;font-size:13px;line-height:1.6;color:#8b7767;font-style:italic}
+.calendar-day-details-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}.calendar-day-details-foot>span{font-size:11px;color:#8b7767}.calendar-day-edit{font-size:12px!important;padding:8px 12px!important;white-space:nowrap}
+@keyframes calendarDayReveal{from{opacity:0;transform:translateY(-7px);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:translateY(0);clip-path:inset(0 0 0 0)}}
+@media(max-width:520px){.calendar-day-stats{gap:6px}.calendar-day-stat{padding:10px 8px}.calendar-day-stat>span{font-size:10px}.calendar-day-stat strong{font-size:19px}.calendar-day-stat small{font-size:9px}.calendar-day-note-wrap{padding:12px}.calendar-day-details-foot{align-items:flex-start}.calendar-day-details-foot>span{flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){.calendar-day-details{animation:none}.calendar-day-close{transition:none}}
 </style>
 
 </head>
@@ -1158,7 +1176,7 @@ try {
 }
 
 state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];state.projectNotes=state.projectNotes||{};state.projects=state.projects||[];state.projectSessions=state.projectSessions||{};state.workMode=state.workMode||'writing';state.selectedProjectId=state.selectedProjectId||null;if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
-let selectedDate=todayKey(), viewDate=parseDate(todayKey());
+let selectedDate=todayKey(), viewDate=parseDate(todayKey()), expandedCalendarDate='';
 function persist(){localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 const achievementDefs=[
 {id:'first_day',icon:'🌱',title:'Первый шаг',desc:'Записал первый день работы',check:()=>activeEntries().length>=1},
@@ -1289,14 +1307,31 @@ const max=Math.max(1,...monthValues);
 let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(w=>`<div class="weekday">${w}</div>`).join('');
 for(let i=0;i<offset;i++)html+='<div class="day empty"></div>';
 for(let d=1;d<=last.getDate();d++){
- const date=new Date(y,m,d),key=keyDate(date),n=Number(activityTotals[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===selectedDate;
+ const date=new Date(y,m,d),key=keyDate(date),n=Number(activityTotals[key]||0),isToday=key===todayKey(),future=key>todayKey(),selected=key===expandedCalendarDate;
  const level=n<=0?'':n<=max*.25?'level-1':n<=max*.5?'level-2':n<=max*.75?'level-3':'level-4';
- const note=String(((state.projectNotes||{})[state.selectedProjectId]||{})[state.workMode]?.[key]||'').trim();
- const tooltip=note?`${fmtDate(key)} · ${fmt(n)} знаков · ${note}`:`${fmtDate(key)} · ${n>0?fmt(n)+' знаков':'нет записанного результата'}`;
- html+=`<button class="day ${level} ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}" title="${escapeHubText(tooltip)}" aria-label="${escapeHubText(tooltip)}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity"></span></button>`;
+ html+=`<button type="button" class="day ${level} ${isToday?'today':''} ${future?'future':''} ${selected?'selected':''}" data-date="${key}" aria-expanded="${selected?'true':'false'}" aria-controls="calendarDayDetails" aria-label="${fmtDate(key)}, ${n>0?fmt(n)+' знаков':'нет записанного результата'}"><span class="num">${d}</span><span class="chars">${n>0?fmt(n):'—'}</span><span class="activity"></span></button>`;
+ if(selected)html+=renderCalendarDayDetails(key,activityTotals);
 }
 $('calendar').innerHTML=html;
-$('calendar').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{selectedDate=el.dataset.date;render()}));
+$('calendar').querySelectorAll('[data-date]').forEach(el=>el.addEventListener('click',()=>{const key=el.dataset.date;selectedDate=key;expandedCalendarDate=expandedCalendarDate===key?'':key;render()}));
+}
+function renderCalendarDayDetails(key,activityTotals){
+ const project=currentProject(),projectId=state.selectedProjectId;
+ const writing=Number(sessionEntries('writing',projectId)[key]||0),editing=Number(sessionEntries('editing',projectId)[key]||0);
+ const note=String(((state.projectNotes||{})[projectId]||{})[state.workMode]?.[key]||'').trim();
+ const dayTotal=Number(activityTotals[key]||0);
+ const modeLabel=state.workMode==='editing'?'Редактура':'Написание';
+ const noteMarkup=note?`<p class="calendar-day-note">${escapeHubText(note)}</p>`:'<p class="calendar-day-empty-note">На этот день заметки пока нет.</p>';
+ return `<section class="calendar-day-details" id="calendarDayDetails" style="--detail-span:7" aria-label="Подробности за ${escapeHubText(fmtDate(key))}">
+  <div class="calendar-day-details-head"><div><span class="calendar-day-kicker">ДНЕВНИК · ${escapeHubText(project?.name||'Мой проект')}</span><h3>${escapeHubText(fmtDate(key))}</h3></div><button type="button" class="calendar-day-close" data-close-day="${key}" aria-label="Свернуть подробности">×</button></div>
+  <div class="calendar-day-stats">
+   <div class="calendar-day-stat"><span>Написано</span><strong>${fmt(writing)}</strong><small>символов</small></div>
+   <div class="calendar-day-stat"><span>Отредактировано</span><strong>${fmt(editing)}</strong><small>символов</small></div>
+   <div class="calendar-day-stat calendar-day-stat-total"><span>Всего по календарю</span><strong>${fmt(dayTotal)}</strong><small>символов · все проекты</small></div>
+  </div>
+  <div class="calendar-day-note-wrap"><div class="calendar-day-note-label"><span class="calendar-day-note-icon">✦</span><span>Заметка за день</span><span class="calendar-day-mode">${modeLabel}</span></div>${noteMarkup}</div>
+  <div class="calendar-day-details-foot"><span>${note?'Сохранённая запись дневника':'Можно добавить впечатления в дневник'}</span><button type="button" class="btn secondary calendar-day-edit" data-edit-day="${key}">Открыть запись <span aria-hidden="true">↗</span></button></div>
+ </section>`;
 }
 function renderHistory(){
 const items=activeEntries().slice(0,10);
@@ -1611,6 +1646,7 @@ $('workModeSelect').addEventListener('change',()=>{state.workMode=$('workModeSel
 $('addProjectBtn').addEventListener('click',async()=>{if(window.__writersHQCreatingProject)return;const name=prompt('Название нового проекта:');if(!name||!name.trim())return;window.__writersHQCreatingProject=true;const button=$('addProjectBtn');button.disabled=true;try{const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,120),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();if(error)throw error;state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();showToast('Проект добавлен.')}catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false;window.__writersHQCreatingProject=false}});
 $('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
 $('entryNote').addEventListener('input',()=>{$('entryNoteCount').textContent=String($('entryNote').value.length)});
+$('calendar').addEventListener('click',event=>{const close=event.target.closest('[data-close-day]');if(close){expandedCalendarDate='';render();return}const edit=event.target.closest('[data-edit-day]');if(edit){selectedDate=edit.dataset.editDay;expandedCalendarDate='';render();$('entryNote').focus();$('entryNote').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})}});
 $('saveEntry').addEventListener('click', async () => {
   const val = Number($('entryChars').value);
 
