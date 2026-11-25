@@ -865,6 +865,7 @@ textarea { resize: vertical; }
 .calendar-day-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0}
 .calendar-day-stat{display:flex;flex-direction:column;gap:3px;min-width:0;padding:13px;border:1px solid rgba(170,133,91,.2);border-radius:12px;background:rgba(255,255,255,.55)}
 .calendar-day-stat>span{font-size:11px;color:#786354;overflow-wrap:anywhere}.calendar-day-stat strong{font-size:clamp(20px,3vw,27px);line-height:1.15;font-weight:750;letter-spacing:-.035em;color:#4a3025;overflow-wrap:anywhere}.calendar-day-stat small{font-size:10px;color:#8b7767}.calendar-day-stat-total{background:rgba(109,41,36,.055);border-color:rgba(109,41,36,.14)}
+.calendar-day-worktime{display:flex;flex-direction:column;gap:4px;margin:12px 0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}.calendar-day-worktime span,.calendar-day-worktime small{font-size:12px;color:var(--muted)}.calendar-day-worktime strong{font-size:15px;overflow-wrap:anywhere}
 .calendar-day-note-wrap{padding:15px 16px;border-left:3px solid #b78a56;border-radius:0 11px 11px 0;background:rgba(255,255,255,.48)}
 .calendar-day-note-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#6d2924}.calendar-day-note-icon{color:#b78a56;font-size:16px}.calendar-day-mode{margin-left:auto;padding:4px 8px;border-radius:20px;background:#ead7c2;color:#684a36;font-size:10px;font-weight:700;white-space:nowrap}
 .calendar-day-note{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;font-size:14px;line-height:1.7;color:#44352b}.calendar-day-empty-note{margin:10px 0 0;font-size:13px;line-height:1.6;color:#8b7767;font-style:italic}
@@ -1343,6 +1344,8 @@ function renderCalendarDayDetails(key,activityTotals){
  const dayTotal=Number(activityTotals[key]||0);
  const modeLabel=state.workMode==='editing'?'Редактура':'Написание';
  const noteMarkup=note?`<p class="calendar-day-note">${escapeHubText(note)}</p>`:'<p class="calendar-day-empty-note">На этот день заметки пока нет.</p>';
+ const timeEntry=projectTimeEntries(state.workMode,projectId)[key]||{};const timeRange=formatTimeRange(timeEntry);const minutes=Number(timeEntry.duration_minutes)||calculateWorkMinutes(String(timeEntry.start_time||'').slice(0,5),String(timeEntry.end_time||'').slice(0,5));const activeChars=state.workMode==='editing'?editing:writing;const hourlyRate=minutes>0&&activeChars>0?Math.round(activeChars/(minutes/60)):null;
+ const timeMarkup=timeRange&&minutes>0?`<div class="calendar-day-worktime"><span>Время работы · ${escapeHubText(modeLabel)}</span><strong>${escapeHubText(timeRange)} · ${escapeHubText(formatWorkMinutes(minutes))}</strong>${hourlyRate!==null?`<small>${fmt(hourlyRate)} симв./ч</small>`:''}</div>`:'';
  return `<section class="calendar-day-details" id="calendarDayDetails" style="--detail-span:7" aria-label="Подробности за ${escapeHubText(fmtDate(key))}">
   <div class="calendar-day-details-head"><div><span class="calendar-day-kicker">ДНЕВНИК · ${escapeHubText(project?.name||'Мой проект')}</span><h3>${escapeHubText(fmtDate(key))}</h3></div><button type="button" class="calendar-day-close" data-close-day="${key}" aria-label="Свернуть подробности">×</button></div>
   <div class="calendar-day-stats">
@@ -1350,6 +1353,7 @@ function renderCalendarDayDetails(key,activityTotals){
    <div class="calendar-day-stat"><span>Отредактировано</span><strong>${fmt(editing)}</strong><small>символов</small></div>
    <div class="calendar-day-stat calendar-day-stat-total"><span>Всего по календарю</span><strong>${fmt(dayTotal)}</strong><small>символов · все проекты</small></div>
   </div>
+  ${timeMarkup}
   <div class="calendar-day-note-wrap"><div class="calendar-day-note-label"><span class="calendar-day-note-icon">✦</span><span>Заметка за день</span><span class="calendar-day-mode">${modeLabel}</span></div>${noteMarkup}</div>
   <div class="calendar-day-details-foot"><span>${note?'Сохранённая запись дневника':'Можно добавить впечатления в дневник'}</span><button type="button" class="btn secondary calendar-day-edit" data-edit-day="${key}">Открыть запись <span aria-hidden="true">↗</span></button></div>
  </section>`;
