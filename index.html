@@ -25,7 +25,8 @@ p,span,strong,label,h1,h2,h3,.social-person-meta,.small{overflow-wrap:anywhere}
 .card,.settings-grid>div,.profile-editor,.profile-avatar-copy{min-width:0}
 .wrap{max-width:1160px;margin:0 auto;padding:34px 24px 50px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:750;color:var(--green)}h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(34px,5vw,52px);letter-spacing:-.04em;margin:7px 0 8px}.sub{color:var(--muted);max-width:600px;font-size:15px}.date-chip{background:var(--paper);border:1px solid var(--line);padding:10px 14px;border-radius:14px;color:var(--muted);font-size:13px;white-space:nowrap}
 .grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr);gap:18px}.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);min-width:0}.card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.card h2{font-size:17px;margin:0;font-weight:700;letter-spacing:-.02em}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8f7f1;border-radius:14px;padding:14px}.stat .label{font-size:12px;color:var(--muted);margin-bottom:8px}.stat .value{font-size:clamp(20px,2.6vw,29px);font-weight:700;letter-spacing:-.04em}.stat .unit{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
-label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6px}input,select{width:100%;border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);outline:none}input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px #496b5219}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:13px}.btn{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;cursor:default}.primary{background:var(--green);color:white}.secondary{background:#efeee7;color:var(--ink)}.danger{background:#f7e7e4;color:#8e3e37}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.entry-note{font-size:12px;color:var(--muted);margin-top:10px}
+label{display:block;font-size:12px;font-weight:700;color:#5d6259;margin-bottom:6px}input,select{width:100%;border:1px solid #dedbd1;background:#fff;border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink);outline:none}input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px #496b5219}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.work-time-row{gap:12px}.work-time-row .field{min-width:0;flex:1}.work-time-summary{margin:-5px 0 6px;padding:9px 11px;border-radius:9px;background:var(--soft);color:var(--ink);font-weight:600}.work-time-summary:empty{display:none}@media(max-width:480px){.work-time-row{gap:8px}.work-time-row input{min-width:0;padding-left:8px;padding-right:8px}}
+.field{margin-bottom:13px}.btn{border:0;border-radius:11px;padding:11px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .12s,opacity .12s}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;cursor:default}.primary{background:var(--green);color:white}.secondary{background:#efeee7;color:var(--ink)}.danger{background:#f7e7e4;color:#8e3e37}.btn-row{display:flex;gap:8px;flex-wrap:wrap}.entry-note{font-size:12px;color:var(--muted);margin-top:10px}
 .goal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .goal-top>div:first-child{min-width:0;flex:1 1 220px}.goal-top>div:last-child{min-width:0;flex:0 1 auto;overflow-wrap:anywhere}.goal-title{overflow-wrap:anywhere;word-break:normal}
 @media(max-width:520px){.goal-top{flex-wrap:wrap}.goal-top>div:last-child{margin-left:auto;max-width:100%}}.goal-title{font-family:Georgia,serif;font-size:23px;line-height:1.15;margin:4px 0 5px}.progress-num{font-size:25px;font-weight:750;letter-spacing:-.04em}.bar{height:9px;background:#eae8df;border-radius:20px;overflow:hidden;margin:16px 0 9px}.bar-fill{height:100%;background:var(--green);width:0%;border-radius:20px;transition:width .25s}.goal-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}.meta-box{border-top:1px solid var(--line);padding-top:11px}.meta-box .big{font-size:19px;font-weight:700;margin-top:3px}.status{display:inline-flex;align-items:center;gap:6px;border-radius:100px;background:#f1efe7;padding:6px 9px;font-size:11px;font-weight:750}.dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}.status.good{background:#e6efe3;color:#3d6244}.status.good .dot{background:var(--green)}.status.bad{background:#f7e7e4;color:#98483e}.status.bad .dot{background:var(--red)}
@@ -864,6 +865,7 @@ textarea { resize: vertical; }
 .calendar-day-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:15px 0}
 .calendar-day-stat{display:flex;flex-direction:column;gap:3px;min-width:0;padding:13px;border:1px solid rgba(170,133,91,.2);border-radius:12px;background:rgba(255,255,255,.55)}
 .calendar-day-stat>span{font-size:11px;color:#786354;overflow-wrap:anywhere}.calendar-day-stat strong{font-size:clamp(20px,3vw,27px);line-height:1.15;font-weight:750;letter-spacing:-.035em;color:#4a3025;overflow-wrap:anywhere}.calendar-day-stat small{font-size:10px;color:#8b7767}.calendar-day-stat-total{background:rgba(109,41,36,.055);border-color:rgba(109,41,36,.14)}
+.calendar-day-worktime{display:flex;flex-direction:column;gap:4px;margin:12px 0;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}.calendar-day-worktime span,.calendar-day-worktime small{font-size:12px;color:var(--muted)}.calendar-day-worktime strong{font-size:15px;overflow-wrap:anywhere}
 .calendar-day-note-wrap{padding:15px 16px;border-left:3px solid #b78a56;border-radius:0 11px 11px 0;background:rgba(255,255,255,.48)}
 .calendar-day-note-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#6d2924}.calendar-day-note-icon{color:#b78a56;font-size:16px}.calendar-day-mode{margin-left:auto;padding:4px 8px;border-radius:20px;background:#ead7c2;color:#684a36;font-size:10px;font-weight:700;white-space:nowrap}
 .calendar-day-note{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;font-size:14px;line-height:1.7;color:#44352b}.calendar-day-empty-note{margin:10px 0 0;font-size:13px;line-height:1.6;color:#8b7767;font-style:italic}
@@ -966,6 +968,8 @@ textarea { resize: vertical; }
       <div class="field"><label for="workModeSelect">Что делал(а) сегодня?</label><select id="workModeSelect"><option value="writing">Писал(а)</option><option value="editing">Редактировал(а)</option></select></div>
       <div class="field"><label for="entryDate">Дата записи</label><input id="entryDate" type="date"></div>
       <div class="field"><label for="entryChars">Сколько символов написал(а) за этот день?</label><input id="entryChars" type="number" min="0" step="1" placeholder="Например, 2500"></div>
+      <div class="form-row work-time-row"><div class="field"><label for="entryStartTime">Начало работы</label><input id="entryStartTime" type="time" step="60" aria-describedby="workTimeHelp"></div><div class="field"><label for="entryEndTime">Конец работы</label><input id="entryEndTime" type="time" step="60" aria-describedby="workTimeHelp"></div></div>
+      <div class="work-time-summary small" id="workTimeSummary" aria-live="polite">Укажи время начала и окончания, чтобы посчитать длительность.</div><div class="small" id="workTimeHelp">Можно оставить пустым, если не отслеживаешь время. Если работа перешла через полночь, время окончания может быть раньше начала.</div>
       <div class="field"><label for="entryNote">Заметка в дневник</label><textarea id="entryNote" rows="2" maxlength="500" placeholder="Сегодня писалось плохо… или, наоборот, всё шло легко"></textarea><div class="small" style="text-align:right"><span id="entryNoteCount">0</span> / 500</div></div>
       <div class="btn-row"><button class="btn primary" id="saveEntry">Сохранить результат</button><button class="btn secondary" id="clearEntry">Обнулить этот день</button></div>
       <div class="entry-note">Записывай итог за день. Если вернёшься к прошлой дате, можно добавить или исправить результат.</div>
@@ -1165,7 +1169,7 @@ const keyDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
 const fmtDate=s=>s?parseDate(s).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'}):'—';
 const monthFmt=d=>d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
-const defaultState={entries:{},goal:{name:'Новая книга',sheets:8,sheetSize:40000,deadline:''},achievements:[],projectNotes:{},lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
+const defaultState={entries:{},projectTimes:{},goal:{name:'Новая книга',sheets:8,sheetSize:40000,deadline:''},achievements:[],projectNotes:{},lastBackupAt:null,startedAt:Date.now(),backupSnoozedUntil:null};
 
 let state;
 
@@ -1187,7 +1191,7 @@ try {
   state = defaultState;
 }
 
-state.entries=state.entries||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];state.projectNotes=state.projectNotes||{};state.projects=state.projects||[];state.projectSessions=state.projectSessions||{};state.workMode=state.workMode||'writing';state.selectedProjectId=state.selectedProjectId||null;if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
+state.entries=state.entries||{};state.projectTimes=state.projectTimes||{};state.goal={...defaultState.goal,...(state.goal||{})};state.achievements=state.achievements||[];state.projectNotes=state.projectNotes||{};state.projects=state.projects||[];state.projectSessions=state.projectSessions||{};state.workMode=state.workMode||'writing';state.selectedProjectId=state.selectedProjectId||null;if(!state.startedAt){state.startedAt=Date.now();localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 let selectedDate=todayKey(), viewDate=parseDate(todayKey()), expandedCalendarDate='';
 function persist(){localStorage.setItem(LOCAL_KEY,JSON.stringify(state))}
 const achievementDefs=[
@@ -1256,6 +1260,11 @@ function exportBackup(){
  renderBackupNotice();
 }
 function sessionEntries(mode=state.workMode, projectId=state.selectedProjectId){return (state.projectSessions&&state.projectSessions[projectId]&&state.projectSessions[projectId][mode])||{}}
+function projectTimeEntries(mode=state.workMode, projectId=state.selectedProjectId){return (state.projectTimes&&state.projectTimes[projectId]&&state.projectTimes[projectId][mode])||{}}
+function calculateWorkMinutes(start,end){if(!start||!end)return null;const a=start.split(':').map(Number),b=end.split(':').map(Number);if(a.length<2||b.length<2||a.some(n=>!Number.isFinite(n))||b.some(n=>!Number.isFinite(n)))return null;let mins=(b[0]*60+b[1])-(a[0]*60+a[1]);if(mins<0)mins+=1440;return mins>0?mins:null}
+function formatWorkMinutes(minutes){if(!Number.isFinite(Number(minutes))||Number(minutes)<=0)return '';const m=Math.round(Number(minutes)),h=Math.floor(m/60),r=m%60;return h?`${h} ч${r?` ${r} мин`:''}`:`${r} мин`}
+function formatTimeRange(time){return time&&time.start_time&&time.end_time?`${String(time.start_time).slice(0,5)}–${String(time.end_time).slice(0,5)}`:''}
+function renderWorkTimeSummary(){const start=$('entryStartTime')?.value||'',end=$('entryEndTime')?.value||'',el=$('workTimeSummary');if(!el)return;const mins=calculateWorkMinutes(start,end);if(!start&&!end){el.textContent='Укажи время начала и окончания, чтобы посчитать длительность.';return}if(!start||!end){el.textContent='Заполни оба поля времени.';return}if(mins===null){el.textContent='Время окончания должно отличаться от начала.';return}const chars=Number($('entryChars').value);const rate=Number.isFinite(chars)&&chars>0?Math.round(chars/(mins/60)):null;el.textContent=`Время работы: ${formatWorkMinutes(mins)}${rate!==null?` · ${fmt(rate)} симв./ч`:''}`;}
 function aggregateActivityEntries(){
  const totals={};
  Object.values(state.projectSessions||{}).forEach(modes=>{
@@ -1276,6 +1285,7 @@ function renderTop(){
 $('todayChip').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
 $('entryDate').value=selectedDate;$('selectedDateLabel').textContent=fmtDate(selectedDate);
 $('entryChars').value=sessionEntries()[selectedDate]??'';
+const selectedWorkTime=projectTimeEntries()[selectedDate]||{};$('entryStartTime').value=String(selectedWorkTime.start_time||'').slice(0,5);$('entryEndTime').value=String(selectedWorkTime.end_time||'').slice(0,5);renderWorkTimeSummary();
 $('entryNote').value=((state.projectNotes||{})[state.selectedProjectId]||{})[state.workMode]?.[selectedDate]||'';
 $('entryNoteCount').textContent=String($('entryNote').value.length);
 $('todayTotal').innerHTML=`${fmt(sessionEntries()[todayKey()]||0)} <span class="unit">симв.</span>`;
@@ -1334,6 +1344,8 @@ function renderCalendarDayDetails(key,activityTotals){
  const dayTotal=Number(activityTotals[key]||0);
  const modeLabel=state.workMode==='editing'?'Редактура':'Написание';
  const noteMarkup=note?`<p class="calendar-day-note">${escapeHubText(note)}</p>`:'<p class="calendar-day-empty-note">На этот день заметки пока нет.</p>';
+ const timeEntry=projectTimeEntries(state.workMode,projectId)[key]||{};const timeRange=formatTimeRange(timeEntry);const minutes=Number(timeEntry.duration_minutes)||calculateWorkMinutes(String(timeEntry.start_time||'').slice(0,5),String(timeEntry.end_time||'').slice(0,5));const activeChars=state.workMode==='editing'?editing:writing;const hourlyRate=minutes>0&&activeChars>0?Math.round(activeChars/(minutes/60)):null;
+ const timeMarkup=timeRange&&minutes>0?`<div class="calendar-day-worktime"><span>Время работы · ${escapeHubText(modeLabel)}</span><strong>${escapeHubText(timeRange)} · ${escapeHubText(formatWorkMinutes(minutes))}</strong>${hourlyRate!==null?`<small>${fmt(hourlyRate)} симв./ч</small>`:''}</div>`:'';
  return `<section class="calendar-day-details" id="calendarDayDetails" style="--detail-span:7" aria-label="Подробности за ${escapeHubText(fmtDate(key))}">
   <div class="calendar-day-details-head"><div><span class="calendar-day-kicker">ДНЕВНИК · ${escapeHubText(project?.name||'Мой проект')}</span><h3>${escapeHubText(fmtDate(key))}</h3></div><button type="button" class="calendar-day-close" data-close-day="${key}" aria-label="Свернуть подробности">×</button></div>
   <div class="calendar-day-stats">
@@ -1341,6 +1353,7 @@ function renderCalendarDayDetails(key,activityTotals){
    <div class="calendar-day-stat"><span>Отредактировано</span><strong>${fmt(editing)}</strong><small>символов</small></div>
    <div class="calendar-day-stat calendar-day-stat-total"><span>Всего по календарю</span><strong>${fmt(dayTotal)}</strong><small>символов · все проекты</small></div>
   </div>
+  ${timeMarkup}
   <div class="calendar-day-note-wrap"><div class="calendar-day-note-label"><span class="calendar-day-note-icon">✦</span><span>Заметка за день</span><span class="calendar-day-mode">${modeLabel}</span></div>${noteMarkup}</div>
   <div class="calendar-day-details-foot"><span>${note?'Сохранённая запись дневника':'Можно добавить впечатления в дневник'}</span><button type="button" class="btn secondary calendar-day-edit" data-edit-day="${key}">Открыть запись <span aria-hidden="true">↗</span></button></div>
  </section>`;
@@ -1451,14 +1464,14 @@ async function loadProjectHub(){
   // и показывают тот же прогресс, что и дневник.
   const [projectRows,sessionRows]=await withProjectHubTimeout(Promise.all([
    client.from('writer_projects').select('id,user_id,name,description,goal_sheets,sheet_size,deadline,status,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
-   client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count,note').eq('user_id',userId).order('work_date',{ascending:true})
+   client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count,note,start_time,end_time,duration_minutes').eq('user_id',userId).order('work_date',{ascending:true})
   ]));
   if(projectRows.error)throw projectRows.error;if(sessionRows.error)throw sessionRows.error;
   if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
-  const projects=projectRows.data||[],projectSessions={},projectNotes={};
-  projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}};projectNotes[p.id]={writing:{},editing:{}}});
-  (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;const mode=row.activity_type==='editing'?'editing':'writing';projectSessions[row.project_id][mode][row.work_date]=Number(row.chars_count)||0;projectNotes[row.project_id][mode][row.work_date]=row.note||''});
-  state.projects=projects;state.projectSessions=projectSessions;state.projectNotes=projectNotes;
+  const projects=projectRows.data||[],projectSessions={},projectNotes={},projectTimes={};
+  projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}};projectNotes[p.id]={writing:{},editing:{}};projectTimes[p.id]={writing:{},editing:{}}});
+  (sessionRows.data||[]).forEach(row=>{if(!projectSessions[row.project_id])return;const mode=row.activity_type==='editing'?'editing':'writing';projectSessions[row.project_id][mode][row.work_date]=Number(row.chars_count)||0;projectNotes[row.project_id][mode][row.work_date]=row.note||'';if(row.start_time||row.end_time)projectTimes[row.project_id][mode][row.work_date]={start_time:row.start_time||'',end_time:row.end_time||'',duration_minutes:row.duration_minutes??null}});
+  state.projects=projects;state.projectSessions=projectSessions;state.projectNotes=projectNotes;state.projectTimes=projectTimes;
   if(!state.selectedProjectId||!projects.some(p=>p.id===state.selectedProjectId))state.selectedProjectId=projects[0]?.id||null;
   state.entries=sessionEntries();
   const selected=currentProject();
@@ -1531,7 +1544,7 @@ window.writersHQDiary = {
 
     const [projectsResult,sessionsResult,settingsResult]=await Promise.all([
       client.from('writer_projects').select('id,user_id,name,description,goal_sheets,sheet_size,deadline,status,created_at').eq('user_id',userId).order('created_at',{ascending:true}),
-      client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count,note').eq('user_id',userId).order('work_date',{ascending:true}),
+      client.from('writer_work_sessions').select('project_id,work_date,activity_type,chars_count,note,start_time,end_time,duration_minutes').eq('user_id',userId).order('work_date',{ascending:true}),
       client.from('writer_settings').select('diary_goal,diary_achievements').eq('user_id',userId).maybeSingle()
     ]);
     if(projectsResult.error)throw projectsResult.error;
@@ -1542,8 +1555,8 @@ window.writersHQDiary = {
       const {data:newProject,error:createError}=await client.from('writer_projects').insert({user_id:userId,name:'Новая книга',goal_sheets:8,sheet_size:40000}).select('id,user_id,name,description,goal_sheets,sheet_size,deadline,status,created_at').single();
       if(createError)throw createError;projects=[newProject];
     }
-    const projectSessions={};const projectNotes={};projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}};projectNotes[p.id]={writing:{},editing:{}}});
-    for(const row of sessionsResult.data||[]){if(!projectSessions[row.project_id])continue;const mode=row.activity_type==='editing'?'editing':'writing';projectSessions[row.project_id][mode][row.work_date]=Number(row.chars_count)||0;projectNotes[row.project_id][mode][row.work_date]=row.note||'';}
+    const projectSessions={};const projectNotes={};const projectTimes={};projects.forEach(p=>{projectSessions[p.id]={writing:{},editing:{}};projectNotes[p.id]={writing:{},editing:{}};projectTimes[p.id]={writing:{},editing:{}}});
+    for(const row of sessionsResult.data||[]){if(!projectSessions[row.project_id])continue;const mode=row.activity_type==='editing'?'editing':'writing';projectSessions[row.project_id][mode][row.work_date]=Number(row.chars_count)||0;projectNotes[row.project_id][mode][row.work_date]=row.note||'';if(row.start_time||row.end_time)projectTimes[row.project_id][mode][row.work_date]={start_time:row.start_time||'',end_time:row.end_time||'',duration_minutes:row.duration_minutes??null};}
 
     // Если пользователь сменился во время запроса,
     // не применяем данные предыдущего аккаунта.
@@ -1551,7 +1564,7 @@ window.writersHQDiary = {
       return;
     }
 
-    state.projects=projects;state.projectSessions=projectSessions;
+    state.projects=projects;state.projectSessions=projectSessions;state.projectNotes=projectNotes;state.projectTimes=projectTimes;
     if(!state.selectedProjectId||!projects.some(p=>p.id===state.selectedProjectId))state.selectedProjectId=projects[0].id;
     state.workMode=state.workMode==='editing'?'editing':'writing';state.entries=sessionEntries();
     const selectedProject=currentProject();
@@ -1613,7 +1626,7 @@ window.writersHQDiary = {
     renderAchievements();
   },
 
-  async saveEntry(date, chars, note = '') {
+  async saveEntry(date, chars, note = '', workTime = {}) {
     const client = window.writersHQClient;
     const userId = window.writersHQUserId;
 
@@ -1622,13 +1635,13 @@ window.writersHQDiary = {
     }
 
     const project=currentProject();if(!project)throw new Error('Сначала создай проект.');
-    const cleanNote=String(note||'').trim().slice(0,500);
-    const {error}=await client.from('writer_work_sessions').upsert({user_id:userId,project_id:project.id,work_date:date,activity_type:state.workMode,chars_count:chars,note:cleanNote},{onConflict:'user_id,project_id,work_date,activity_type'});
+    const cleanNote=String(note||'').trim().slice(0,500);const startTime=String(workTime.start_time||'');const endTime=String(workTime.end_time||'');const durationMinutes=calculateWorkMinutes(startTime,endTime);
+    const {error}=await client.from('writer_work_sessions').upsert({user_id:userId,project_id:project.id,work_date:date,activity_type:state.workMode,chars_count:chars,note:cleanNote,start_time:startTime||null,end_time:endTime||null,duration_minutes:durationMinutes},{onConflict:'user_id,project_id,work_date,activity_type'});
     if(error)throw error;
     if(!state.projectSessions[project.id])state.projectSessions[project.id]={writing:{},editing:{}};
     if(!state.projectNotes[project.id])state.projectNotes[project.id]={writing:{},editing:{}};
     if(!state.projectNotes[project.id][state.workMode])state.projectNotes[project.id][state.workMode]={};
-    state.projectSessions[project.id][state.workMode][date]=chars;state.projectNotes[project.id][state.workMode][date]=cleanNote;state.entries=state.projectSessions[project.id][state.workMode];
+    state.projectSessions[project.id][state.workMode][date]=chars;state.projectNotes[project.id][state.workMode][date]=cleanNote;if(!state.projectTimes[project.id])state.projectTimes[project.id]={writing:{},editing:{}};if(!state.projectTimes[project.id][state.workMode])state.projectTimes[project.id][state.workMode]={};if(startTime&&endTime&&durationMinutes!==null)state.projectTimes[project.id][state.workMode][date]={start_time:startTime,end_time:endTime,duration_minutes:durationMinutes};else delete state.projectTimes[project.id][state.workMode][date];state.entries=state.projectSessions[project.id][state.workMode];
     persist();
   },
 
@@ -1648,7 +1661,7 @@ window.writersHQDiary = {
     }
 
     delete state.entries[date];
-    if(state.projectNotes[project.id]&&state.projectNotes[project.id][state.workMode])delete state.projectNotes[project.id][state.workMode][date];
+    if(state.projectNotes[project.id]&&state.projectNotes[project.id][state.workMode])delete state.projectNotes[project.id][state.workMode][date];if(state.projectTimes[project.id]&&state.projectTimes[project.id][state.workMode])delete state.projectTimes[project.id][state.workMode][date];
     persist();
   }
 };
@@ -1658,6 +1671,7 @@ $('workModeSelect').addEventListener('change',()=>{state.workMode=$('workModeSel
 $('addProjectBtn').addEventListener('click',async()=>{if(window.__writersHQCreatingProject)return;const name=prompt('Название нового проекта:');if(!name||!name.trim())return;window.__writersHQCreatingProject=true;const button=$('addProjectBtn');button.disabled=true;try{const {data,error}=await window.writersHQClient.from('writer_projects').insert({user_id:window.writersHQUserId,name:name.trim().slice(0,240),goal_sheets:8,sheet_size:40000}).select('id,user_id,name,goal_sheets,sheet_size,deadline,created_at').single();if(error)throw error;state.projects.push(data);state.projectSessions[data.id]={writing:{},editing:{}};selectProjectData(data.id);renderProjectControls();render();showToast('Проект добавлен.')}catch(error){alert('Не удалось создать проект. '+(error.message||''))}finally{button.disabled=false;window.__writersHQCreatingProject=false}});
 $('entryDate').addEventListener('change',e=>{selectedDate=e.target.value||todayKey();const d=parseDate(selectedDate);viewDate=new Date(d.getFullYear(),d.getMonth(),1);render()});
 $('entryNote').addEventListener('input',()=>{$('entryNoteCount').textContent=String($('entryNote').value.length)});
+$('entryStartTime').addEventListener('input',renderWorkTimeSummary);$('entryEndTime').addEventListener('input',renderWorkTimeSummary);$('entryChars').addEventListener('input',renderWorkTimeSummary);
 $('calendar').addEventListener('click',event=>{const close=event.target.closest('[data-close-day]');if(close){expandedCalendarDate='';render();return}const edit=event.target.closest('[data-edit-day]');if(edit){selectedDate=edit.dataset.editDay;expandedCalendarDate='';render();$('entryNote').focus();$('entryNote').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'})}});
 $('saveEntry').addEventListener('click', async () => {
   const val = Number($('entryChars').value);
@@ -1671,6 +1685,10 @@ $('saveEntry').addEventListener('click', async () => {
     return;
   }
 
+  const startTime=$('entryStartTime').value,endTime=$('entryEndTime').value;
+  if(Boolean(startTime)!==Boolean(endTime)){alert('Укажи и время начала, и время окончания — или оставь оба поля пустыми.');return}
+  if(startTime&&endTime&&calculateWorkMinutes(startTime,endTime)===null){alert('Время окончания должно отличаться от времени начала.');return}
+
   const button = $('saveEntry');
   button.disabled = true;
 
@@ -1678,7 +1696,8 @@ $('saveEntry').addEventListener('click', async () => {
     await window.writersHQDiary.saveEntry(
       selectedDate,
       Math.round(val),
-      $('entryNote').value
+      $('entryNote').value,
+      {start_time:startTime,end_time:endTime}
     );
 
     await checkAchievements();
