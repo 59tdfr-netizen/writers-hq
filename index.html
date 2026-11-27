@@ -1448,7 +1448,7 @@ function opportunityTodayKey(){const now=new Date();return now.getFullYear()+'-'
 function renderOpportunityCalendar(){
  const y=opportunityMonth.getFullYear(),m=opportunityMonth.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),offset=(first.getDay()+6)%7;
  $('opMonthLabel').textContent=opportunityMonth.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
- const deadlines=new Set(opportunityData.filter(o=>o.deadline&&o.status==='open').map(o=>o.deadline));
+ const today=opportunityTodayKey();const deadlines=new Set(opportunityData.filter(o=>o.deadline&&o.deadline>=today&&o.status==='open').map(o=>o.deadline));
  let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>'<div class="op-calendar-weekday">'+d+'</div>').join('');
  for(let i=0;i<offset;i++)html+='<div class="op-calendar-day empty"></div>';
  for(let d=1;d<=last.getDate();d++){
@@ -1458,7 +1458,7 @@ function renderOpportunityCalendar(){
  $('opportunityCalendar').innerHTML=html;
 }
 function renderOpportunityList(){
- const list=$('opportunityList'),filtered=opportunityData.filter(o=>o.status==='open'&&(!selectedOpportunityDate||o.deadline===selectedOpportunityDate));
+ const list=$('opportunityList'),today=opportunityTodayKey(),filtered=opportunityData.filter(o=>o.status==='open'&&(!o.deadline||o.deadline>=today)&&(!selectedOpportunityDate||o.deadline===selectedOpportunityDate));
  $('opportunityListTitle').textContent=selectedOpportunityDate?'Дедлайны '+fmtDate(selectedOpportunityDate):'Открытые возможности';
  $('opportunityCount').textContent=filtered.length+' найдено';
  list.innerHTML=filtered.map(o=>{
@@ -1529,7 +1529,7 @@ async function loadProjectHub(){
   renderProjectCards();renderProjectDetail();
   $('projectHubLoading').hidden=true;$('projectHubProjects').hidden=projectHubView!=='projects';$('projectHubSubmissions').hidden=projectHubView!=='submissions';
   const [opps,plans]=await withProjectHubTimeout(Promise.all([
-   client.from('writer_opportunities').select('*').eq('status','open').order('deadline',{ascending:true,nullsFirst:false}),
+   client.from('writer_opportunities').select('*').order('deadline',{ascending:true,nullsFirst:false}),
    client.from('writer_submission_plans').select('*').eq('user_id',userId).order('created_at',{ascending:false})
   ]));
   if(requestId!==projectHubRequestId||window.writersHQUserId!==userId)return;
@@ -1539,7 +1539,7 @@ async function loadProjectHub(){
    $('opportunityList').innerHTML='<p class="small">Не удалось загрузить опен-коллы: '+escapeHubText(opps.error.message||'проверь подключение и права доступа')+'.</p>';
    $('noDeadlineList').innerHTML='';
   }else{
-   opportunityData=(opps.data||[]).filter(o=>!o.deadline||o.deadline>=opportunityTodayKey());
+   opportunityData=opps.data||[];
   }
   if(plans.error){
    submissionPlans=[];
