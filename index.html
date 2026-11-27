@@ -2211,7 +2211,10 @@ function makePersonRow(profile, isFollowing, mode) {
         ? 'написал(а) ' + new Intl.NumberFormat('ru-RU').format(Number(item.chars_written) || 0) + ' знаков'
         : (def ? def.title : item.achievement_id);
       if (isProductivity) {
-        copy.append(document.createTextNode(' сегодня '));
+        const progressDate = item.earned_at ? new Date(item.earned_at) : null;
+        const isToday = progressDate && !Number.isNaN(progressDate.getTime()) &&
+          progressDate.toLocaleDateString('ru-CA') === new Date().toLocaleDateString('ru-CA');
+        copy.append(document.createTextNode(isToday ? ' сегодня ' : ' '));
       } else {
         copy.append(document.createTextNode(' получил(а) достижение'));
       }
