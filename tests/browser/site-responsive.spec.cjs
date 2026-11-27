@@ -49,7 +49,7 @@ test('mobile auth and registration forms stack fields without horizontal overflo
   expect(signupEmail.y).toBeGreaterThan(name.y + name.height - 2);
 
   const consent = page.locator('label[for="shareStatsOnFollow"], label.privacy-setting').filter({ has: page.locator('#shareStatsOnFollow') });
-  await expect(consent).toContainText('Разрешаю показывать статистику и достижения авторам, которые подписаны на меня');
+  await expect(consent).toContainText('Разрешаю показывать мои достижения и продуктивность авторам, которые подписаны на меня');
   await expect(consent).toContainText('Эту настройку можно будет изменить в профиле');
   await expectNoHorizontalOverflow(page);
 });
