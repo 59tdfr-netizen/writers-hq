@@ -2205,19 +2205,18 @@ function makePersonRow(profile, isFollowing, mode) {
       const copy = document.createElement('div'); copy.className = 'activity-copy';
       copy.append(makeAuthorName({display_name:item.display_name, social_url:item.social_url}, 'activity-author-name'));
       const achievement = document.createElement('div'); achievement.className = 'activity-achievement';
-      const icon = document.createElement('span'); icon.textContent = isProductivity ? '✍️' : (def ? def.icon : '🏅'); icon.setAttribute('aria-hidden', 'true');
+      const icon = document.createElement('span'); icon.textContent = def ? def.icon : '🏅'; icon.setAttribute('aria-hidden', 'true');
       const title = document.createElement('strong');
-      title.textContent = isProductivity
-        ? 'написал(а) ' + new Intl.NumberFormat('ru-RU').format(Number(item.chars_written) || 0) + ' знаков'
-        : (def ? def.title : item.achievement_id);
+      title.textContent = def ? def.title : item.achievement_id;
       if (isProductivity) {
         const now = new Date();
         const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        copy.append(document.createTextNode(item.achievement_id === today ? ' сегодня ' : ' '));
+        const dateWord = item.achievement_id === today ? ' сегодня' : '';
+        copy.append(document.createTextNode(dateWord + ' написал(а) ' + new Intl.NumberFormat('ru-RU').format(Number(item.chars_written) || 0) + ' знаков'));
       } else {
         copy.append(document.createTextNode(' получил(а) достижение'));
+        achievement.append(icon, title);
       }
-      achievement.append(icon, title);
       const date = document.createElement('div'); date.className = 'activity-date';
       const earnedAt = isProductivity && /^\d{4}-\d{2}-\d{2}$/.test(item.achievement_id || '')
         ? new Date(item.achievement_id + 'T12:00:00')
@@ -2243,7 +2242,7 @@ function makePersonRow(profile, isFollowing, mode) {
         }
         if (likers.childElementCount) actions.append(likers);
       }
-      main.append(copy, achievement, date, actions); card.append(avatar, main); list.append(card);
+      main.append(copy); if (!isProductivity) main.append(achievement); main.append(date, actions); card.append(avatar, main); list.append(card);
     }
   }
   window.writersHQRefreshFeed = loadActivityFeed;
