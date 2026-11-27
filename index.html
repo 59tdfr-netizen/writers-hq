@@ -2211,16 +2211,17 @@ function makePersonRow(profile, isFollowing, mode) {
         ? 'написал(а) ' + new Intl.NumberFormat('ru-RU').format(Number(item.chars_written) || 0) + ' знаков'
         : (def ? def.title : item.achievement_id);
       if (isProductivity) {
-        const progressDate = item.earned_at ? new Date(item.earned_at) : null;
-        const isToday = progressDate && !Number.isNaN(progressDate.getTime()) &&
-          progressDate.toLocaleDateString('ru-CA') === new Date().toLocaleDateString('ru-CA');
-        copy.append(document.createTextNode(isToday ? ' сегодня ' : ' '));
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        copy.append(document.createTextNode(item.achievement_id === today ? ' сегодня ' : ' '));
       } else {
         copy.append(document.createTextNode(' получил(а) достижение'));
       }
       achievement.append(icon, title);
       const date = document.createElement('div'); date.className = 'activity-date';
-      const earnedAt = item.earned_at ? new Date(item.earned_at) : null;
+      const earnedAt = isProductivity && /^\d{4}-\d{2}-\d{2}$/.test(item.achievement_id || '')
+        ? new Date(item.achievement_id + 'T12:00:00')
+        : (item.earned_at ? new Date(item.earned_at) : null);
       date.textContent = earnedAt && !Number.isNaN(earnedAt.getTime()) ? earnedAt.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'}) : 'Недавно';
       const actions = document.createElement('div'); actions.className = 'activity-actions';
       const likeControl = document.createElement('span'); actions.append(likeControl);
