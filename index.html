@@ -919,7 +919,7 @@ textarea { resize: vertical; }
           </div>
           <div class="field"><label for="signupPassword">Пароль</label><input id="signupPassword" type="password" required minlength="8" autocomplete="new-password"><p class="small" style="margin:5px 0 0">Не менее 8 символов.</p></div>
           <label class="privacy-setting" style="margin:12px 0"><input id="confirmAdult" type="checkbox" required><span><strong>Подтверждаю, что мне исполнилось 18 лет</strong><br>Сервис предназначен только для совершеннолетних пользователей.</span></label>
-          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать статистику и достижения авторам, которые подписаны на меня</strong><br>Эту настройку можно будет изменить в профиле. Для этого достаточно подписки на тебя — взаимная подписка не нужна.</span></label>
+          <label class="privacy-setting" style="margin:12px 0"><input id="shareStatsOnFollow" type="checkbox"><span><strong>Разрешаю показывать мои достижения и продуктивность авторам, которые подписаны на меня</strong><br>Эту настройку можно будет изменить в профиле. Для этого достаточно подписки на тебя — взаимная подписка не нужна.</span></label>
           <div class="btn-row"><button id="signUpBtn" type="submit" class="btn primary">Создать аккаунт</button></div>
         </form>
       </details>
@@ -1098,7 +1098,7 @@ textarea { resize: vertical; }
   </section>
 
   <section class="card activity-feed-card auth-hidden" id="activityFeedCard">
-    <div class="card-head"><div><h2>Новости авторов</h2><div class="small" style="margin-top:4px">Новые достижения тех, кто разрешил делиться ими с сообществом.</div></div><button type="button" class="btn secondary" id="refreshActivityFeed">Обновить</button></div>
+    <div class="card-head"><div><h2>Новости авторов</h2><div class="small" style="margin-top:4px">Достижения и ежедневный прогресс авторов, которые разрешили делиться ими с сообществом. Личные заметки и тексты рукописей не публикуются.</div></div><button type="button" class="btn secondary" id="refreshActivityFeed">Обновить</button></div>
     <p class="small" id="activityFeedStatus" aria-live="polite">Загружаем ленту…</p>
     <div class="activity-feed" id="activityFeed"></div>
   </section>
@@ -1169,7 +1169,7 @@ textarea { resize: vertical; }
       </div>
     </div>
     <div class="setting-section">
-      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Показывать мои достижения авторам, которые подписаны на меня</strong><br>Если выключить настройку, новые и прежние достижения исчезнут из их ленты сообщества.</span></label>
+      <label class="privacy-setting"><input id="allowStatsVisibility" type="checkbox"><span><strong>Показывать мои достижения и продуктивность авторам, которые подписаны на меня</strong><br>В ленте будут только достижения и число написанных знаков за день — без текстов рукописей и личных заметок. При отключении данные исчезнут из ленты.</span></label>
       <button id="saveVisibilityBtn" class="btn primary" type="button">Сохранить видимость</button>
     </div>
     <p id="settingsMessage" class="auth-message" aria-live="polite"></p>
@@ -1909,7 +1909,7 @@ render();
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'like-btn';
-    button.textContent = itemType === 'stats' ? '♡ Поддержать автора' : '♡ Нравится';
+    button.textContent = (itemType === 'stats' || itemType === 'productivity') ? '♡ Поддержать автора' : '♡ Нравится';
     button.setAttribute('aria-pressed', 'false');
     container.replaceChildren(button);
 
@@ -1923,8 +1923,8 @@ render();
       return query;
     };
     const updateLabel = () => {
-      const label = itemType === 'stats' ? 'Поддержать автора' : 'Нравится';
-      const countLabel = itemType === 'achievement' && Number(initialCount) > 0 ? ' · ' + Number(initialCount) : '';
+      const label = (itemType === 'stats' || itemType === 'productivity') ? 'Поддержать автора' : 'Нравится';
+      const countLabel = (itemType === 'achievement' || itemType === 'productivity') && Number(initialCount) > 0 ? ' · ' + Number(initialCount) : '';
       button.textContent = (liked ? '♥ ' : '♡ ') + label + countLabel;
       button.classList.toggle('liked', liked);
       button.setAttribute('aria-pressed', String(liked));
@@ -1966,7 +1966,7 @@ render();
           });
           if (insertError) throw insertError;
         }
-        if (itemType === 'achievement') {
+        if (itemType === 'achievement' || itemType === 'productivity') {
           await loadActivityFeed();
         } else {
           await renderLikeButton(container, targetUserId, itemType, achievementId, initialCount);
@@ -2161,9 +2161,23 @@ function makePersonRow(profile, isFollowing, mode) {
     if (!activeUserId) return;
     const status = $('activityFeedStatus'), list = $('activityFeed');
     status.textContent = 'Загружаем ленту…'; list.replaceChildren();
-    const { data, error } = await client.rpc('get_writer_achievement_feed');
-    if (error) { status.textContent = 'Не удалось загрузить ленту: ' + (error.message || 'ошибка доступа'); return; }
-    const events = Array.isArray(data) ? data : [];
+    const [achievementResult, productivityResult] = await Promise.all([
+      client.rpc('get_writer_achievement_feed'),
+      client.rpc('get_writer_productivity_feed')
+    ]);
+    if (achievementResult.error) {
+      status.textContent = 'Не удалось загрузить достижения: ' + (achievementResult.error.message || 'ошибка доступа');
+      return;
+    }
+    if (productivityResult.error) {
+      status.textContent = 'Не удалось загрузить продуктивность: ' + (productivityResult.error.message || 'ошибка доступа');
+      return;
+    }
+    const achievements = (Array.isArray(achievementResult.data) ? achievementResult.data : [])
+      .map(item => ({...item, item_type: 'achievement'}));
+    const productivity = (Array.isArray(productivityResult.data) ? productivityResult.data : [])
+      .map(item => ({...item, item_type: 'productivity'}));
+    const events = [...achievements, ...productivity].sort((a,b) => new Date(b.earned_at || 0) - new Date(a.earned_at || 0)).slice(0,50);
     const defs = Array.isArray(window.writersHQAchievementDefs) ? window.writersHQAchievementDefs : [];
     const likerIds = [...new Set(events.flatMap(item => Array.isArray(item.liker_ids) ? item.liker_ids : []))];
     let likerAvatarById = new Map();
@@ -2174,9 +2188,13 @@ function makePersonRow(profile, isFollowing, mode) {
         likerAvatarById = new Map(resolvedProfiles.map(profile => [profile.id, profile.avatar_url]));
       }
     }
-    if (!events.length) { status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений, получат новые значки, они появятся здесь.'; return; }
-    status.textContent = 'Свежие достижения сообщества';
+    if (!events.length) {
+      status.textContent = 'Пока нет новостей. Когда авторы, разрешившие показ достижений и продуктивности, получат новые значки или запишут прогресс, он появится здесь.';
+      return;
+    }
+    status.textContent = 'Свежие новости сообщества';
     for (const item of events) {
+      const isProductivity = item.item_type === 'productivity';
       const def = defs.find(entry => entry.id === item.achievement_id);
       const card = document.createElement('article'); card.className = 'activity-item';
       const feedAvatarUrl = item.avatar_url && typeof resolveAvatarUrl === 'function' ? await resolveAvatarUrl(item.avatar_url, item.user_id) : item.avatar_url;
@@ -2186,17 +2204,27 @@ function makePersonRow(profile, isFollowing, mode) {
       const main = document.createElement('div'); main.className = 'activity-main';
       const copy = document.createElement('div'); copy.className = 'activity-copy';
       copy.append(makeAuthorName({display_name:item.display_name, social_url:item.social_url}, 'activity-author-name'));
-      copy.append(document.createTextNode(' получил(а) достижение'));
       const achievement = document.createElement('div'); achievement.className = 'activity-achievement';
       const icon = document.createElement('span'); icon.textContent = def ? def.icon : '🏅'; icon.setAttribute('aria-hidden', 'true');
-      const title = document.createElement('strong'); title.textContent = def ? def.title : item.achievement_id;
-      achievement.append(icon, title);
+      const title = document.createElement('strong');
+      title.textContent = def ? def.title : item.achievement_id;
+      if (isProductivity) {
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const dateWord = item.achievement_id === today ? ' сегодня' : '';
+        copy.append(document.createTextNode(dateWord + ' написал(а) ' + new Intl.NumberFormat('ru-RU').format(Number(item.chars_written) || 0) + ' знаков'));
+      } else {
+        copy.append(document.createTextNode(' получил(а) достижение'));
+        achievement.append(icon, title);
+      }
       const date = document.createElement('div'); date.className = 'activity-date';
-      const earnedAt = item.earned_at ? new Date(item.earned_at) : null;
+      const earnedAt = isProductivity && /^\d{4}-\d{2}-\d{2}$/.test(item.achievement_id || '')
+        ? new Date(item.achievement_id + 'T12:00:00')
+        : (item.earned_at ? new Date(item.earned_at) : null);
       date.textContent = earnedAt && !Number.isNaN(earnedAt.getTime()) ? earnedAt.toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'}) : 'Недавно';
       const actions = document.createElement('div'); actions.className = 'activity-actions';
       const likeControl = document.createElement('span'); actions.append(likeControl);
-      renderLikeButton(likeControl, item.user_id, 'achievement', item.achievement_id, Number(item.like_count) || 0).catch(() => {});
+      renderLikeButton(likeControl, item.user_id, item.item_type, item.achievement_id, Number(item.like_count) || 0).catch(() => {});
       const likerIdsForItem = Array.isArray(item.liker_ids) ? item.liker_ids : [];
       if (likerIdsForItem.length) {
         const likers = document.createElement('div'); likers.className = 'activity-liker-avatars';
@@ -2214,7 +2242,7 @@ function makePersonRow(profile, isFollowing, mode) {
         }
         if (likers.childElementCount) actions.append(likers);
       }
-      main.append(copy, achievement, date, actions); card.append(avatar, main); list.append(card);
+      main.append(copy); if (!isProductivity) main.append(achievement); main.append(date, actions); card.append(avatar, main); list.append(card);
     }
   }
   window.writersHQRefreshFeed = loadActivityFeed;
@@ -2855,8 +2883,8 @@ function makePersonRow(profile, isFollowing, mode) {
       }, { onConflict: 'user_id' });
       if (error) throw error;
       $('settingsMessage').textContent = allowed
-        ? 'Твои достижения теперь появляются в ленте сообщества.'
-        : 'Показ достижений в ленте сообщества отключён.';
+        ? 'Твои достижения и ежедневная продуктивность теперь появляются в ленте сообщества.'
+        : 'Показ достижений и продуктивности в ленте сообщества отключён.';
       $('settingsMessage').className = 'auth-message success';
     } catch (error) {
       $('settingsMessage').textContent = 'Не удалось сохранить настройку: ' + (error.message || 'ошибка');
