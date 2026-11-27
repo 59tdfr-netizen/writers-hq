@@ -498,6 +498,17 @@ def main():
             "Do not print or share the secret value."
         )
 
+    # Close stale opportunities before scraping so expired deadlines never stay open in the calendar.
+    today = date.today().isoformat()
+    close_status, closed_rows = supabase_request(
+        "PATCH",
+        f"writer_opportunities?status=eq.open&deadline=lt.{today}",
+        {"status": "closed"},
+    )
+    if close_status not in (200, 204) or not isinstance(closed_rows, list):
+        raise RuntimeError("Could not close expired literary opportunities in Supabase")
+    print(f"Closed expired opportunities: {len(closed_rows)} (deadline before {today})")
+
     candidates_by_source = {}
     pages_checked = 0
     for source in SOURCES:
